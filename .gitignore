@@ -1,0 +1,11 @@
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+.env
+
+tmp/
+
+web_client/dist/*
+!web_client/dist/.keep

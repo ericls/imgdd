@@ -1,0 +1,35 @@
+version: "3"
+
+# This docker compose file runs dependencies for
+# DEV or test environment
+services:
+  db:
+    image: postgres:alpine
+    env_file:
+      - .env
+    ports:
+      - "30101:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  redis:
+    image: redis
+    ports:
+      - "30102:6379"
+  minio:
+    image: minio/minio:RELEASE.2021-04-22T15-44-28Z
+    volumes:
+      - minio_data:/data
+    ports:
+      - "30103:9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+volumes:
+  minio_data:
+  db_data:
