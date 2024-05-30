@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --toastify-color-progress-dark: theme(colors.indigo.700) !important;
+  --toastify-color-progress-light: theme(colors.indigo.600) !important;
+}

@@ -1,0 +1,6 @@
+# Ignore artifacts:
+build
+dist
+parcel-bundle-reports
+coverage
+.parcel-cache

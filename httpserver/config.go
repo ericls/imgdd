@@ -13,6 +13,7 @@ type HttpServerConfigDef struct {
 	StaticFS           fs.FS
 	SessionKey         string
 	RedisURIForSession string
+	SiteName           string
 }
 
 var Config HttpServerConfigDef
@@ -35,5 +36,6 @@ func readServerConfigFromEnv() HttpServerConfigDef {
 		ReadTimeout:        10,
 		SessionKey:         getenv("IMGDD_SESSION_KEY", "NOT_SECURE_KEY"),
 		RedisURIForSession: getenv("IMGDD_REDIS_URI_FOR_SESSION", "redis://localhost:30102"),
+		SiteName:           getenv("IMGDD_SITE_NAME", "imgdd"),
 	}
 }

@@ -1,0 +1,49 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>IMGDD - Image Direct Delivery</title>
+<meta name="description" content="The Image Direct Delivery service" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@500;700&family=Roboto:wght@400;500&family=Merriweather&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/web/entry.css?v={{.Version}}-{{.VersionHash}}" />
+<script>
+      if (
+        localStorage.imgddtheme === "dark" ||
+        (!("imgddtheme" in localStorage) &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
+        document.documentElement.setAttribute("data-theme", "dark");
+        } else {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+      window.VERSION = "{{.Version}}";
+      window.SITE_NAME = "{{.SiteName}}";
+      window.GAID = "";
+      window.SUPPORT_EMAIL = "support@imgdd.com"
+</script>
+{{if .Debug}}
+{{else}}
+<script>
+  var _paq = window._paq = window._paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//stats.mailgrate.com/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '2']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+{{end}}
+</head>
+<body class="bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-100 font-ui h-screen overflow-hidden">
+{{block "content" .}}{{end}}
+<script async src="/static/web/entry.js?v={{.Version}}-{{.VersionHash}}"></script>
+</body>
+</html>
+{{end}}

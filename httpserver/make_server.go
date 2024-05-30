@@ -1,6 +1,8 @@
 package httpserver
 
 import (
+	"html/template"
+	"imgdd/buildflag"
 	"imgdd/db"
 	"imgdd/graph"
 	"imgdd/identity"
@@ -13,8 +15,29 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello, world! 3"))
+func makeAppHandler(conf *HttpServerConfigDef) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// renders the `app.gotmpl` template
+		template, err := template.ParseFS(conf.TemplatesFS, "*.gotmpl")
+		if err != nil {
+			w.Write([]byte("Error rendering template"))
+		}
+		err = template.Execute(w, struct {
+			Version     string
+			VersionHash string
+			SiteName    string
+			Debug       bool
+		}{
+			Version:     buildflag.VersionHash,
+			Debug:       buildflag.Debug == "true",
+			SiteName:    conf.SiteName,
+			VersionHash: buildflag.VersionHash,
+		})
+		if err != nil {
+			println(err.Error())
+			w.Write([]byte("Error rendering template 2"))
+		}
+	}
 }
 
 func mountStatic(r *mux.Router, dir fs.FS) {
@@ -51,7 +74,7 @@ func MakeServer(conf *HttpServerConfigDef) *http.Server {
 	r.Use(identityManager.Middleware)
 
 	mountStatic(r, conf.StaticFS)
-	r.HandleFunc("/", HomeHandler)
+	r.HandleFunc("/", makeAppHandler(conf))
 	srv := &http.Server{
 		Handler:      r,
 		Addr:         conf.Bind,
