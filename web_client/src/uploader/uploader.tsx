@@ -44,7 +44,7 @@ export function Uplodaer() {
         loaded: false,
       };
       setUploadingFiles((current) => [...current, newUploadingFile]);
-      function setCurrentFile(data: Partial<UploadingFile>) {
+      function setCurrentFile(data: Omit<Partial<UploadingFile>, "id">) {
         setUploadingFiles((current) => {
           return current.map((item) => {
             if (item.id === id) {
