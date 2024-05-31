@@ -1,0 +1,10 @@
+{
+    "home": {
+        "tagLine": "Fast image delivery across the globe, for free."
+    },
+    "uploader": {
+        "mainHelpText": "Drag and drop or click to choose files",
+        "copyAllUrls": "Copy all URLs",
+        "copyFormat": "Copy {{format}}"
+    }
+}

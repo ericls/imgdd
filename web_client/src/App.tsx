@@ -7,10 +7,14 @@ import {
   TEXT_COLOR,
 } from "./ui/classNames";
 import { Uplodaer } from "./uploader/uploader";
+import { TopNav } from "./common/TopNav";
+import { useTranslation } from "react-i18next";
 
 export function App() {
+  const { t } = useTranslation();
   return (
     <div className="main h-full flex flex-col mx-2">
+      <TopNav />
       <div className="max-w-screen-sm flex flex-col grow mx-auto items-center">
         <h1
           className={classnames(
@@ -26,7 +30,7 @@ export function App() {
             "font-poppins text-2xl mb-10 text-center"
           )}
         >
-          Fast image delivery across the globe, for free.
+          {t("home.tagLine")}
         </p>
         <Uplodaer />
       </div>

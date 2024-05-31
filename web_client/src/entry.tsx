@@ -6,6 +6,8 @@ import "./entry.css";
 import "../node_modules/react-toastify/dist/ReactToastify.css";
 import { DarkModeContext, DarkModeProvider } from "./lib/darkMode";
 
+import "./i18n";
+
 function AutoDarkToastContainer() {
   const darkContext = React.useContext(DarkModeContext);
   return (

@@ -16,4 +16,7 @@ export const SECOND_LAYER = "bg-neutral-50 dark:bg-neutral-800";
 export const SECOND_LAYER_HOVER =
   "hover:bg-neutral-200 hover:dark:bg-neutral-700";
 
+export const LOGO_TEXT_1 = cx("font-poppins font-bold select-none", TEXT_COLOR);
+export const LOGO_TEXT_2 = cx(LINK_COLOR);
+
 ("rounded-full");

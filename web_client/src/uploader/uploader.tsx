@@ -11,6 +11,7 @@ import { uniqueId } from "lodash-es";
 import copy from "copy-to-clipboard";
 import { Button } from "~src/ui/button";
 import { UploaderItem } from "./uploaderItem";
+import { useTranslation } from "react-i18next";
 
 const FILE_SIZE_LIMIT = 5e6;
 
@@ -27,6 +28,7 @@ export type UploadingFile = {
 };
 
 export function Uplodaer() {
+  const { t } = useTranslation();
   const [uploadingFiles, setUploadingFiles] = React.useState<UploadingFile[]>(
     []
   );
@@ -256,7 +258,7 @@ export function Uplodaer() {
             multiple
           />
           <HiOutlineCloudArrowUp className="mb-2" size={48} />
-          <p className="text-center">Drag and drop or click to choose files</p>
+          <p className="text-center">{t("uploader.mainHelpText")}</p>
         </div>
       </div>
       <div>
@@ -269,7 +271,7 @@ export function Uplodaer() {
               className="flex items-center gap-2 px-2 py-1"
             >
               {justCopied ? <HiCheck /> : <HiOutlineClipboardDocumentList />}
-              Copy all URLs
+              {t("uploader.copyAllURLs")}
             </Button>
           )}
         </div>

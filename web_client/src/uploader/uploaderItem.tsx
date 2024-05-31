@@ -10,6 +10,7 @@ import { MenuWithTrigger } from "~src/ui/menuWithTrigger";
 import { Loader } from "~src/ui/loader";
 import { MenuSections } from "~src/ui/menu";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 function copyText(text: string, cb?: () => void) {
   if (!text) return;
@@ -34,6 +35,7 @@ export function UploaderItem({
 }: {
   uploadingFile: UploaderItem;
 }) {
+  const { t } = useTranslation();
   const { file, totalSize, loadedSize, loaded, errored, aborted, url } =
     uploadingFile;
   const lastCopyTs = React.useRef<number>(0);
@@ -85,15 +87,31 @@ export function UploaderItem({
         {
           id: "main",
           items: [
-            { id: "copyURL", action: copyURL, children: "Copy URL" },
-            { id: "html", action: copyHTML, children: "Copy HTML" },
-            { id: "bb", action: copyBB, children: "Copy BBCode" },
-            { id: "markdown", action: copyMarkdown, children: "Copy Markdown" },
+            {
+              id: "copyURL",
+              action: copyURL,
+              children: t("uploader.copyFormat", { format: "URL" }),
+            },
+            {
+              id: "html",
+              action: copyHTML,
+              children: t("uploader.copyFormat", { format: "HTML" }),
+            },
+            {
+              id: "bb",
+              action: copyBB,
+              children: t("uploader.copyFormat", { format: "BBCode" }),
+            },
+            {
+              id: "markdown",
+              action: copyMarkdown,
+              children: t("uploader.copyFormat", { format: "Markdown" }),
+            },
           ],
         },
       ],
     };
-  }, [loaded, url, file]);
+  }, [loaded, url, file.name, t]);
 
   return (
     <div className="uploder-item mb-2 flex items-center gap-1 relative">
