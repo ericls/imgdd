@@ -36,13 +36,13 @@ export function DarkModeSettings() {
   return (
     <MenuWithTrigger
       placement="top-start"
-      containerClassName="block text-center m-auto mb-2"
+      containerClassName="block text-center"
       trigger={
         <Button
           variant="transparent"
           className={cx(
             SECONDARY_TEXT_COLOR_DIM,
-            "block text-center m-auto mb-2"
+            "block text-center"
           )}
         >
           {isDarkMode ? (
