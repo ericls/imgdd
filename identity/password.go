@@ -10,7 +10,7 @@ const cost = 14
 
 func HashPassword(password string) (string, error) {
 	realCost := cost
-	if buildflag.Debug == "true" {
+	if buildflag.IsDebug {
 		realCost = 1
 	}
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), realCost)

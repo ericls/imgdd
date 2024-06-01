@@ -1,12 +1,15 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { ToastContainer } from "react-toastify";
-import { App } from "./App";
+import { ApolloProvider } from "@apollo/client";
 import "./entry.css";
 import "../node_modules/react-toastify/dist/ReactToastify.css";
 import { DarkModeContext, DarkModeProvider } from "./lib/darkMode";
 
 import "./i18n";
+import { apolloClient } from "./apollo";
+import { AuthProvider } from "./lib/auth";
+import { Layout } from "./layout";
 
 function AutoDarkToastContainer() {
   const darkContext = React.useContext(DarkModeContext);
@@ -20,10 +23,14 @@ function AutoDarkToastContainer() {
 
 function Root() {
   return (
-    <DarkModeProvider>
-      <App />
-      <AutoDarkToastContainer />
-    </DarkModeProvider>
+    <ApolloProvider client={apolloClient}>
+      <AuthProvider>
+        <DarkModeProvider>
+          <Layout />
+          <AutoDarkToastContainer />
+        </DarkModeProvider>
+      </AuthProvider>
+    </ApolloProvider>
   );
 }
 

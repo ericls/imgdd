@@ -17,6 +17,7 @@ export const SECOND_LAYER_HOVER =
   "hover:bg-neutral-200 hover:dark:bg-neutral-700";
 
 export const LOGO_TEXT_1 = cx("font-poppins font-bold select-none", TEXT_COLOR);
-export const LOGO_TEXT_2 = cx(LINK_COLOR);
+export const LOGO_TEXT_2 = "text-indigo-600 dark:text-indigo-500";
 
+// list of classes that we want tailwind to include
 ("rounded-full");

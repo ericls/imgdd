@@ -8,7 +8,6 @@ type CreateUserWithOrganizationInput struct {
 	OrganizationName string `json:"organization_name"`
 }
 
-
 type ViewerResult struct {
 	Viewer *Viewer `json:"viewer"`
 }

@@ -1,0 +1,92 @@
+/* eslint-disable */
+import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+export type Maybe<T> = T | null;
+export type InputMaybe<T> = Maybe<T>;
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+/** All built-in and custom scalars, mapped to their actual values */
+export type Scalars = {
+  ID: string;
+  String: string;
+  Boolean: boolean;
+  Int: number;
+  Float: number;
+};
+
+export type CreateUserWithOrganizationInput = {
+  organization_name: Scalars['String'];
+  user_email: Scalars['String'];
+  user_password: Scalars['String'];
+};
+
+export type Mutation = {
+  __typename?: 'Mutation';
+  authenticate: ViewerResult;
+  createUserWithOrganization: ViewerResult;
+  logout: ViewerResult;
+};
+
+
+export type MutationAuthenticateArgs = {
+  email: Scalars['String'];
+  organizationId?: InputMaybe<Scalars['String']>;
+  password: Scalars['String'];
+};
+
+
+export type MutationCreateUserWithOrganizationArgs = {
+  input: CreateUserWithOrganizationInput;
+};
+
+export type Organization = {
+  __typename?: 'Organization';
+  id: Scalars['ID'];
+  name: Scalars['String'];
+  slug: Scalars['String'];
+};
+
+export type OrganizationUser = {
+  __typename?: 'OrganizationUser';
+  id: Scalars['ID'];
+  organization: Organization;
+  roles: Array<Role>;
+  user: User;
+};
+
+export type Query = {
+  __typename?: 'Query';
+  viewer: Viewer;
+};
+
+export type Role = {
+  __typename?: 'Role';
+  key: Scalars['String'];
+  name: Scalars['String'];
+};
+
+export type User = {
+  __typename?: 'User';
+  email: Scalars['String'];
+  id: Scalars['ID'];
+  name: Scalars['String'];
+};
+
+export type Viewer = {
+  __typename?: 'Viewer';
+  id: Scalars['ID'];
+  organizationUser?: Maybe<OrganizationUser>;
+};
+
+export type ViewerResult = {
+  __typename?: 'ViewerResult';
+  viewer: Viewer;
+};
+
+export type AuthQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AuthQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, organizationUser?: { __typename?: 'OrganizationUser', id: string, user: { __typename?: 'User', id: string, email: string, name: string } } | null } };
+
+
+export const AuthDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Auth"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]} as unknown as DocumentNode<AuthQuery, AuthQueryVariables>;

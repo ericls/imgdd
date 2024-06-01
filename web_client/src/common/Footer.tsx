@@ -2,13 +2,12 @@ import classNames from "classnames";
 import React from "react";
 import { isChinaTimezone, isChinese } from "~src/lib/locale";
 import { SECONDARY_TEXT_COLOR_DIM } from "~src/ui/classNames";
-import { DarkModeSettings } from "~src/ui/darkModeToggle";
 
 export function Footer({ center = false }: { center?: boolean }) {
   return (
     <div
       className={classNames(
-        "p-2 text-sm flex justify-between",
+        "p-2 text-sm flex justify-end",
         SECONDARY_TEXT_COLOR_DIM,
         {
           ["text-end"]: !center,
@@ -16,9 +15,6 @@ export function Footer({ center = false }: { center?: boolean }) {
         }
       )}
     >
-      <div>
-        <DarkModeSettings />
-      </div>
       <div>
         <span className="opacity-50">IMGDD.COM 🇨🇦</span>
         <br />

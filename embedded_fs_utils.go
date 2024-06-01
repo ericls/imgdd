@@ -21,7 +21,7 @@ type moutingFS struct {
 var MoutingFS moutingFS
 
 func init() {
-	if buildflag.Debug == "true" {
+	if buildflag.IsDebug {
 		MoutingFS.Templates = os.DirFS("httpserver/templates")
 		MoutingFS.Static = os.DirFS("web_client/dist")
 	} else {

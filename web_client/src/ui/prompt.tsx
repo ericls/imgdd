@@ -83,32 +83,6 @@ function Prompt({
   onNo,
 }: PromptProps) {
   return (
-    // <Transition
-    //   show
-    //   enter="transition duration-100 ease-out"
-    //   enterFrom="transform scale-95 opacity-0"
-    //   enterTo="transform scale-100 opacity-100"
-    //   leave="transition duration-75 ease-out"
-    //   leaveFrom="transform scale-100 opacity-100"
-    //   leaveTo="transform scale-95 opacity-0"
-    //   as={Fragment}
-    // >
-    //   <Dialog onClose={noop} as="div" className="relative z-10">
-    //     <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-    //       <Dialog.Title>{title}</Dialog.Title>
-    //       {content}
-    //     </Dialog.Panel>
-    //     <Button onClick={onNo} variant="secondary">
-    //       Cancel
-    //     </Button>
-    //     <Button
-    //       onClick={onYes}
-    //       variant={yesDestructive ? "destructive" : "indigo"}
-    //     >
-    //       {yesText}
-    //     </Button>
-    //   </Dialog>
-    // </Transition>
     <Transition.Root show as={Fragment}>
       <Dialog as="div" className="relative z-[100]" onClose={noop}>
         <Transition.Child

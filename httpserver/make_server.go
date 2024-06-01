@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/99designs/gqlgen/graphql/handler"
+	gqlgenHandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/mux"
 )
@@ -29,7 +29,7 @@ func makeAppHandler(conf *HttpServerConfigDef) http.HandlerFunc {
 			Debug       bool
 		}{
 			Version:     buildflag.VersionHash,
-			Debug:       buildflag.Debug == "true",
+			Debug:       buildflag.IsDebug,
 			SiteName:    conf.SiteName,
 			VersionHash: buildflag.VersionHash,
 		})
@@ -62,7 +62,7 @@ func MakeServer(conf *HttpServerConfigDef) *http.Server {
 	identityManager := NewIdentityManager(identityRepo)
 	gqlResolver := NewGqlResolver(identityManager)
 
-	graphqlServer := handler.NewDefaultServer(
+	graphqlServer := gqlgenHandler.NewDefaultServer(
 		graph.NewExecutableSchema(
 			graph.Config{Resolvers: gqlResolver},
 		),

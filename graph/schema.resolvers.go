@@ -39,21 +39,12 @@ func (r *mutationResolver) CreateUserWithOrganization(ctx context.Context, input
 
 // Viewer is the resolver for the viewer field.
 func (r *queryResolver) Viewer(ctx context.Context) (*model.Viewer, error) {
-	panic(fmt.Errorf("not implemented: Viewer - viewer"))
+	return &model.Viewer{}, nil
 }
 
 // ID is the resolver for the id field.
 func (r *viewerResolver) ID(ctx context.Context, obj *model.Viewer) (string, error) {
 	return "viewer", nil
-}
-
-// OrganizationUser is the resolver for the organizationUser field.
-func (r *viewerResolver) OrganizationUser(ctx context.Context, obj *model.Viewer) (*model.OrganizationUser, error) {
-	currentOrganizationUser := r.ContextUserManager.GetAuthenticationInfo(ctx).AuthorizedUser.OrganizationUser
-	if currentOrganizationUser == nil {
-		return nil, nil
-	}
-	return model.FromIdentityOrganizationUser(currentOrganizationUser), nil
 }
 
 // Mutation returns MutationResolver implementation.
@@ -68,3 +59,17 @@ func (r *Resolver) Viewer() ViewerResolver { return &viewerResolver{r} }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type viewerResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//     it when you're done.
+//   - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *viewerResolver) OrganizationUser(ctx context.Context, obj *model.Viewer) (*model.OrganizationUser, error) {
+	currentOrganizationUser := r.ContextUserManager.GetAuthenticationInfo(ctx).AuthorizedUser.OrganizationUser
+	if currentOrganizationUser == nil {
+		return nil, nil
+	}
+	return model.FromIdentityOrganizationUser(currentOrganizationUser), nil
+}
