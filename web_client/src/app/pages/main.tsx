@@ -1,20 +1,21 @@
 import classnames from "classnames";
 import React from "react";
-import {
-  SECONDARY_TEXT_COLOR_DIM,
-  TEXT_COLOR,
-} from "./ui/classNames";
-import { Uplodaer } from "./uploader/uploader";
+import { SECONDARY_TEXT_COLOR_DIM, TEXT_COLOR } from "~src/ui/classNames";
+import { Uplodaer } from "~src/uploader/uploader";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "./lib/auth";
-import { FullScreenLoader } from "./ui/fullscreenLoader";
-import { TextLogo } from "./common/TextLogo";
+import { useAuth } from "~src/lib/auth";
+import { FullScreenLoader } from "~src/ui/fullscreenLoader";
+import { TextLogo } from "~src/common/TextLogo";
 
-export function App() {
+export function AppMainPage() {
   const { t } = useTranslation();
   const { isLoading: isAuthLoading } = useAuth();
   if (isAuthLoading) {
-    return <div className="grow flex items-center"><FullScreenLoader /></div>
+    return (
+      <div className="absolute w-full h-full">
+        <FullScreenLoader withLogo />
+      </div>
+    );
   }
   return (
     <div className="max-w-screen-sm flex flex-col grow mx-auto items-center">
@@ -23,9 +24,8 @@ export function App() {
           TEXT_COLOR,
           "font-poppins mb-4 mt-20 font-bold select-none"
         )}
-      >
-      </h1>
-        <TextLogo className="text-4xl"/>
+      ></h1>
+      <TextLogo className="text-4xl" />
       <p
         className={classnames(
           SECONDARY_TEXT_COLOR_DIM,

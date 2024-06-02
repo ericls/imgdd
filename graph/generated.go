@@ -3312,29 +3312,29 @@ func (ec *executionContext) unmarshalInputCreateUserWithOrganizationInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"user_email", "user_password", "organization_name"}
+	fieldsInOrder := [...]string{"userEmail", "userPassword", "organizationName"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "user_email":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_email"))
+		case "userEmail":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userEmail"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.UserEmail = data
-		case "user_password":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_password"))
+		case "userPassword":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userPassword"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.UserPassword = data
-		case "organization_name":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_name"))
+		case "organizationName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organizationName"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err

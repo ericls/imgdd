@@ -1,9 +1,7 @@
-import { useQuery } from '@apollo/client';
-import React from 'react';
-import { gql } from '~src/__generated__/gql';
-import { AuthQuery } from '~src/__generated__/graphql';
-import { FullScreenLoader } from '~src/ui/fullscreenLoader';
-
+import { useQuery } from "@apollo/client";
+import React from "react";
+import { gql } from "~src/__generated__/gql";
+import { AuthQuery } from "~src/__generated__/graphql";
 
 const AUTH_QUERY = gql(`
 query Auth {
@@ -23,21 +21,20 @@ query Auth {
 
 const EMPTY_AUTH_QUERY_RESULT: AuthQuery = {
   viewer: {
-    id: 'viewer',
+    id: "viewer",
     organizationUser: null,
-  }
+  },
 };
 
-const AuthContext = React.createContext<{ data: AuthQuery | null | undefined, isLoading: boolean }>({ data: EMPTY_AUTH_QUERY_RESULT, isLoading: true });
+const AuthContext = React.createContext<{
+  data: AuthQuery | null | undefined;
+  isLoading: boolean;
+}>({ data: EMPTY_AUTH_QUERY_RESULT, isLoading: true });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data, loading } = useQuery(AUTH_QUERY);
   const value = { data, isLoading: loading };
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

@@ -74,7 +74,7 @@ func MakeServer(conf *HttpServerConfigDef) *http.Server {
 	r.Use(identityManager.Middleware)
 
 	mountStatic(r, conf.StaticFS)
-	r.HandleFunc("/", makeAppHandler(conf))
+	r.PathPrefix("/").HandlerFunc(makeAppHandler(conf))
 	srv := &http.Server{
 		Handler:      r,
 		Addr:         conf.Bind,

@@ -17,7 +17,6 @@ type OrganizationUser {
   roles: [Role!]!
 }
 
-
 type Role {
   key: String!
   name: String!
@@ -32,20 +31,24 @@ type Query {
   viewer: Viewer!
 }
 
-
 type ViewerResult {
   viewer: Viewer!
 }
 
-
 input CreateUserWithOrganizationInput {
-  user_email: String!
-  user_password: String!
-  organization_name: String!
+  userEmail: String!
+  userPassword: String!
+  organizationName: String!
 }
 
 type Mutation {
-  authenticate(email: String!, password: String!, organizationId: String = ""): ViewerResult!
+  authenticate(
+    email: String!
+    password: String!
+    organizationId: String = ""
+  ): ViewerResult!
   logout: ViewerResult!
-  createUserWithOrganization(input: CreateUserWithOrganizationInput!): ViewerResult!
+  createUserWithOrganization(
+    input: CreateUserWithOrganizationInput!
+  ): ViewerResult!
 }

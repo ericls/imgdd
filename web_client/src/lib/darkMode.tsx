@@ -8,8 +8,8 @@ export type DarkModeTheme = "dark" | "light" | "system";
 
 export function setThemeAttr() {
   if (
-    localStorage["imgdd-theme"] === "dark" ||
-    (!("imgdd-theme" in localStorage) &&
+    localStorage["imgddtheme"] === "dark" ||
+    (!("imgddtheme" in localStorage) &&
       window.matchMedia("(prefers-color-scheme: dark)").matches)
   ) {
     document.documentElement.setAttribute("data-theme", "dark");
@@ -20,16 +20,16 @@ export function setThemeAttr() {
 
 export function setTheme(theme: DarkModeTheme) {
   if (theme === "system") {
-    localStorage.removeItem("imgdd-theme");
+    localStorage.removeItem("imgddtheme");
   } else {
-    localStorage["imgdd-theme"] = theme;
+    localStorage["imgddtheme"] = theme;
   }
   setThemeAttr();
 }
 
 export function getTheme(): DarkModeTheme {
-  if (!("imgdd-theme" in localStorage)) return "system";
-  if (localStorage["imgdd-theme"] === "dark") return "dark";
+  if (!("imgddtheme" in localStorage)) return "system";
+  if (localStorage["imgddtheme"] === "dark") return "dark";
   return "light";
 }
 

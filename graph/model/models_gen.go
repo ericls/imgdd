@@ -3,9 +3,9 @@
 package model
 
 type CreateUserWithOrganizationInput struct {
-	UserEmail        string `json:"user_email"`
-	UserPassword     string `json:"user_password"`
-	OrganizationName string `json:"organization_name"`
+	UserEmail        string `json:"userEmail"`
+	UserPassword     string `json:"userPassword"`
+	OrganizationName string `json:"organizationName"`
 }
 
 type ViewerResult struct {

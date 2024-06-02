@@ -23,16 +23,16 @@
       window.GAID = "";
       window.SUPPORT_EMAIL = "support@imgdd.com"
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@500;700&family=Roboto:wght@400;500&family=Merriweather&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/web/entry.css?v={{.Version}}-{{.VersionHash}}" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@500;700&family=Roboto:wght@400;500&family=Merriweather&display=swap" rel="stylesheet">
 {{if .Debug}}
 {{else}}
 {{/* analytics */}}
 {{end}}
 </head>
-<body class="bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-100 font-ui h-screen overflow-hidden">
+<body class="bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-100 font-ui h-screen">
 {{block "content" .}}{{end}}
-<script async src="/static/web/entry.js?v={{.Version}}-{{.VersionHash}}"></script>
+<script defer src="/static/web/entry.js?v={{.Version}}-{{.VersionHash}}"></script>
 </body>
 </html>
 {{end}}

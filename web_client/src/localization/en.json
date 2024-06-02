@@ -6,5 +6,23 @@
         "mainHelpText": "Drag and drop or click to choose files",
         "copyAllUrls": "Copy all URLs",
         "copyFormat": "Copy {{format}}"
+    },
+    "auth": {
+        "authenticationFailed": "Authentication failed. Please check your credentials and try again.",
+        "passwordsDoNotMatch": "Passwords do not match.",
+        "userCreationFailed": "User creation failed. Please try again or contact support.",
+        "titleSignIn": "Sign in to your account",
+        "titleCreateAccount": "Create a new account",
+        "orCreateAccount": "or <2>create a new account</2>",
+        "orSignIn": "or <2>sign in</2>",
+        "fieldEmail": "Email",
+        "fieldPassword": "Password",
+        "fieldRepeatPassword": "Repeat password",
+        "fieldEmailPlaceholder": "Email",
+        "fieldPasswordPlaceholder": "Password",
+        "fieldRepeatPasswordPlaceholder": "Repeat password",
+        "forgotPasswordLink": "Forgot your password?",
+        "buttonSignIn": "Sign in",
+        "buttonCreateAccount": "Create account"
     }
 }
