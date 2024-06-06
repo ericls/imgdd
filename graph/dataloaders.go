@@ -21,7 +21,7 @@ type Loaders struct {
 
 func makeUserLoader(identityRepo identity.IdentityRepo) func(c context.Context, keys []string) ([]*model.User, []error) {
 	return func(c context.Context, keys []string) ([]*model.User, []error) {
-		users := identityRepo.GetUsersByIds(keys)
+		users := identityRepo.GetUsersByIds(context.Background(), keys)
 		idToUser := make(map[string]*dm.User)
 		for _, u := range users {
 			if u == nil {

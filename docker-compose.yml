@@ -11,6 +11,10 @@ services:
       - "30101:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+  db_ui:
+    image: adminer
+    ports:
+      - "30104:8080"
   redis:
     image: redis
     ports:

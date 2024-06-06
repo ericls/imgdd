@@ -1,6 +1,7 @@
 package identity
 
 import (
+	"context"
 	"imgdd/db"
 	dm "imgdd/domainmodels"
 	"testing"
@@ -24,20 +25,19 @@ func TestUserManager(t *testing.T) {
 			t.Errorf("Expected user to have role owner, got %s", ou.Roles[0].Key)
 		}
 	}
-	orgUser, err := identityRepo.CreateUserWithOrganization(emailAddr, "test", "123")
+	orgUser, err := identityRepo.CreateUserWithOrganization(context.Background(), emailAddr, "test", "123")
 	assertUser(orgUser, err)
-	orgUser = identityRepo.GetOrganizationUserById(orgUser.Id)
+	orgUser = identityRepo.GetOrganizationUserById(context.Background(), orgUser.Id)
 	assertUser(orgUser, nil)
-	orgUsers := identityRepo.GetOrganizationUsersByIds([]string{orgUser.Id})
+	orgUsers := identityRepo.GetOrganizationUsersByIds(context.Background(), []string{orgUser.Id})
 	if len(orgUsers) != 1 {
 		t.Errorf("Failed to fetch user in bulk")
 	} else {
 		assertUser(orgUsers[0], nil)
 	}
-	// orgUser = identityRepo.GetUserByEmail("test@home.arpa")
 	assertUser(orgUser, nil)
-	identityRepo.AddRoleToOrganizationUser(orgUser.Id, "member")
-	orgUser = identityRepo.GetOrganizationUserById(orgUser.Id)
+	identityRepo.AddRoleToOrganizationUser(context.Background(), orgUser.Id, "member")
+	orgUser = identityRepo.GetOrganizationUserById(context.Background(), orgUser.Id)
 	if len(orgUser.Roles) != 2 {
 		t.Errorf("Expected user to have 2 roles, got %d", len(orgUser.Roles))
 	}

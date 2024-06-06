@@ -1,6 +1,7 @@
 package test_support
 
 import (
+	"context"
 	dm "imgdd/domainmodels"
 
 	"github.com/google/uuid"
@@ -19,7 +20,7 @@ func (repo *TestIdentityRepo) Reset() {
 	repo.userPasswords = make(map[string]string)
 }
 
-func (repo *TestIdentityRepo) GetUserById(id string) *dm.User {
+func (repo *TestIdentityRepo) GetUserById(ctx context.Context, id string) *dm.User {
 	for _, user := range repo.users {
 		if user.Id == id {
 			return user
@@ -28,7 +29,7 @@ func (repo *TestIdentityRepo) GetUserById(id string) *dm.User {
 	return nil
 }
 
-func (repo *TestIdentityRepo) GetUserByEmail(email string) *dm.User {
+func (repo *TestIdentityRepo) GetUserByEmail(ctx context.Context, email string) *dm.User {
 	for _, user := range repo.users {
 		if user.Email == email {
 			return user
@@ -37,7 +38,7 @@ func (repo *TestIdentityRepo) GetUserByEmail(email string) *dm.User {
 	return nil
 }
 
-func (repo *TestIdentityRepo) GetOrganizationUserById(id string) *dm.OrganizationUser {
+func (repo *TestIdentityRepo) GetOrganizationUserById(ctx context.Context, id string) *dm.OrganizationUser {
 	for _, orgUser := range repo.organizationUsers {
 		if orgUser.Id == id {
 			return orgUser
@@ -46,15 +47,15 @@ func (repo *TestIdentityRepo) GetOrganizationUserById(id string) *dm.Organizatio
 	return nil
 }
 
-func (repo *TestIdentityRepo) GetOrganizationUsersByIds(ids []string) []*dm.OrganizationUser {
+func (repo *TestIdentityRepo) GetOrganizationUsersByIds(ctx context.Context, ids []string) []*dm.OrganizationUser {
 	var orgUsers []*dm.OrganizationUser
 	for _, id := range ids {
-		orgUsers = append(orgUsers, repo.GetOrganizationUserById(id))
+		orgUsers = append(orgUsers, repo.GetOrganizationUserById(ctx, id))
 	}
 	return orgUsers
 }
 
-func (repo *TestIdentityRepo) CreateUser(email string, orangizationId string, password string) (*dm.User, error) {
+func (repo *TestIdentityRepo) CreateUser(ctx context.Context, email string, orangizationId string, password string) (*dm.User, error) {
 	id := uuid.New().String()
 	user := &dm.User{
 		Id:             id,
@@ -62,17 +63,17 @@ func (repo *TestIdentityRepo) CreateUser(email string, orangizationId string, pa
 		OrganizationId: orangizationId,
 	}
 	repo.users = append(repo.users, user)
-	repo.setPassword(id, password)
+	repo.setPassword(ctx, id, password)
 	return user, nil
 }
 
-func (repo *TestIdentityRepo) CreateUserWithOrganization(email string, organizationName string, password string) (*dm.OrganizationUser, error) {
+func (repo *TestIdentityRepo) CreateUserWithOrganization(ctx context.Context, email string, organizationName string, password string) (*dm.OrganizationUser, error) {
 	org := &dm.Organization{
 		Id:          uuid.New().String(),
 		DisplayName: organizationName,
 		Slug:        uuid.New().String(),
 	}
-	user, err := repo.CreateUser(email, org.Id, password)
+	user, err := repo.CreateUser(ctx, email, org.Id, password)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +93,7 @@ func (repo *TestIdentityRepo) CreateUserWithOrganization(email string, organizat
 	return organizationUser, nil
 }
 
-func (repo *TestIdentityRepo) GetOrganizationById(id string) *dm.Organization {
+func (repo *TestIdentityRepo) GetOrganizationById(ctx context.Context, id string) *dm.Organization {
 	for _, org := range repo.organizations {
 		if org.Id == id {
 			return org
@@ -101,27 +102,27 @@ func (repo *TestIdentityRepo) GetOrganizationById(id string) *dm.Organization {
 	return nil
 }
 
-func (repo *TestIdentityRepo) GetUsersByIds(ids []string) []*dm.User {
+func (repo *TestIdentityRepo) GetUsersByIds(ctx context.Context, ids []string) []*dm.User {
 	var users []*dm.User
 	for _, id := range ids {
-		users = append(users, repo.GetUserById(id))
+		users = append(users, repo.GetUserById(ctx, id))
 	}
 	return users
 }
 
-func (repo *TestIdentityRepo) GetUserPassword(id string) string {
+func (repo *TestIdentityRepo) GetUserPassword(ctx context.Context, id string) string {
 	return repo.userPasswords[id]
 }
 
-func (reop *TestIdentityRepo) GetOrganizationsByIds(ids []string) []*dm.Organization {
+func (reop *TestIdentityRepo) GetOrganizationsByIds(ctx context.Context, ids []string) []*dm.Organization {
 	var orgs []*dm.Organization
 	for _, id := range ids {
-		orgs = append(orgs, reop.GetOrganizationById(id))
+		orgs = append(orgs, reop.GetOrganizationById(ctx, id))
 	}
 	return orgs
 }
 
-func (repo *TestIdentityRepo) setPassword(userId string, password string) {
+func (repo *TestIdentityRepo) setPassword(ctx context.Context, userId string, password string) {
 	if repo.userPasswords == nil {
 		repo.userPasswords = make(map[string]string)
 	}
@@ -133,7 +134,7 @@ type orgIdOrgUserIdPair struct {
 	orgUserId string
 }
 
-func (repo *TestIdentityRepo) getAllOrganizationsForUser(userId string) []*orgIdOrgUserIdPair {
+func (repo *TestIdentityRepo) getAllOrganizationsForUser(ctx context.Context, userId string) []*orgIdOrgUserIdPair {
 	var orgs []*orgIdOrgUserIdPair
 	for _, orgUser := range repo.organizationUsers {
 		if orgUser.User.Id == userId {
@@ -146,13 +147,13 @@ func (repo *TestIdentityRepo) getAllOrganizationsForUser(userId string) []*orgId
 	return orgs
 }
 
-func (repo *TestIdentityRepo) GetOrganizationForUser(userId string, maybeOrganizationId string) (*dm.Organization, *dm.OrganizationUser) {
-	possibleOrgs := repo.getAllOrganizationsForUser(userId)
+func (repo *TestIdentityRepo) GetOrganizationForUser(ctx context.Context, userId string, maybeOrganizationId string) (*dm.Organization, *dm.OrganizationUser) {
+	possibleOrgs := repo.getAllOrganizationsForUser(ctx, userId)
 	if maybeOrganizationId == "" {
 		if len(possibleOrgs) == 1 {
 			orgId := possibleOrgs[0].orgId
 			orgUserId := possibleOrgs[0].orgUserId
-			return repo.GetOrganizationById(orgId), repo.GetOrganizationUserById(orgUserId)
+			return repo.GetOrganizationById(ctx, orgId), repo.GetOrganizationUserById(ctx, orgUserId)
 		}
 		return nil, nil
 	}
@@ -160,7 +161,7 @@ func (repo *TestIdentityRepo) GetOrganizationForUser(userId string, maybeOrganiz
 		orgId := orgOrgUser.orgId
 		orgUserId := orgOrgUser.orgUserId
 		if orgId == maybeOrganizationId {
-			return repo.GetOrganizationById(orgId), repo.GetOrganizationUserById(orgUserId)
+			return repo.GetOrganizationById(ctx, orgId), repo.GetOrganizationUserById(ctx, orgUserId)
 		}
 	}
 	return nil, nil

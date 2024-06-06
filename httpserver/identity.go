@@ -36,7 +36,7 @@ func (cu *HttpContextUserManager) WithAuthenticationInfo(c context.Context, auth
 }
 
 func (cu *HttpContextUserManager) ValidateUserPassword(userId string, suppliedPassword string) bool {
-	hashedPassword := cu.identityRepo.GetUserPassword(userId)
+	hashedPassword := cu.identityRepo.GetUserPassword(context.Background(), userId)
 	return identity.CheckPasswordHash(suppliedPassword, hashedPassword)
 }
 
@@ -58,10 +58,10 @@ func (i *IdentityManager) makeAuthenticationInfoFromRequest(r *http.Request) *id
 	authenticatedUser := identity.AuthenticatedUser{}
 	authorizedUser := identity.AuthorizedUser{}
 	if authenticatedUserId != "" {
-		authenticatedUser.User = i.IdentityRepo.GetUserById(authenticatedUserId)
+		authenticatedUser.User = i.IdentityRepo.GetUserById(context.Background(), authenticatedUserId)
 	}
 	if authorizedUserId != "" {
-		authorizedUser.OrganizationUser = i.IdentityRepo.GetOrganizationUserById(authorizedUserId)
+		authorizedUser.OrganizationUser = i.IdentityRepo.GetOrganizationUserById(context.Background(), authorizedUserId)
 	}
 	authenticationInfo := identity.AuthenticationInfo{
 		AuthenticatedUser: &authenticatedUser,
@@ -94,8 +94,8 @@ func (i *IdentityManager) AuthenticateContext(c context.Context, userId string, 
 	w := GetResponseWriter(c)
 	r := GetRequest(c)
 	Authenticate(w, r, userId, organzationUserId)
-	user := i.IdentityRepo.GetUserById(userId)
-	orgUser := i.IdentityRepo.GetOrganizationUserById(organzationUserId)
+	user := i.IdentityRepo.GetUserById(context.Background(), userId)
+	orgUser := i.IdentityRepo.GetOrganizationUserById(c, organzationUserId)
 	authContext := i.ContextUserManager.GetAuthenticationInfo(c)
 	if authContext == nil {
 		authContext = &identity.AuthenticationInfo{}

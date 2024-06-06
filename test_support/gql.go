@@ -19,9 +19,8 @@ func NewTestIdentityManager(identityRepo *TestIdentityRepo) *TestIdentityManager
 }
 
 func (i *TestIdentityManager) AuthenticateContext(c context.Context, userId string, organizationUserId string) {
-	user := i.IdentityRepo.GetUserById(userId)
-	orgUser := i.IdentityRepo.GetOrganizationUserById(organizationUserId)
-	println("organizationUserId: ", organizationUserId)
+	user := i.IdentityRepo.GetUserById(context.Background(), userId)
+	orgUser := i.IdentityRepo.GetOrganizationUserById(context.Background(), organizationUserId)
 	authContext := i.ContextUserManager.GetAuthenticationInfo(c)
 	if authContext == nil {
 		authContext = &identity.AuthenticationInfo{

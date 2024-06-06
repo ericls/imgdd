@@ -2,6 +2,7 @@
 package identity
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"imgdd/db/.gen/imgdd/public/model"
@@ -90,7 +91,7 @@ func convertOrganizationUser(jetOU *organizationUserSelectResult) *dm.Organizati
 	}
 }
 
-func (repo *DBIdentityRepo) GetUserById(id string) *dm.User {
+func (repo *DBIdentityRepo) GetUserById(ctx context.Context, id string) *dm.User {
 	dest := userSelectResult{}
 	stmt := userSelect.WHERE(UserTable.ID.EQ(UUID(uuid.MustParse(id))))
 	err := stmt.Query(repo.DB, &dest)
@@ -100,7 +101,7 @@ func (repo *DBIdentityRepo) GetUserById(id string) *dm.User {
 	return convertUser(&dest)
 }
 
-func (repo *DBIdentityRepo) GetUserByEmail(email string) *dm.User {
+func (repo *DBIdentityRepo) GetUserByEmail(ctx context.Context, email string) *dm.User {
 	dest := userSelectResult{}
 	stmt := userSelect.WHERE(UserTable.Email.EQ(String(email)))
 	err := stmt.Query(repo.DB, &dest)
@@ -110,7 +111,7 @@ func (repo *DBIdentityRepo) GetUserByEmail(email string) *dm.User {
 	return convertUser(&dest)
 }
 
-func (repo *DBIdentityRepo) GetUserPassword(id string) string {
+func (repo *DBIdentityRepo) GetUserPassword(ctx context.Context, id string) string {
 	dest := model.UserTable{}
 	stmt := SELECT(
 		UserTable.Password,
@@ -122,7 +123,7 @@ func (repo *DBIdentityRepo) GetUserPassword(id string) string {
 	return dest.Password
 }
 
-func (repo *DBIdentityRepo) GetUsersByIds(ids []string) []*dm.User {
+func (repo *DBIdentityRepo) GetUsersByIds(ctx context.Context, ids []string) []*dm.User {
 	dest := []userSelectResult{}
 	uuids := make([]Expression, len(ids))
 	for i, id := range ids {
@@ -140,7 +141,7 @@ func (repo *DBIdentityRepo) GetUsersByIds(ids []string) []*dm.User {
 	return ret
 }
 
-func (repo *DBIdentityRepo) GetOrganizationById(id string) *dm.Organization {
+func (repo *DBIdentityRepo) GetOrganizationById(ctx context.Context, id string) *dm.Organization {
 	dest := model.OrganizationTable{}
 	stmt := SELECT(
 		OrganizationTable.AllColumns,
@@ -152,7 +153,7 @@ func (repo *DBIdentityRepo) GetOrganizationById(id string) *dm.Organization {
 	return convertOrganization(&dest)
 }
 
-func (repo *DBIdentityRepo) GetOrganizationsByIds(ids []string) []*dm.Organization {
+func (repo *DBIdentityRepo) GetOrganizationsByIds(ctx context.Context, ids []string) []*dm.Organization {
 	dest := []model.OrganizationTable{}
 	uuids := make([]Expression, len(ids))
 	for i, id := range ids {
@@ -172,7 +173,7 @@ func (repo *DBIdentityRepo) GetOrganizationsByIds(ids []string) []*dm.Organizati
 	return ret
 }
 
-func (repo *DBIdentityRepo) GetOrganizationUserById(id string) *dm.OrganizationUser {
+func (repo *DBIdentityRepo) GetOrganizationUserById(ctx context.Context, id string) *dm.OrganizationUser {
 	dest := organizationUserSelectResult{}
 	stmt := organizationUserSelect.WHERE(OrganizationUserTable.ID.EQ(UUID(uuid.MustParse(id))))
 	err := stmt.Query(repo.DB, &dest)
@@ -182,7 +183,7 @@ func (repo *DBIdentityRepo) GetOrganizationUserById(id string) *dm.OrganizationU
 	return convertOrganizationUser(&dest)
 }
 
-func (repo *DBIdentityRepo) GetOrganizationUsersByIds(ids []string) []*dm.OrganizationUser {
+func (repo *DBIdentityRepo) GetOrganizationUsersByIds(ctx context.Context, ids []string) []*dm.OrganizationUser {
 	dest := []organizationUserSelectResult{}
 	uuids := make([]Expression, len(ids))
 	for i, id := range ids {
@@ -200,7 +201,7 @@ func (repo *DBIdentityRepo) GetOrganizationUsersByIds(ids []string) []*dm.Organi
 	return ret
 }
 
-func (repo *DBIdentityRepo) createOrganizationUser(organizationId string, userId string) (*dm.OrganizationUser, error) {
+func (repo *DBIdentityRepo) createOrganizationUser(ctx context.Context, organizationId string, userId string) (*dm.OrganizationUser, error) {
 	stmt := OrganizationUserTable.INSERT(
 		OrganizationUserTable.OrganizationID,
 		OrganizationUserTable.UserID,
@@ -219,7 +220,7 @@ func (repo *DBIdentityRepo) createOrganizationUser(organizationId string, userId
 	return convertOrganizationUser(&queryDest), nil
 }
 
-func (repo *DBIdentityRepo) CreateUser(email string, orangizationId string, password string) (*dm.User, error) {
+func (repo *DBIdentityRepo) CreateUser(ctx context.Context, email string, orangizationId string, password string) (*dm.User, error) {
 	hashsedPassword, err := HashPassword(password)
 	if err != nil {
 		return nil, err
@@ -249,7 +250,7 @@ func (repo *DBIdentityRepo) CreateUser(email string, orangizationId string, pass
 	return convertUser(&dest), err
 }
 
-func (repo *DBIdentityRepo) CreateOrganization(name, slug string) (*dm.Organization, error) {
+func (repo *DBIdentityRepo) CreateOrganization(ctx context.Context, name, slug string) (*dm.Organization, error) {
 	stmt := OrganizationTable.INSERT(
 		OrganizationTable.DisplayName,
 		OrganizationTable.Slug,
@@ -262,7 +263,7 @@ func (repo *DBIdentityRepo) CreateOrganization(name, slug string) (*dm.Organizat
 	return convertOrganization(&dest), nil
 }
 
-func (repo *DBIdentityRepo) getRoleByKey(organizationId string, roleKey string) *dm.Role {
+func (repo *DBIdentityRepo) getRoleByKey(ctx context.Context, organizationId string, roleKey string) *dm.Role {
 	stmt := RoleTable.SELECT(
 		RoleTable.AllColumns,
 	).WHERE(
@@ -282,9 +283,9 @@ func (repo *DBIdentityRepo) getRoleByKey(organizationId string, roleKey string) 
 	}
 }
 
-func (repo *DBIdentityRepo) AddRoleToOrganizationUser(organizationUserId, roleKey string) error {
-	orgUser := repo.GetOrganizationUserById(organizationUserId)
-	role := repo.getRoleByKey(orgUser.Organization.Id, roleKey)
+func (repo *DBIdentityRepo) AddRoleToOrganizationUser(ctx context.Context, organizationUserId, roleKey string) error {
+	orgUser := repo.GetOrganizationUserById(ctx, organizationUserId)
+	role := repo.getRoleByKey(ctx, orgUser.Organization.Id, roleKey)
 	if role == nil {
 		return errors.New("role not found")
 	}
@@ -296,25 +297,25 @@ func (repo *DBIdentityRepo) AddRoleToOrganizationUser(organizationUserId, roleKe
 	return err
 }
 
-func (repo *DBIdentityRepo) CreateUserWithOrganization(email string, organizationName string, password string) (*dm.OrganizationUser, error) {
+func (repo *DBIdentityRepo) CreateUserWithOrganization(ctx context.Context, email string, organizationName string, password string) (*dm.OrganizationUser, error) {
 	tx, err := repo.DB.Begin()
 	if err != nil {
 		return nil, err
 	}
-	organization, err := repo.CreateOrganization(organizationName, organizationName)
+	organization, err := repo.CreateOrganization(ctx, organizationName, organizationName)
 	if err != nil {
 		return nil, err
 	}
-	user, err := repo.CreateUser(email, organization.Id, password)
+	user, err := repo.CreateUser(ctx, email, organization.Id, password)
 	if err != nil {
 		return nil, err
 	}
 	// Add user to organization
-	orgUser, err := repo.createOrganizationUser(organization.Id, user.Id)
+	orgUser, err := repo.createOrganizationUser(ctx, organization.Id, user.Id)
 	if err != nil {
 		return nil, err
 	}
-	err = repo.AddRoleToOrganizationUser(orgUser.Id, "owner")
+	err = repo.AddRoleToOrganizationUser(ctx, orgUser.Id, "owner")
 	if err != nil {
 		return nil, err
 	}
@@ -322,11 +323,11 @@ func (repo *DBIdentityRepo) CreateUserWithOrganization(email string, organizatio
 	if err != nil {
 		return nil, err
 	}
-	orgUser = repo.GetOrganizationUserById(orgUser.Id)
+	orgUser = repo.GetOrganizationUserById(ctx, orgUser.Id)
 	return orgUser, nil
 }
 
-func (repo *DBIdentityRepo) GetOrganizationForUser(userId string, maybeOrganizationId string) (*dm.Organization, *dm.OrganizationUser) {
+func (repo *DBIdentityRepo) GetOrganizationForUser(ctx context.Context, userId string, maybeOrganizationId string) (*dm.Organization, *dm.OrganizationUser) {
 	// if maybeOrganizationId is empty, get the only organization the user is a member of
 	if maybeOrganizationId == "" {
 		stmt := OrganizationTable.SELECT(
@@ -353,7 +354,7 @@ func (repo *DBIdentityRepo) GetOrganizationForUser(userId string, maybeOrganizat
 		if len(dest) != 1 {
 			return nil, nil
 		}
-		return repo.GetOrganizationById(dest[0].ID.String()), repo.GetOrganizationUserById(dest[0].OrganizationUser.ID.String())
+		return repo.GetOrganizationById(ctx, dest[0].ID.String()), repo.GetOrganizationUserById(ctx, dest[0].OrganizationUser.ID.String())
 	}
 	// if maybeOrganizationId is not empty, return the organization with that ID, if the user is a member of it
 	stmt := OrganizationTable.SELECT(
@@ -378,5 +379,5 @@ func (repo *DBIdentityRepo) GetOrganizationForUser(userId string, maybeOrganizat
 	if err != nil {
 		return nil, nil
 	}
-	return convertOrganization(&dest.OrganizationTable), repo.GetOrganizationUserById(dest.OrganizationUser.ID.String())
+	return convertOrganization(&dest.OrganizationTable), repo.GetOrganizationUserById(ctx, dest.OrganizationUser.ID.String())
 }

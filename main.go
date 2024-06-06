@@ -67,7 +67,6 @@ func main() {
 				return nil
 			},
 		},
-
 		{
 			Name: "populate-built-in-roles",
 			Action: func(ctx *cli.Context) error {

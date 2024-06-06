@@ -1,6 +1,7 @@
 package graph_test
 
 import (
+	"context"
 	"net/http/httptest"
 	"reflect"
 	"runtime"
@@ -63,7 +64,7 @@ func tAuthenticate(t *testing.T, client *client.Client, tc *TestContext) {
 	var resp struct {
 		Authenticate *model.ViewerResult
 	}
-	orgUser, _ := tc.identityRepo.CreateUserWithOrganization("test@example.com", "test_org", "password")
+	orgUser, _ := tc.identityRepo.CreateUserWithOrganization(context.Background(), "test@example.com", "test_org", "password")
 	err := client.Post(`
 	mutation {
 		authenticate(email: "test@example.com", password: "password") {
@@ -83,6 +84,8 @@ func tAuthenticate(t *testing.T, client *client.Client, tc *TestContext) {
 	}`, &resp)
 	require.NoError(t, err)
 	require.NotNil(t, resp.Authenticate)
+	require.NotNil(t, resp.Authenticate.Viewer)
+	require.NotNil(t, resp.Authenticate.Viewer.OrganizationUser)
 	require.Equal(t, orgUser.Id, resp.Authenticate.Viewer.OrganizationUser.ID)
 }
 

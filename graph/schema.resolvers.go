@@ -12,14 +12,14 @@ import (
 
 // Authenticate is the resolver for the authenticate field.
 func (r *mutationResolver) Authenticate(ctx context.Context, email string, password string, organizationID *string) (*model.ViewerResult, error) {
-	user := r.IdentityRepo.GetUserByEmail(email)
+	user := r.IdentityRepo.GetUserByEmail(context.Background(), email)
 	if user == nil {
 		return nil, fmt.Errorf("user not found")
 	}
 	if !r.ContextUserManager.ValidateUserPassword(user.Id, password) {
 		return nil, fmt.Errorf("password incorrect")
 	}
-	_, orgUser := r.IdentityRepo.GetOrganizationForUser(user.Id, *organizationID)
+	_, orgUser := r.IdentityRepo.GetOrganizationForUser(context.Background(), user.Id, *organizationID)
 	if orgUser == nil {
 		return nil, fmt.Errorf("organization not found")
 	}
@@ -29,12 +29,23 @@ func (r *mutationResolver) Authenticate(ctx context.Context, email string, passw
 
 // Logout is the resolver for the logout field.
 func (r *mutationResolver) Logout(ctx context.Context) (*model.ViewerResult, error) {
-	panic(fmt.Errorf("not implemented: Logout - logout"))
+	r.LogoutFn(ctx)
+	return &model.ViewerResult{Viewer: &model.Viewer{}}, nil
 }
 
 // CreateUserWithOrganization is the resolver for the createUserWithOrganization field.
 func (r *mutationResolver) CreateUserWithOrganization(ctx context.Context, input model.CreateUserWithOrganizationInput) (*model.ViewerResult, error) {
-	panic(fmt.Errorf("not implemented: CreateUserWithOrganization - createUserWithOrganization"))
+	orgUser, err := r.IdentityRepo.CreateUserWithOrganization(
+		ctx,
+		input.UserEmail,
+		input.UserPassword,
+		input.OrganizationName,
+	)
+	if err != nil {
+		return nil, err
+	}
+	r.LoginFn(ctx, orgUser.User.Id, orgUser.Id)
+	return &model.ViewerResult{Viewer: &model.Viewer{}}, nil
 }
 
 // Viewer is the resolver for the viewer field.
@@ -45,6 +56,16 @@ func (r *queryResolver) Viewer(ctx context.Context) (*model.Viewer, error) {
 // ID is the resolver for the id field.
 func (r *viewerResolver) ID(ctx context.Context, obj *model.Viewer) (string, error) {
 	return "viewer", nil
+}
+
+// OrganizationUser is the resolver for the organizationUser field.
+func (r *viewerResolver) OrganizationUser(ctx context.Context, obj *model.Viewer) (*model.OrganizationUser, error) {
+	authInfo := r.ContextUserManager.GetAuthenticationInfo(ctx)
+	var orgUser *model.OrganizationUser
+	if authInfo != nil && authInfo.AuthorizedUser != nil {
+		orgUser = model.FromIdentityOrganizationUser(authInfo.AuthorizedUser.OrganizationUser)
+	}
+	return orgUser, nil
 }
 
 // Mutation returns MutationResolver implementation.
@@ -59,17 +80,3 @@ func (r *Resolver) Viewer() ViewerResolver { return &viewerResolver{r} }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type viewerResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *viewerResolver) OrganizationUser(ctx context.Context, obj *model.Viewer) (*model.OrganizationUser, error) {
-	currentOrganizationUser := r.ContextUserManager.GetAuthenticationInfo(ctx).AuthorizedUser.OrganizationUser
-	if currentOrganizationUser == nil {
-		return nil, nil
-	}
-	return model.FromIdentityOrganizationUser(currentOrganizationUser), nil
-}

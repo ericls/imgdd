@@ -39,6 +39,6 @@ func (cu *TestContextUserManager) WithAuthenticationInfo(c context.Context, auth
 }
 
 func (cu *TestContextUserManager) ValidateUserPassword(userId string, suppliedPassword string) bool {
-	hashedPassword := cu.identityRepo.GetUserPassword(userId) // not really hashsed in tests
+	hashedPassword := cu.identityRepo.GetUserPassword(context.Background(), userId) // not really hashsed in tests
 	return hashedPassword == suppliedPassword
 }

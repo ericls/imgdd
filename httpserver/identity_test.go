@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"context"
 	"imgdd/test_support"
 	"io"
 	"net/http"
@@ -18,11 +19,12 @@ func TestLoginLogout(t *testing.T) {
 		IdentityRepo:       identityRepo,
 		ContextUserManager: contextUserManager,
 	}
-	orgUser1, err := testIdentityManager.IdentityRepo.CreateUserWithOrganization("test@home.arpa", "test", "test")
+	orgUser1, err := testIdentityManager.IdentityRepo.CreateUserWithOrganization(context.Background(), "test@home.arpa", "test", "test")
 	if err != nil {
 		t.Fatal(err)
 	}
 	orgUser2, err := testIdentityManager.IdentityRepo.CreateUserWithOrganization(
+		context.Background(),
 		"test2@home.arpa", "test2", "test2",
 	)
 	if err != nil {
