@@ -10,11 +10,41 @@ import (
 	dm "imgdd/domainmodels"
 
 	. "github.com/go-jet/jet/v2/postgres"
+	"github.com/go-jet/jet/v2/qrm"
 	"github.com/google/uuid"
 )
 
 type DBIdentityRepo struct {
-	DB *sql.DB
+	DB              qrm.DB
+	Conn            *sql.DB
+	isInTransaction bool
+}
+
+func RunInTransaction[Ret any](repo *DBIdentityRepo, fn func(txRepo *DBIdentityRepo) (Ret, error)) (Ret, error) {
+	// TODO: Implement savepoints
+	if repo.isInTransaction {
+		return fn(repo)
+	}
+	tx, err := repo.Conn.Begin()
+	var empty Ret
+	if err != nil {
+		return empty, err
+	}
+	txRepo := DBIdentityRepo{
+		DB:              tx,
+		Conn:            repo.Conn,
+		isInTransaction: true,
+	}
+	ret, err := fn(&txRepo)
+	if err != nil {
+		tx.Rollback()
+		return empty, err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return ret, err
+	}
+	return ret, nil
 }
 
 var userSelect = SELECT(
@@ -224,29 +254,28 @@ func (repo *DBIdentityRepo) CreateUser(email string, orangizationId string, pass
 	if err != nil {
 		return nil, err
 	}
-	tx, err := repo.DB.Begin()
-	if err != nil {
-		return nil, err
-	}
-	insertDest := model.UserTable{}
-	stmt := UserTable.INSERT(
-		UserTable.Email, UserTable.OrganizationID, UserTable.Password,
-	).VALUES(email, orangizationId, hashsedPassword).RETURNING(UserTable.AllColumns)
-	err = stmt.Query(repo.DB, &insertDest)
-	if err != nil {
-		return nil, err
-	}
-	dest := userSelectResult{}
-	queryStmt := userSelect.WHERE(UserTable.ID.EQ(UUID(insertDest.ID)))
-	err = queryStmt.Query(repo.DB, &dest)
-	if err != nil {
-		return nil, err
-	}
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-	return convertUser(&dest), err
+
+	return RunInTransaction(repo, func(txRepo *DBIdentityRepo) (*dm.User, error) {
+		if err != nil {
+			return nil, err
+		}
+		insertDest := model.UserTable{}
+		stmt := UserTable.INSERT(
+			UserTable.Email, UserTable.OrganizationID, UserTable.Password,
+		).VALUES(email, orangizationId, hashsedPassword).RETURNING(UserTable.AllColumns)
+		err = stmt.Query(txRepo.DB, &insertDest)
+		if err != nil {
+			return nil, err
+		}
+		dest := userSelectResult{}
+		queryStmt := userSelect.WHERE(UserTable.ID.EQ(UUID(insertDest.ID)))
+		err = queryStmt.Query(txRepo.DB, &dest)
+		if err != nil {
+			return nil, err
+		}
+		return convertUser(&dest), nil
+	})
+
 }
 
 func (repo *DBIdentityRepo) CreateOrganization(name, slug string) (*dm.Organization, error) {
@@ -297,33 +326,29 @@ func (repo *DBIdentityRepo) AddRoleToOrganizationUser(organizationUserId, roleKe
 }
 
 func (repo *DBIdentityRepo) CreateUserWithOrganization(email string, organizationName string, password string) (*dm.OrganizationUser, error) {
-	tx, err := repo.DB.Begin()
-	if err != nil {
-		return nil, err
-	}
-	organization, err := repo.CreateOrganization(organizationName, organizationName)
-	if err != nil {
-		return nil, err
-	}
-	user, err := repo.CreateUser(email, organization.Id, password)
-	if err != nil {
-		return nil, err
-	}
-	// Add user to organization
-	orgUser, err := repo.createOrganizationUser(organization.Id, user.Id)
-	if err != nil {
-		return nil, err
-	}
-	err = repo.AddRoleToOrganizationUser(orgUser.Id, "owner")
-	if err != nil {
-		return nil, err
-	}
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-	orgUser = repo.GetOrganizationUserById(orgUser.Id)
-	return orgUser, nil
+
+	return RunInTransaction(repo, func(txRepo *DBIdentityRepo) (*dm.OrganizationUser, error) {
+		organization, err := txRepo.CreateOrganization(organizationName, organizationName)
+		if err != nil {
+			return nil, err
+		}
+		user, err := txRepo.CreateUser(email, organization.Id, password)
+		if err != nil {
+			return nil, err
+		}
+		// Add user to organization
+		orgUser, err := txRepo.createOrganizationUser(organization.Id, user.Id)
+		if err != nil {
+			return nil, err
+		}
+		err = txRepo.AddRoleToOrganizationUser(orgUser.Id, "owner")
+		if err != nil {
+			return nil, err
+		}
+		orgUser = txRepo.GetOrganizationUserById(orgUser.Id)
+		return orgUser, nil
+	})
+
 }
 
 func (repo *DBIdentityRepo) GetOrganizationForUser(userId string, maybeOrganizationId string) (*dm.Organization, *dm.OrganizationUser) {

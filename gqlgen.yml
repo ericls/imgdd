@@ -91,7 +91,7 @@ models:
         resolver: true
   Viewer:
     fields:
-      user:
+      organizationUser:
         resolver: true
       id:
         resolver: true

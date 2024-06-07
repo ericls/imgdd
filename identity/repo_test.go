@@ -8,11 +8,15 @@ import (
 
 func TestUserManager(t *testing.T) {
 	conn := db.GetConnection(&TEST_DB_CONF)
-	identityRepo := DBIdentityRepo{conn}
+	identityRepo := DBIdentityRepo{
+		DB:   conn,
+		Conn: conn,
+	}
 	emailAddr := "test@home.arpa"
 	var assertUser = func(ou *dm.OrganizationUser, err error) {
 		if err != nil {
 			t.Errorf("Error creating user: %s", err)
+			t.FailNow()
 		}
 		if ou.User.Email != emailAddr {
 			t.Errorf("Expected user.Email to be %s, got %s", emailAddr, ou.User.Email)
