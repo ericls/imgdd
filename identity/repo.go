@@ -4,6 +4,7 @@ package identity
 import (
 	"database/sql"
 	"errors"
+	"imgdd/db"
 	"imgdd/db/.gen/imgdd/public/model"
 	. "imgdd/db/.gen/imgdd/public/table"
 
@@ -20,31 +21,25 @@ type DBIdentityRepo struct {
 	isInTransaction bool
 }
 
-func RunInTransaction[Ret any](repo *DBIdentityRepo, fn func(txRepo *DBIdentityRepo) (Ret, error)) (Ret, error) {
-	// TODO: Implement savepoints
-	if repo.isInTransaction {
-		return fn(repo)
-	}
-	tx, err := repo.Conn.Begin()
-	var empty Ret
-	if err != nil {
-		return empty, err
-	}
-	txRepo := DBIdentityRepo{
+// Implmenting the DBRepo interface
+func (repo *DBIdentityRepo) GetDB() qrm.DB {
+	return repo.DB
+}
+
+func (repo *DBIdentityRepo) GetConn() *sql.DB {
+	return repo.Conn
+}
+
+func (repo *DBIdentityRepo) GetIsInTransaction() bool {
+	return repo.isInTransaction
+}
+
+func (repo *DBIdentityRepo) WithTransaction(tx *sql.Tx) db.DBRepo {
+	return &DBIdentityRepo{
 		DB:              tx,
 		Conn:            repo.Conn,
 		isInTransaction: true,
 	}
-	ret, err := fn(&txRepo)
-	if err != nil {
-		tx.Rollback()
-		return empty, err
-	}
-	err = tx.Commit()
-	if err != nil {
-		return ret, err
-	}
-	return ret, nil
 }
 
 var userSelect = SELECT(
@@ -255,7 +250,7 @@ func (repo *DBIdentityRepo) CreateUser(email string, orangizationId string, pass
 		return nil, err
 	}
 
-	return RunInTransaction(repo, func(txRepo *DBIdentityRepo) (*dm.User, error) {
+	return db.RunInTransaction(repo, func(txRepo *DBIdentityRepo) (*dm.User, error) {
 		if err != nil {
 			return nil, err
 		}
@@ -263,19 +258,18 @@ func (repo *DBIdentityRepo) CreateUser(email string, orangizationId string, pass
 		stmt := UserTable.INSERT(
 			UserTable.Email, UserTable.OrganizationID, UserTable.Password,
 		).VALUES(email, orangizationId, hashsedPassword).RETURNING(UserTable.AllColumns)
-		err = stmt.Query(txRepo.DB, &insertDest)
+		err = stmt.Query(txRepo.GetDB(), &insertDest)
 		if err != nil {
 			return nil, err
 		}
 		dest := userSelectResult{}
 		queryStmt := userSelect.WHERE(UserTable.ID.EQ(UUID(insertDest.ID)))
-		err = queryStmt.Query(txRepo.DB, &dest)
+		err = queryStmt.Query(txRepo.GetDB(), &dest)
 		if err != nil {
 			return nil, err
 		}
 		return convertUser(&dest), nil
 	})
-
 }
 
 func (repo *DBIdentityRepo) CreateOrganization(name, slug string) (*dm.Organization, error) {
@@ -327,7 +321,7 @@ func (repo *DBIdentityRepo) AddRoleToOrganizationUser(organizationUserId, roleKe
 
 func (repo *DBIdentityRepo) CreateUserWithOrganization(email string, organizationName string, password string) (*dm.OrganizationUser, error) {
 
-	return RunInTransaction(repo, func(txRepo *DBIdentityRepo) (*dm.OrganizationUser, error) {
+	return db.RunInTransaction(repo, func(txRepo *DBIdentityRepo) (*dm.OrganizationUser, error) {
 		organization, err := txRepo.CreateOrganization(organizationName, organizationName)
 		if err != nil {
 			return nil, err
