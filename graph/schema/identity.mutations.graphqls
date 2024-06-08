@@ -1,0 +1,17 @@
+input CreateUserWithOrganizationInput {
+  userEmail: String!
+  userPassword: String!
+  organizationName: String!
+}
+
+extend type Mutation {
+  authenticate(
+    email: String!
+    password: String!
+    organizationId: String = ""
+  ): ViewerResult!
+  logout: ViewerResult!
+  createUserWithOrganization(
+    input: CreateUserWithOrganizationInput!
+  ): ViewerResult!
+}

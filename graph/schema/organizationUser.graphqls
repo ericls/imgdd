@@ -1,0 +1,6 @@
+type OrganizationUser {
+  id: ID!
+  organization: Organization!
+  user: User!
+  roles: [Role!]!
+}

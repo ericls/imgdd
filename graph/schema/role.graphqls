@@ -1,0 +1,4 @@
+type Role {
+  key: String!
+  name: String!
+}

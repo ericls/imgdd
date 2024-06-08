@@ -46,35 +46,7 @@ func (r *mutationResolver) CreateUserWithOrganization(ctx context.Context, input
 	return &model.ViewerResult{Viewer: &model.Viewer{}}, nil
 }
 
-// Viewer is the resolver for the viewer field.
-func (r *queryResolver) Viewer(ctx context.Context) (*model.Viewer, error) {
-	return &model.Viewer{}, nil
-}
-
-// ID is the resolver for the id field.
-func (r *viewerResolver) ID(ctx context.Context, obj *model.Viewer) (string, error) {
-	return "viewer", nil
-}
-
-// OrganizationUser is the resolver for the organizationUser field.
-func (r *viewerResolver) OrganizationUser(ctx context.Context, obj *model.Viewer) (*model.OrganizationUser, error) {
-	authInfo := r.ContextUserManager.GetAuthenticationInfo(ctx)
-	var orgUser *model.OrganizationUser
-	if authInfo != nil && authInfo.AuthorizedUser != nil {
-		orgUser = model.FromIdentityOrganizationUser(authInfo.AuthorizedUser.OrganizationUser)
-	}
-	return orgUser, nil
-}
-
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
-// Query returns QueryResolver implementation.
-func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
-
-// Viewer returns ViewerResolver implementation.
-func (r *Resolver) Viewer() ViewerResolver { return &viewerResolver{r} }
-
 type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }
-type viewerResolver struct{ *Resolver }

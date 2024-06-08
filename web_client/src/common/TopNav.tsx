@@ -16,7 +16,8 @@ function TopNavAuthInfo() {
     navigate("/auth");
   }, [location.pathname, navigate]);
   if (isAuthLoading) return null;
-  if (!authData?.viewer.organizationUser?.id)
+  const orgUser = authData?.viewer.organizationUser;
+  if (!orgUser?.id) {
     return (
       <Button variant="transparent" onClick={onSignInClick}>
         <div className="flex items-center">
@@ -25,6 +26,15 @@ function TopNavAuthInfo() {
         </div>
       </Button>
     );
+  }
+  return (
+    <Button variant="transparent" disabled>
+      <div className="flex items-center">
+        <HiOutlineUser className="mr-2" size={"1.25rem"} />
+        <div className="mr-2">{orgUser.user.email}</div>
+      </div>
+    </Button>
+  );
 }
 
 export function TopNav() {

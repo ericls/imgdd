@@ -1,0 +1,8 @@
+type ViewerResult {
+  viewer: Viewer!
+}
+
+type Viewer {
+  id: ID!
+  organizationUser: OrganizationUser
+}
