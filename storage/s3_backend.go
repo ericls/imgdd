@@ -1,0 +1,187 @@
+package storage
+
+import (
+	"encoding/json"
+	"hash/fnv"
+	"imgdd/utils"
+	"io"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/endpoints"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+)
+
+const defaultRegion = "us-east-1"
+
+type S3Client struct {
+	uploader   *s3manager.Uploader
+	downloader *s3manager.Downloader
+	s3         *s3.S3
+}
+
+// JSON config of S3 storage
+type S3StorageConfig struct {
+	Endpoint string `json:"endpoint"`
+	Bucket   string `json:"bucket"`
+	Access   string `json:"access"`
+	Secret   string `json:"secret"`
+}
+
+func (conf S3StorageConfig) Hash() uint32 {
+	h := fnv.New32a()
+	s := conf.Endpoint + conf.Bucket + conf.Access + conf.Secret
+	h.Write([]byte(s))
+	return h.Sum32()
+}
+
+func (conf S3StorageConfig) ToJSON() []byte {
+	data, err := json.Marshal(conf)
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
+type S3StorageBackend struct {
+	cache map[uint32]Storage
+}
+
+func (s *S3StorageBackend) FromJSON(config []byte) Storage {
+	var conf S3StorageConfig
+	err := json.Unmarshal(config, &conf)
+	if err != nil {
+		panic(err)
+	}
+	hash := conf.Hash()
+	if s.cache == nil {
+		s.cache = make(map[uint32]Storage)
+	}
+	if storage, ok := s.cache[hash]; ok {
+		return storage
+	}
+	store := S3Storage{
+		endpoint: conf.Endpoint,
+		bucket:   conf.Bucket,
+		access:   conf.Access,
+		secret:   conf.Secret,
+	}
+	store.ensureClient()
+	s.cache[hash] = &store
+	return &store
+}
+
+type S3Storage struct {
+	endpoint string
+	bucket   string
+	access   string
+	secret   string
+	client   *utils.Lazy[*S3Client]
+}
+
+func (s *S3Storage) ensureClient() {
+	if s.client != nil {
+		return
+	}
+	s.client = utils.NewLazy(func() *S3Client {
+		var staticResolver endpoints.ResolverFunc = func(service, region string, opts ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
+			return endpoints.ResolvedEndpoint{
+				URL:         s.endpoint,
+				PartitionID: "",
+			}, nil
+		}
+		cred := credentials.NewStaticCredentials(s.access, s.secret, "")
+		cfg := aws.Config{
+			Region:           aws.String(defaultRegion),
+			EndpointResolver: staticResolver,
+			Credentials:      cred,
+		}
+		cfg.WithS3ForcePathStyle(true)
+
+		sess := session.Must(session.NewSession(&cfg))
+
+		uploader := s3manager.NewUploader(sess)
+		downloader := s3manager.NewDownloader(sess, func(d *s3manager.Downloader) {
+			d.Concurrency = 1
+		})
+		s3Client := s3.New(sess)
+		return &S3Client{
+			downloader: downloader,
+			uploader:   uploader,
+			s3:         s3Client,
+		}
+	})
+}
+
+type FakeWriterAt struct {
+	w io.Writer
+}
+
+func (fw FakeWriterAt) WriteAt(p []byte, offset int64) (n int, err error) {
+	return fw.w.Write(p)
+}
+
+func (s *S3Storage) GetReader(filename string) io.Reader {
+	downloader := s.client.Value().downloader
+	r, w := io.Pipe()
+	go func() {
+		defer w.Close()
+		downloader.Download(FakeWriterAt{w},
+			&s3.GetObjectInput{
+				Bucket: aws.String(s.bucket),
+				Key:    aws.String(filename),
+			})
+	}()
+	return r
+}
+
+func (s *S3Storage) Save(file SeekerReader, filename string, mimeType string) error {
+	_, err := s.client.Value().uploader.Upload(&s3manager.UploadInput{
+		Bucket:      &s.bucket,
+		Body:        file,
+		Key:         aws.String(filename),
+		ContentType: aws.String(mimeType),
+	})
+	return err
+}
+
+func (s *S3Storage) GetMeta(filename string) FileMeta {
+	meta, err := s.client.Value().s3.HeadObject(&s3.HeadObjectInput{
+		Bucket: aws.String(s.bucket),
+		Key:    aws.String(filename),
+	})
+	if err != nil {
+		return FileMeta{
+			ByteSize:    0,
+			ContentType: "",
+		}
+	}
+	return FileMeta{
+		ByteSize:    *meta.ContentLength,
+		ContentType: *meta.ContentType,
+		ETag:        *meta.ETag,
+	}
+}
+
+func (s *S3Storage) Delete(filename string) error {
+	_, err := s.client.Value().s3.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(s.bucket),
+		Key:    aws.String(filename),
+	})
+	return err
+}
+
+func (s *S3Storage) CheckConnection() error {
+	client := s.client.Value()
+	_, err := client.s3.ListBuckets(&s3.ListBucketsInput{})
+	return err
+}
+
+func (s *S3Storage) CreateBucket(name string) error {
+	_, err := s.client.Value().s3.CreateBucket(&s3.CreateBucketInput{
+		Bucket: aws.String(name),
+	})
+	return err
+}
