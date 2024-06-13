@@ -55,10 +55,7 @@ func MakeServer(conf *HttpServerConfigDef) *http.Server {
 	r.Use(SessionMiddleware)
 	r.Use(RWContextMiddleware) // This should come after SessionMiddleware
 
-	identityRepo := &identity.DBIdentityRepo{
-		DB:   conn,
-		Conn: conn,
-	}
+	identityRepo := identity.NewDBIdentityRepo(conn)
 	r.Use(graph.NewLoadersMiddleware(identityRepo))
 	identityManager := NewIdentityManager(identityRepo)
 	gqlResolver := NewGqlResolver(identityManager)

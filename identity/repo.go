@@ -11,34 +11,22 @@ import (
 	dm "imgdd/domainmodels"
 
 	. "github.com/go-jet/jet/v2/postgres"
-	"github.com/go-jet/jet/v2/qrm"
 	"github.com/google/uuid"
 )
 
 type DBIdentityRepo struct {
-	DB              qrm.DB
-	Conn            *sql.DB
-	isInTransaction bool
-}
-
-// Implmenting the DBRepo interface
-func (repo *DBIdentityRepo) GetDB() qrm.DB {
-	return repo.DB
-}
-
-func (repo *DBIdentityRepo) GetConn() *sql.DB {
-	return repo.Conn
-}
-
-func (repo *DBIdentityRepo) GetIsInTransaction() bool {
-	return repo.isInTransaction
+	db.RepoConn
 }
 
 func (repo *DBIdentityRepo) WithTransaction(tx *sql.Tx) db.DBRepo {
 	return &DBIdentityRepo{
-		DB:              tx,
-		Conn:            repo.Conn,
-		isInTransaction: true,
+		RepoConn: repo.RepoConn.WithTransaction(tx),
+	}
+}
+
+func NewDBIdentityRepo(conn *sql.DB) *DBIdentityRepo {
+	return &DBIdentityRepo{
+		RepoConn: db.NewRepoConn(conn),
 	}
 }
 

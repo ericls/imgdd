@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	lru "github.com/hashicorp/golang-lru/v2"
 )
 
 const defaultRegion = "us-east-1"
@@ -46,7 +47,7 @@ func (conf S3StorageConfig) ToJSON() []byte {
 }
 
 type S3StorageBackend struct {
-	cache map[uint32]Storage
+	cache *lru.TwoQueueCache[uint32, Storage]
 }
 
 func (s *S3StorageBackend) FromJSON(config []byte) Storage {
@@ -56,10 +57,7 @@ func (s *S3StorageBackend) FromJSON(config []byte) Storage {
 		panic(err)
 	}
 	hash := conf.Hash()
-	if s.cache == nil {
-		s.cache = make(map[uint32]Storage)
-	}
-	if storage, ok := s.cache[hash]; ok {
+	if storage, ok := s.cache.Get(hash); ok {
 		return storage
 	}
 	store := S3Storage{
@@ -69,7 +67,7 @@ func (s *S3StorageBackend) FromJSON(config []byte) Storage {
 		secret:   conf.Secret,
 	}
 	store.ensureClient()
-	s.cache[hash] = &store
+	s.cache.Add(hash, &store)
 	return &store
 }
 

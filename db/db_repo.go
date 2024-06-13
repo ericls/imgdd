@@ -35,3 +35,38 @@ func RunInTransaction[Ret any, Repo DBRepo](repo Repo, fn func(txRepo Repo) (Ret
 	}
 	return ret, nil
 }
+
+type RepoConn struct {
+	DB              qrm.DB
+	Conn            *sql.DB
+	isInTransaction bool
+}
+
+func NewRepoConn(conn *sql.DB) RepoConn {
+	return RepoConn{
+		DB:              conn,
+		Conn:            conn,
+		isInTransaction: false,
+	}
+}
+
+// Implmenting the DBRepo interface
+func (repo *RepoConn) GetDB() qrm.DB {
+	return repo.DB
+}
+
+func (repo *RepoConn) GetConn() *sql.DB {
+	return repo.Conn
+}
+
+func (repo *RepoConn) GetIsInTransaction() bool {
+	return repo.isInTransaction
+}
+
+func (repo *RepoConn) WithTransaction(tx *sql.Tx) RepoConn {
+	return RepoConn{
+		DB:              tx,
+		Conn:            repo.Conn,
+		isInTransaction: true,
+	}
+}

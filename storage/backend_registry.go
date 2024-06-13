@@ -1,5 +1,7 @@
 package storage
 
+import lru "github.com/hashicorp/golang-lru/v2"
+
 var BackendRegistry = make(map[string]StorageBackend)
 
 func RegisterBackend(name string, backend StorageBackend) {
@@ -11,5 +13,11 @@ func GetBackend(name string) StorageBackend {
 }
 
 func init() {
-	RegisterBackend("s3", &S3StorageBackend{})
+	s3Cache, err := lru.New2Q[uint32, Storage](0x20)
+	if err != nil {
+		panic(err)
+	}
+	RegisterBackend("s3", &S3StorageBackend{
+		cache: s3Cache,
+	})
 }
