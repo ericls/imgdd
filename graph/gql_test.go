@@ -10,6 +10,7 @@ import (
 	"imgdd/db"
 	"imgdd/graph"
 	"imgdd/graph/model"
+	"imgdd/httpserver"
 	"imgdd/identity"
 	"imgdd/test_support"
 
@@ -20,14 +21,14 @@ import (
 
 type TestContext struct {
 	identityRepo    identity.IdentityRepo
-	identityManager *test_support.TestIdentityManager
+	identityManager *httpserver.IdentityManager
 	tObj            *testing.T
 }
 
 func newTestContext(tObj *testing.T) *TestContext {
 	conn := db.GetConnection(&TEST_DB_CONF)
 	identityRepo := identity.NewDBIdentityRepo(conn)
-	identityManager := test_support.NewTestIdentityManager(identityRepo)
+	identityManager := httpserver.NewIdentityManager(identityRepo)
 	return &TestContext{
 		identityRepo:    identityRepo,
 		identityManager: identityManager,
@@ -47,7 +48,9 @@ func (tc *TestContext) makeGqlServer() *httptest.Server {
 		LogoutFn:           tc.identityManager.LogoutContext,
 	}
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
-	handler := tc.identityManager.Middleware(srv)
+	handler := httpserver.SessionMiddleware(srv)
+	handler = httpserver.RWContextMiddleware(handler)
+	handler = tc.identityManager.Middleware(handler)
 	handler = graph.NewLoadersMiddleware(tc.identityRepo)(handler)
 	return httptest.NewServer(handler)
 }

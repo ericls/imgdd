@@ -19,7 +19,6 @@ func (r *mutationResolver) Authenticate(ctx context.Context, email string, passw
 	if !r.ContextUserManager.ValidateUserPassword(user.Id, password) {
 		return nil, fmt.Errorf("password incorrect")
 	}
-	println("userID", user.Id)
 	_, orgUser := r.IdentityRepo.GetOrganizationForUser(user.Id, *organizationID)
 	if orgUser == nil {
 		return nil, fmt.Errorf("organization not found")

@@ -98,6 +98,7 @@ func GetSessionValue(r *http.Request, key string) string {
 func GetContextSession(r *http.Request) (*ContextSession, bool) {
 	// Session middleware is not used
 	if r.Context().Value(session_context_key) == nil {
+		logger.Error().Msg("session context key not found. Is the session middleware used?")
 		return nil, false
 	}
 	context_session, ok := r.Context().Value(session_context_key).(*ContextSession)
