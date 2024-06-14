@@ -7,8 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	"imgdd/db"
 	"imgdd/graph"
 	"imgdd/graph/model"
+	"imgdd/identity"
 	"imgdd/test_support"
 
 	"github.com/99designs/gqlgen/client"
@@ -17,13 +19,14 @@ import (
 )
 
 type TestContext struct {
-	identityRepo    *test_support.TestIdentityRepo
+	identityRepo    identity.IdentityRepo
 	identityManager *test_support.TestIdentityManager
 	tObj            *testing.T
 }
 
-func NewTestContext(tObj *testing.T) *TestContext {
-	identityRepo := &test_support.TestIdentityRepo{}
+func newTestContext(tObj *testing.T) *TestContext {
+	conn := db.GetConnection(&TEST_DB_CONF)
+	identityRepo := identity.NewDBIdentityRepo(conn)
 	identityManager := test_support.NewTestIdentityManager(identityRepo)
 	return &TestContext{
 		identityRepo:    identityRepo,
@@ -33,7 +36,7 @@ func NewTestContext(tObj *testing.T) *TestContext {
 }
 
 func (tc *TestContext) reset() {
-	tc.identityRepo.Reset()
+	test_support.ResetDatabase(TEST_DB_CONF)
 }
 
 func (tc *TestContext) makeGqlServer() *httptest.Server {
@@ -63,8 +66,11 @@ func tAuthenticate(t *testing.T, client *client.Client, tc *TestContext) {
 	var resp struct {
 		Authenticate *model.ViewerResult
 	}
-	orgUser, _ := tc.identityRepo.CreateUserWithOrganization("test@example.com", "test_org", "password")
-	err := client.Post(`
+	orgUser, err := tc.identityRepo.CreateUserWithOrganization("test@example.com", "test_org", "password")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = client.Post(`
 	mutation {
 		authenticate(email: "test@example.com", password: "password") {
 			viewer {
@@ -87,6 +93,6 @@ func tAuthenticate(t *testing.T, client *client.Client, tc *TestContext) {
 }
 
 func TestResolver(t *testing.T) {
-	tc := NewTestContext(t)
+	tc := newTestContext(t)
 	tc.runCaseWithClient(tAuthenticate)
 }

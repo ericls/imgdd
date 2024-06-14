@@ -1,4 +1,4 @@
-package httpserver_test
+package graph_test
 
 import (
 	"imgdd/db"

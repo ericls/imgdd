@@ -9,17 +9,17 @@ type authContextKey string
 
 type TestContextUserManager struct {
 	contextKey   authContextKey
-	identityRepo *TestIdentityRepo
+	identityRepo identity.IdentityRepo
 }
 
-func NewTestContextUserManager(contextKey string, identityRepo *TestIdentityRepo) *TestContextUserManager {
+func NewTestContextUserManager(contextKey string, identityRepo identity.IdentityRepo) *TestContextUserManager {
 	return &TestContextUserManager{
 		contextKey:   authContextKey(contextKey),
 		identityRepo: identityRepo,
 	}
 }
 
-func NewContextUserManager(contextKey string, identityRepo *TestIdentityRepo) *TestContextUserManager {
+func NewContextUserManager(contextKey string, identityRepo identity.IdentityRepo) *TestContextUserManager {
 	return &TestContextUserManager{
 		contextKey:   authContextKey(contextKey),
 		identityRepo: identityRepo,
@@ -39,6 +39,6 @@ func (cu *TestContextUserManager) WithAuthenticationInfo(c context.Context, auth
 }
 
 func (cu *TestContextUserManager) ValidateUserPassword(userId string, suppliedPassword string) bool {
-	hashedPassword := cu.identityRepo.GetUserPassword(userId) // not really hashsed in tests
-	return hashedPassword == suppliedPassword
+	hashedPassword := cu.identityRepo.GetUserPassword(userId)
+	return identity.CheckPasswordHash(suppliedPassword, hashedPassword)
 }

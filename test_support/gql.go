@@ -7,11 +7,11 @@ import (
 )
 
 type TestIdentityManager struct {
-	IdentityRepo       *TestIdentityRepo
+	IdentityRepo       identity.IdentityRepo
 	ContextUserManager *TestContextUserManager
 }
 
-func NewTestIdentityManager(identityRepo *TestIdentityRepo) *TestIdentityManager {
+func NewTestIdentityManager(identityRepo identity.IdentityRepo) *TestIdentityManager {
 	return &TestIdentityManager{
 		IdentityRepo:       identityRepo,
 		ContextUserManager: NewTestContextUserManager("authInfo", identityRepo),
@@ -21,7 +21,6 @@ func NewTestIdentityManager(identityRepo *TestIdentityRepo) *TestIdentityManager
 func (i *TestIdentityManager) AuthenticateContext(c context.Context, userId string, organizationUserId string) {
 	user := i.IdentityRepo.GetUserById(userId)
 	orgUser := i.IdentityRepo.GetOrganizationUserById(organizationUserId)
-	println("organizationUserId: ", organizationUserId)
 	authContext := i.ContextUserManager.GetAuthenticationInfo(c)
 	if authContext == nil {
 		authContext = &identity.AuthenticationInfo{

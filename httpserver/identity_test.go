@@ -1,6 +1,9 @@
-package httpserver
+package httpserver_test
 
 import (
+	"imgdd/db"
+	"imgdd/httpserver"
+	"imgdd/identity"
 	"imgdd/test_support"
 	"io"
 	"net/http"
@@ -11,10 +14,11 @@ import (
 )
 
 func TestLoginLogout(t *testing.T) {
-	identityRepo := &test_support.TestIdentityRepo{}
-	identityRepo.Reset()
-	contextUserManager := NewContextUserManager("foo", identityRepo)
-	testIdentityManager := IdentityManager{
+	conn := db.GetConnection(&TEST_DB_CONF)
+	identityRepo := identity.NewDBIdentityRepo(conn)
+	test_support.ResetDatabase(TEST_DB_CONF)
+	contextUserManager := httpserver.NewContextUserManager("foo", identityRepo)
+	testIdentityManager := httpserver.IdentityManager{
 		IdentityRepo:       identityRepo,
 		ContextUserManager: contextUserManager,
 	}
@@ -30,11 +34,11 @@ func TestLoginLogout(t *testing.T) {
 	}
 	r := mux.NewRouter()
 	r.StrictSlash(true)
-	r.Use(SessionMiddleware)
-	r.Use(RWContextMiddleware)
+	r.Use(httpserver.SessionMiddleware)
+	r.Use(httpserver.RWContextMiddleware)
 	r.Use(testIdentityManager.Middleware)
 	r.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-		Authenticate(w, r, orgUser1.User.Id, orgUser1.Id)
+		httpserver.Authenticate(w, r, orgUser1.User.Id, orgUser1.Id)
 		w.Write([]byte(""))
 	})
 	r.HandleFunc("/loginContext", func(w http.ResponseWriter, r *http.Request) {
@@ -52,7 +56,7 @@ func TestLoginLogout(t *testing.T) {
 	})
 
 	r.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
-		Logout(w, r)
+		httpserver.Logout(w, r)
 		w.Write([]byte(""))
 	})
 	t.Run("can login and logout", func(t *testing.T) {
