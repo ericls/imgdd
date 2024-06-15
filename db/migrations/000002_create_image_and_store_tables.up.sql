@@ -40,7 +40,10 @@ CREATE TABLE storage_definition_table (
     config JSONB NOT NULL DEFAULT '{}',
 
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+
+    is_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    priority INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX storage_definition_table_identifier_idx ON storage_definition_table  USING HASH (identifier);

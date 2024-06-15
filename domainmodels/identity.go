@@ -8,9 +8,8 @@ type OrganizationUser struct {
 }
 
 type User struct {
-	Id             string
-	OrganizationId string
-	Email          string
+	Id    string
+	Email string
 }
 
 type Role struct {

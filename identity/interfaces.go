@@ -7,6 +7,7 @@ import (
 
 type IdentityRepo interface {
 	CreateUserWithOrganization(email string, organizationName string, password string) (*dm.OrganizationUser, error)
+	CreateUser(email string, password string) (*dm.User, error)
 
 	GetUserById(id string) *dm.User
 	GetUsersByIds(ids []string) []*dm.User
@@ -28,4 +29,5 @@ type ContextUserManager interface {
 	GetAuthenticationInfo(c context.Context) *AuthenticationInfo
 	WithAuthenticationInfo(c context.Context, authenticationInfo *AuthenticationInfo) context.Context
 	ValidateUserPassword(userId string, suppliedPassword string) bool
+	GetCurrentOrganizationUser(c context.Context) *dm.OrganizationUser
 }

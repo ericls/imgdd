@@ -15,7 +15,8 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
 const documents = {
     "\nmutation createUserWithOrganization($input: CreateUserWithOrganizationInput!) {\n  createUserWithOrganization(\n    input: $input\n  ) {\n    viewer {\n      id\n      organizationUser {\n        id\n        user {\n          id\n          email\n          name\n        }\n      }\n    }\n  }\n}\n": types.CreateUserWithOrganizationDocument,
     "\nmutation authenticate($email: String!, $password: String!) {\n  authenticate(email: $email, password: $password) {\n    viewer {\n      id\n      organizationUser {\n        id\n        user {\n          id\n          email\n          name\n        }\n      }\n    }\n  }\n}\n": types.AuthenticateDocument,
-    "\nquery Auth {\n  viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n  }\n}\n": types.AuthDocument,
+    "\nquery Auth {\n  viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n  }\n}\n": types.AuthDocument,
+    "\nmutation Logout {\n  logout {\n    viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n  }\n  }\n}\n": types.LogoutDocument,
 };
 
 /**
@@ -43,7 +44,11 @@ export function gql(source: "\nmutation authenticate($email: String!, $password:
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\nquery Auth {\n  viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n  }\n}\n"): (typeof documents)["\nquery Auth {\n  viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n  }\n}\n"];
+export function gql(source: "\nquery Auth {\n  viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n  }\n}\n"): (typeof documents)["\nquery Auth {\n  viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n  }\n}\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\nmutation Logout {\n  logout {\n    viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n  }\n  }\n}\n"): (typeof documents)["\nmutation Logout {\n  logout {\n    viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n  }\n  }\n}\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

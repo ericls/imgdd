@@ -49,6 +49,7 @@ func MakeServer(conf *HttpServerConfigDef) *http.Server {
 
 	dbConfig := db.ReadConfigFromEnv()
 	conn := db.GetConnection(&dbConfig)
+	db.PopulateBuiltInRoles(dbConfig)
 
 	r := mux.NewRouter()
 	r.StrictSlash(true)

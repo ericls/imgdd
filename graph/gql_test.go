@@ -48,10 +48,11 @@ func (tc *TestContext) makeGqlServer() *httptest.Server {
 		LogoutFn:           tc.identityManager.LogoutContext,
 	}
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
-	handler := httpserver.SessionMiddleware(srv)
-	handler = httpserver.RWContextMiddleware(handler)
-	handler = tc.identityManager.Middleware(handler)
+	// NOTE: the order of code should be reversed compared to Mux.use
+	handler := tc.identityManager.Middleware(srv)
 	handler = graph.NewLoadersMiddleware(tc.identityRepo)(handler)
+	handler = httpserver.RWContextMiddleware(handler)
+	handler = httpserver.SessionMiddleware(handler)
 	return httptest.NewServer(handler)
 }
 

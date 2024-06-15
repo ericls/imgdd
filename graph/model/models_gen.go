@@ -8,6 +8,12 @@ type CreateUserWithOrganizationInput struct {
 	OrganizationName string `json:"organizationName"`
 }
 
+type Mutation struct {
+}
+
+type Query struct {
+}
+
 type ViewerResult struct {
 	Viewer *Viewer `json:"viewer"`
 }

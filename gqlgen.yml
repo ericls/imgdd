@@ -74,6 +74,13 @@ autobind:
 # modelgen, the others will be allowed when binding to fields. Configure them to
 # your liking
 models:
+  PermissionNameEnum:
+    model: ./graph/model.PermissionNameEnum
+    enum_values:
+      AdminAccess:
+        value: ./graph/model.PermissionName_AdminAccess
+      SiteOwnerAccess:
+        value: ./graph/model.PermissionName_SiteOwnerAccess
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID

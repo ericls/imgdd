@@ -8,11 +8,13 @@ import {
 } from "@floating-ui/react-dom";
 import { Transition } from "@headlessui/react";
 import classNames from "classnames";
+import { useBreakpointName } from "./breakpoint";
 
 type MenuWithTriggerProps = Omit<MenuProps, "open" | "onClose" | "ref"> & {
   trigger: React.ReactElement;
   placement?: Placement;
   containerClassName?: string;
+  bottomFixedOnMobile?: boolean;
 };
 
 export function MenuWithTrigger({
@@ -21,8 +23,10 @@ export function MenuWithTrigger({
   placement,
   containerClassName,
   menuSections,
+  bottomFixedOnMobile = true,
   ...props
 }: MenuWithTriggerProps) {
+  const breakpointName = useBreakpointName();
   const [open, setOpen] = React.useState(false);
   const toggleOpen = React.useCallback(() => {
     setOpen((v) => !v);
@@ -30,18 +34,34 @@ export function MenuWithTrigger({
   const onClose = React.useCallback(() => {
     setOpen(false);
   }, [setOpen]);
-  const { x, y, reference, floating, strategy } = useFloating({
+  const { x, y, refs, strategy } = useFloating({
     whileElementsMounted: autoUpdate,
     placement: placement || "bottom-end",
     middleware: [flip()],
+    strategy:
+      breakpointName == "2xs" && bottomFixedOnMobile ? "fixed" : "absolute",
   });
-  const finalStyle = {
+  let finalStyle: React.CSSProperties = {
     ...style,
     position: strategy,
     top: y ?? 0,
     left: x ?? 0,
     width: "max-content",
   };
+  if (breakpointName === "2xs" && bottomFixedOnMobile) {
+    finalStyle = {
+      ...style,
+      position: strategy,
+      width: "100%",
+      minHeight: "220px",
+      maxHeight: "calc(100vh - 2rem)",
+      overflowY: "auto",
+      bottom: 0,
+      left: 0,
+      borderTopLeftRadius: "1rem",
+      borderTopRightRadius: "1rem",
+    };
+  }
   const totalItemsCount = React.useMemo(() => {
     let res = 0;
     for (const section of menuSections.children) {
@@ -52,7 +72,7 @@ export function MenuWithTrigger({
   return (
     <>
       <div
-        ref={reference}
+        ref={refs.setReference}
         className={classNames("trigger-container w-min", containerClassName)}
         onClick={toggleOpen}
       >
@@ -66,6 +86,18 @@ export function MenuWithTrigger({
             }),
         })}
       </div>
+      {/* Full screen backdrop on mobile */}
+      <div
+        className={classNames(
+          "fixed inset-0 bg-black bg-opacity-80",
+          "z-9",
+          "h-full",
+          {
+            hidden: !(open && breakpointName === "2xs"),
+          }
+        )}
+        onClick={onClose}
+      />
       <Transition
         as={React.Fragment}
         enter="transition ease-out duration-100"
@@ -77,7 +109,7 @@ export function MenuWithTrigger({
         show={open}
       >
         <Menu
-          ref={floating}
+          ref={refs.setFloating}
           menuSections={menuSections}
           {...props}
           style={finalStyle}

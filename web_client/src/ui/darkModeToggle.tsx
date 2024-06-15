@@ -40,10 +40,7 @@ export function DarkModeSettings() {
       trigger={
         <Button
           variant="transparent"
-          className={cx(
-            SECONDARY_TEXT_COLOR_DIM,
-            "block text-center"
-          )}
+          className={cx(SECONDARY_TEXT_COLOR_DIM, "block text-center")}
         >
           {isDarkMode ? (
             <LightModeIcon size={24} className="w-4" />

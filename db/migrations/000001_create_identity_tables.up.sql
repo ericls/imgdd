@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS organization_table(
 
 CREATE TABLE IF NOT EXISTS user_table(
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id uuid REFERENCES organization_table(id) NOT NULL,
     password VARCHAR (128) NOT NULL,
     email VARCHAR (300) NOT NULL,
     extra_attrs jsonb NOT NULL DEFAULT '{}',
@@ -37,7 +36,9 @@ CREATE TABLE IF NOT EXISTS role_table(
 ALTER TABLE
     role_table
 ADD
-    CONSTRAINT unique_role_key_organization_id UNIQUE (key, organization_id);
+    CONSTRAINT unique_role_key_organization_id UNIQUE NULLS NOT DISTINCT (key, organization_id);
+
+CREATE UNIQUE INDEX unique_site_owner_role_key ON role_table (key) WHERE key = 'site_owner';
 
 CREATE TABLE IF NOT EXISTS organization_user_table(
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -54,22 +54,22 @@ func SessionMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cs := newContextSession(nil)
 		newContext := context.WithValue(r.Context(), session_context_key, cs)
-		r = r.WithContext(newContext)
+		r_with_cs := r.WithContext(newContext)
 		explicitly_wrote_header := false
 		wrapped_w := httpsnoop.Wrap(w, httpsnoop.Hooks{
 			Write: func(httpsnoop.WriteFunc) httpsnoop.WriteFunc {
 				if !explicitly_wrote_header {
-					saveSession(w, r)
+					saveSession(w, r_with_cs)
 				}
 				return w.Write
 			},
 			WriteHeader: func(httpsnoop.WriteHeaderFunc) httpsnoop.WriteHeaderFunc {
 				explicitly_wrote_header = true
-				saveSession(w, r)
+				saveSession(w, r_with_cs)
 				return w.WriteHeader
 			},
 		})
-		next.ServeHTTP(wrapped_w, r)
+		next.ServeHTTP(wrapped_w, r_with_cs)
 	})
 }
 

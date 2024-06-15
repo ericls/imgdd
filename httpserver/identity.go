@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"imgdd/domainmodels"
 	"imgdd/identity"
 	"net/http"
 )
@@ -29,6 +30,18 @@ func (cu *HttpContextUserManager) GetAuthenticationInfo(c context.Context) *iden
 		return nil
 	}
 	return v
+}
+
+func (cu *HttpContextUserManager) GetCurrentOrganizationUser(c context.Context) *domainmodels.OrganizationUser {
+	authInfo := cu.GetAuthenticationInfo(c)
+	if authInfo == nil {
+		return nil
+	}
+	authUser := authInfo.AuthorizedUser
+	if authUser == nil {
+		return nil
+	}
+	return authUser.OrganizationUser
 }
 
 func (cu *HttpContextUserManager) WithAuthenticationInfo(c context.Context, authenticationInfo *identity.AuthenticationInfo) context.Context {

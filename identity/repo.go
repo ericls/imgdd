@@ -40,9 +40,8 @@ type userSelectResult struct {
 
 func convertUser(jetU *userSelectResult) *dm.User {
 	return &dm.User{
-		Id:             jetU.ID.String(),
-		OrganizationId: jetU.OrganizationID.String(),
-		Email:          jetU.Email,
+		Id:    jetU.ID.String(),
+		Email: jetU.Email,
 	}
 }
 
@@ -232,7 +231,7 @@ func (repo *DBIdentityRepo) createOrganizationUser(organizationId string, userId
 	return convertOrganizationUser(&queryDest), nil
 }
 
-func (repo *DBIdentityRepo) CreateUser(email string, orangizationId string, password string) (*dm.User, error) {
+func (repo *DBIdentityRepo) CreateUser(email string, password string) (*dm.User, error) {
 	hashsedPassword, err := HashPassword(password)
 	if err != nil {
 		return nil, err
@@ -244,8 +243,8 @@ func (repo *DBIdentityRepo) CreateUser(email string, orangizationId string, pass
 		}
 		insertDest := model.UserTable{}
 		stmt := UserTable.INSERT(
-			UserTable.Email, UserTable.OrganizationID, UserTable.Password,
-		).VALUES(email, orangizationId, hashsedPassword).RETURNING(UserTable.AllColumns)
+			UserTable.Email, UserTable.Password,
+		).VALUES(email, hashsedPassword).RETURNING(UserTable.AllColumns)
 		err = stmt.Query(txRepo.GetDB(), &insertDest)
 		if err != nil {
 			return nil, err
@@ -314,7 +313,7 @@ func (repo *DBIdentityRepo) CreateUserWithOrganization(email string, organizatio
 		if err != nil {
 			return nil, err
 		}
-		user, err := txRepo.CreateUser(email, organization.Id, password)
+		user, err := txRepo.CreateUser(email, password)
 		if err != nil {
 			return nil, err
 		}

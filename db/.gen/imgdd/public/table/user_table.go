@@ -17,13 +17,12 @@ type userTableTable struct {
 	postgres.Table
 
 	// Columns
-	ID             postgres.ColumnString
-	OrganizationID postgres.ColumnString
-	Password       postgres.ColumnString
-	Email          postgres.ColumnString
-	ExtraAttrs     postgres.ColumnString
-	CreatedAt      postgres.ColumnTimestampz
-	UpdatedAt      postgres.ColumnTimestampz
+	ID         postgres.ColumnString
+	Password   postgres.ColumnString
+	Email      postgres.ColumnString
+	ExtraAttrs postgres.ColumnString
+	CreatedAt  postgres.ColumnTimestampz
+	UpdatedAt  postgres.ColumnTimestampz
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -64,28 +63,26 @@ func newUserTableTable(schemaName, tableName, alias string) *UserTableTable {
 
 func newUserTableTableImpl(schemaName, tableName, alias string) userTableTable {
 	var (
-		IDColumn             = postgres.StringColumn("id")
-		OrganizationIDColumn = postgres.StringColumn("organization_id")
-		PasswordColumn       = postgres.StringColumn("password")
-		EmailColumn          = postgres.StringColumn("email")
-		ExtraAttrsColumn     = postgres.StringColumn("extra_attrs")
-		CreatedAtColumn      = postgres.TimestampzColumn("created_at")
-		UpdatedAtColumn      = postgres.TimestampzColumn("updated_at")
-		allColumns           = postgres.ColumnList{IDColumn, OrganizationIDColumn, PasswordColumn, EmailColumn, ExtraAttrsColumn, CreatedAtColumn, UpdatedAtColumn}
-		mutableColumns       = postgres.ColumnList{OrganizationIDColumn, PasswordColumn, EmailColumn, ExtraAttrsColumn, CreatedAtColumn, UpdatedAtColumn}
+		IDColumn         = postgres.StringColumn("id")
+		PasswordColumn   = postgres.StringColumn("password")
+		EmailColumn      = postgres.StringColumn("email")
+		ExtraAttrsColumn = postgres.StringColumn("extra_attrs")
+		CreatedAtColumn  = postgres.TimestampzColumn("created_at")
+		UpdatedAtColumn  = postgres.TimestampzColumn("updated_at")
+		allColumns       = postgres.ColumnList{IDColumn, PasswordColumn, EmailColumn, ExtraAttrsColumn, CreatedAtColumn, UpdatedAtColumn}
+		mutableColumns   = postgres.ColumnList{PasswordColumn, EmailColumn, ExtraAttrsColumn, CreatedAtColumn, UpdatedAtColumn}
 	)
 
 	return userTableTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:             IDColumn,
-		OrganizationID: OrganizationIDColumn,
-		Password:       PasswordColumn,
-		Email:          EmailColumn,
-		ExtraAttrs:     ExtraAttrsColumn,
-		CreatedAt:      CreatedAtColumn,
-		UpdatedAt:      UpdatedAtColumn,
+		ID:         IDColumn,
+		Password:   PasswordColumn,
+		Email:      EmailColumn,
+		ExtraAttrs: ExtraAttrsColumn,
+		CreatedAt:  CreatedAtColumn,
+		UpdatedAt:  UpdatedAtColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

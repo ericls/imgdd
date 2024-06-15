@@ -12,11 +12,13 @@ import (
 	"time"
 )
 
-type UserTable struct {
+type StorageDefinitionTable struct {
 	ID         uuid.UUID `sql:"primary_key"`
-	Password   string
-	Email      string
-	ExtraAttrs string
+	Type       string
+	Identifier string
+	Config     string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
+	IsEnabled  bool
+	Priority   int32
 }

@@ -11,6 +11,7 @@ func PopulateBuiltInRoles(dbConfig DBConfigDef) {
 		RoleTable.Key,
 		RoleTable.DisplayName,
 	).
+		VALUES("site_owner", "Site Owner").
 		VALUES("owner", "Owner").
 		VALUES("admin", "Admin").
 		VALUES("member", "Member").
