@@ -7,6 +7,7 @@ import (
 	"imgdd/httpserver"
 	"imgdd/identity"
 	"imgdd/logging"
+	"imgdd/test_support"
 	"log"
 	"os"
 
@@ -127,6 +128,14 @@ func main() {
 				Name: "gql",
 				Action: func(ctx *cli.Context) error {
 					graph.GenerateGqlCode()
+					return nil
+				},
+			},
+			&cli.Command{
+				Name: "reset-db",
+				Action: func(ctx *cli.Context) error {
+					dbConf := db.ReadConfigFromEnv()
+					test_support.ResetDatabase(dbConf)
 					return nil
 				},
 			},

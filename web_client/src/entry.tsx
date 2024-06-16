@@ -2,7 +2,11 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { ToastContainer } from "react-toastify";
 import { ApolloProvider } from "@apollo/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from "react-router-dom";
 
 import "./entry.css";
 import "../node_modules/react-toastify/dist/ReactToastify.css";
@@ -11,7 +15,7 @@ import { DarkModeContext, DarkModeProvider } from "./lib/darkMode";
 import "./i18n";
 import { apolloClient } from "./apollo";
 import { AuthProvider } from "./lib/auth";
-import { AdminLayout } from "./admin/layout";
+import { SiteAdminLayout } from "./site-admin/layout";
 import { AppLayout } from "./app/layout";
 import { AppMainPage } from "./app/pages/main";
 
@@ -31,9 +35,27 @@ function ErrorPage() {
 
 const router = createBrowserRouter([
   {
-    path: "admin",
-    element: <AdminLayout />,
+    path: "site-admin",
+    element: <SiteAdminLayout />,
     errorElement: <ErrorPage />,
+    children: [
+      {
+        path: "",
+        element: <Navigate to="/site-admin/storage" replace />,
+      },
+      {
+        path: "storage",
+        index: true,
+        lazy: async () => {
+          const { StorageConfig } = await import(
+            "./site-admin/pages/storageConfig"
+          );
+          return {
+            element: <StorageConfig />,
+          };
+        },
+      },
+    ],
   },
   {
     path: "/",

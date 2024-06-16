@@ -6,6 +6,8 @@ export const TEXT_COLOR = "text-neutral-600 dark:text-neutral-100";
 export const SECONDARY_TEXT_COLOR = "text-neutral-700 dark:text-neutral-100";
 export const SECONDARY_TEXT_COLOR_DIM =
   "text-neutral-500 dark:text-neutral-400";
+export const SECONDARY_TEXT_COLOR_DIMMER =
+  "text-neutral-400 dark:text-neutral-500";
 export const SECONDARY_TEXT_COLOR_HILIGHT =
   "text-neutral-900 dark:text-neutral-100";
 export const HEADING_1 = cx("text-3xl font-bold tracking-tight", TEXT_COLOR);
@@ -15,6 +17,12 @@ export const BASE_LAYER_HOVER =
 export const SECOND_LAYER = "bg-neutral-50 dark:bg-neutral-800";
 export const SECOND_LAYER_HOVER =
   "hover:bg-neutral-200 hover:dark:bg-neutral-700";
+
+export const PRIMARY_TEXT_COLOR = "text-primary-600 dark:text-primary-400";
+export const PRIMARY_BORDER_COLOR =
+  "border-primary-600 dark:border-primary-500";
+export const PRIMARY_BORDER_COLOR_ON_HOVER =
+  "hover:border-primary-600 dark:hover:border-primary-500";
 
 export const LOGO_TEXT_1 = cx("font-poppins font-bold select-none", TEXT_COLOR);
 export const LOGO_TEXT_2 = "text-indigo-600 dark:text-indigo-500";
