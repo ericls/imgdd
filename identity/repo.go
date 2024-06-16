@@ -7,6 +7,7 @@ import (
 	"imgdd/db"
 	"imgdd/db/.gen/imgdd/public/model"
 	. "imgdd/db/.gen/imgdd/public/table"
+	"imgdd/utils"
 
 	dm "imgdd/domainmodels"
 
@@ -306,10 +307,12 @@ func (repo *DBIdentityRepo) AddRoleToOrganizationUser(organizationUserId, roleKe
 	return err
 }
 
-func (repo *DBIdentityRepo) CreateUserWithOrganization(email string, organizationName string, password string) (*dm.OrganizationUser, error) {
+func (repo *DBIdentityRepo) CreateUserWithOrganization(
+	email string, organizationName string, password string,
+) (*dm.OrganizationUser, error) {
 
 	return db.RunInTransaction(repo, func(txRepo *DBIdentityRepo) (*dm.OrganizationUser, error) {
-		organization, err := txRepo.CreateOrganization(organizationName, organizationName)
+		organization, err := txRepo.CreateOrganization(organizationName, utils.Slugify(organizationName))
 		if err != nil {
 			return nil, err
 		}

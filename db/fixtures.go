@@ -26,5 +26,7 @@ func PopulateBuiltInRoles(dbConfig DBConfigDef) {
 	if err != nil {
 		panic(err)
 	}
-	println("Inserted", affected, "built-in roles")
+	if affected > 0 {
+		println("Inserted", affected, "built-in roles")
+	}
 }

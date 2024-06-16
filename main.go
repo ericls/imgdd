@@ -5,6 +5,7 @@ import (
 	"imgdd/db"
 	"imgdd/graph"
 	"imgdd/httpserver"
+	"imgdd/identity"
 	"imgdd/logging"
 	"log"
 	"os"
@@ -74,6 +75,27 @@ func main() {
 				dbConf := db.ReadConfigFromEnv()
 				db.PopulateBuiltInRoles(dbConf)
 				return nil
+			},
+		},
+		{
+			Name: "add-user-to-group",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "group-key",
+					Usage:    "Key of the group",
+					Required: true,
+				},
+				&cli.StringFlag{
+					Name:     "user-email",
+					Usage:    "Email of the user",
+					Required: true,
+				},
+			},
+			Action: func(ctx *cli.Context) error {
+				dbConf := db.ReadConfigFromEnv()
+				db.PopulateBuiltInRoles(dbConf)
+				err := identity.AddUserToGroup(ctx.String("group-key"), ctx.String("user-email"), dbConf)
+				return err
 			},
 		},
 	}
