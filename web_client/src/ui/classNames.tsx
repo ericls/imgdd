@@ -14,7 +14,7 @@ export const HEADING_1 = cx("text-3xl font-bold tracking-tight", TEXT_COLOR);
 export const BASE_LAYER = "bg-neutral-100 dark:bg-neutral-900";
 export const BASE_LAYER_HOVER =
   "hover:bg-neutral-200 hover:dark:bg-neutral-700";
-export const SECOND_LAYER = "bg-neutral-50 dark:bg-neutral-800";
+export const SECOND_LAYER = "bg-white dark:bg-neutral-800";
 export const SECOND_LAYER_HOVER =
   "hover:bg-neutral-200 hover:dark:bg-neutral-700";
 
