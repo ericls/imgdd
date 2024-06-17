@@ -2,56 +2,48 @@ import classnames from "classnames";
 import classNames from "classnames";
 import React from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
+import {
+  HiOutlineCog6Tooth as SettingsIcon,
+  HiOutlineUsers as UsersIcon,
+  HiOutlineServerStack as SotrageIcon,
+} from "react-icons/hi2";
+import { HiOutlineMail as EmailIcon } from "react-icons/hi";
+import { TbDeviceAnalytics as AnalyticsIcon } from "react-icons/tb";
 import { Footer } from "~src/common/Footer";
 import { LazyRouteFallback } from "~src/common/LazyRouteFallback";
 import { TopNav } from "~src/common/TopNav";
 import {
-  LINK_COLOR,
   PRIMARY_BORDER_COLOR,
-  PRIMARY_BORDER_COLOR_ON_HOVER,
   PRIMARY_TEXT_COLOR,
-  SECONDARY_TEXT_COLOR,
   SECONDARY_TEXT_COLOR_DIM,
   SECONDARY_TEXT_COLOR_DIMMER,
   SECOND_LAYER,
-  SECOND_LAYER_HOVER,
 } from "~src/ui/classNames";
 
 export function SiteAdminLayout() {
   const location = useLocation();
   const sideBarMenuGroups = React.useMemo(() => {
-    console.log(location.pathname);
     return [
       {
         title: "General",
         items: [
           {
-            title: "Overview",
+            title: "General settings",
             to: "/site-admin",
+            icon: <SettingsIcon />,
+            active: location.pathname === "/site-admin",
           },
           {
-            title: "Configuration",
-            to: "/site-admin/configuration",
+            title: "Email Settings",
+            to: "/site-admin/email",
+            icon: <EmailIcon />,
+            active: location.pathname.startsWith("/site-admin/email"),
           },
           {
             title: "Users",
             to: "/site-admin/users",
-          },
-          {
-            title: "Groups",
-            to: "/site-admin/groups",
-          },
-          {
-            title: "Permissions",
-            to: "/site-admin/permissions",
-          },
-          {
-            title: "Audit Log",
-            to: "/site-admin/audit-log",
-          },
-          {
-            title: "Site Admin",
-            to: "/site-admin/site-admin",
+            icon: <UsersIcon />,
+            active: location.pathname.startsWith("/site-admin/users"),
           },
         ],
       },
@@ -59,23 +51,26 @@ export function SiteAdminLayout() {
         title: "Storage",
         items: [
           {
-            title: "Storage Config",
+            title: "Storage Backend",
             to: "/site-admin/storage",
             active: location.pathname.startsWith("/site-admin/storage"),
+            icon: <SotrageIcon />,
           },
+        ],
+      },
+      {
+        title: "Analytics",
+        items: [
           {
-            title: "Storage Buckets",
-            to: "/site-admin/storage-buckets",
-          },
-          {
-            title: "Storage Files",
-            to: "/site-admin/storage-files",
+            title: "Access log",
+            to: "/site-admin/analytics",
+            active: location.pathname.startsWith("/site-admin/analytics"),
+            icon: <AnalyticsIcon />,
           },
         ],
       },
     ];
   }, [location]);
-  console.log(sideBarMenuGroups);
   return (
     <div className="main min-h-full flex flex-col mx-2">
       <TopNav />
@@ -111,7 +106,7 @@ export function SiteAdminLayout() {
                           to={item.to}
                           aria-label={item.title}
                           className={classnames(
-                            "w-full block py-1 pl-4 border-l-4",
+                            "w-full flex py-1 pl-4 border-l-4 items-center transition-colors duration-200 ease-in-out",
                             "hover:text-neutral-800 hover:dark:text-neutral-100",
                             {
                               [PRIMARY_BORDER_COLOR]: item.active,
@@ -121,6 +116,9 @@ export function SiteAdminLayout() {
                             }
                           )}
                         >
+                          <span className="inline-flex w-6 h-6 mr-2 items-center justify-center text-lg">
+                            {item.icon}
+                          </span>
                           {item.title}
                         </Link>
                       </div>
