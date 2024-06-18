@@ -59,13 +59,17 @@ func TestS3Storage(t *testing.T) {
 	}
 
 	// Create a new S3 storage backend
-	backend := storage.GetBackend("s3")
+	backend := storage.GetBackend("s3").(*storage.S3StorageBackend)
 	if backend == nil {
 		t.Fatal("s3 backend not found")
 	}
 
 	// Create a new S3 storage
-	s3Storage := backend.FromJSON(conf.ToJSON()).(*storage.S3Storage)
+	store, err := backend.FromJSON(conf.ToJSON())
+	s3Storage := store.(*storage.S3Storage)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if err := pool.Retry(func() error {
 		return s3Storage.CheckConnection()

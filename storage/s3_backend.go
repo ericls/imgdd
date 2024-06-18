@@ -47,18 +47,18 @@ func (conf S3StorageConfig) ToJSON() []byte {
 }
 
 type S3StorageBackend struct {
-	cache *lru.TwoQueueCache[uint32, Storage]
+	cache *lru.TwoQueueCache[uint32, *S3Storage]
 }
 
-func (s *S3StorageBackend) FromJSON(config []byte) Storage {
+func (s *S3StorageBackend) FromJSON(config []byte) (Storage, error) {
 	var conf S3StorageConfig
 	err := json.Unmarshal(config, &conf)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	hash := conf.Hash()
 	if storage, ok := s.cache.Get(hash); ok {
-		return storage
+		return storage, nil
 	}
 	store := S3Storage{
 		endpoint: conf.Endpoint,
@@ -68,7 +68,7 @@ func (s *S3StorageBackend) FromJSON(config []byte) Storage {
 	}
 	store.ensureClient()
 	s.cache.Add(hash, &store)
-	return &store
+	return &store, nil
 }
 
 type S3Storage struct {

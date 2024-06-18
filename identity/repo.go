@@ -340,7 +340,7 @@ func (repo *DBIdentityRepo) GetOrganizationForUser(userId string, maybeOrganizat
 	if maybeOrganizationId == "" {
 		stmt := OrganizationTable.SELECT(
 			OrganizationTable.ID.AS("org_id"),
-			OrganizationUserTable.ID.AS("org_user_id"),
+			OrganizationUserTable.ID.AS("organization_user_id"),
 		).FROM(
 			OrganizationTable.LEFT_JOIN(
 				OrganizationUserTable,
@@ -350,8 +350,8 @@ func (repo *DBIdentityRepo) GetOrganizationForUser(userId string, maybeOrganizat
 			OrganizationUserTable.UserID.EQ(UUID(uuid.MustParse(userId))),
 		)
 		dest := []struct {
-			OrgID     string
-			OrgUserId string
+			OrgID              string
+			OrganizationUserId string
 		}{}
 		err := stmt.Query(repo.DB, &dest)
 		if err != nil {
@@ -361,7 +361,7 @@ func (repo *DBIdentityRepo) GetOrganizationForUser(userId string, maybeOrganizat
 		if len(dest) != 1 {
 			return nil, nil
 		}
-		return repo.GetOrganizationById(dest[0].OrgID), repo.GetOrganizationUserById(dest[0].OrgUserId)
+		return repo.GetOrganizationById(dest[0].OrgID), repo.GetOrganizationUserById(dest[0].OrganizationUserId)
 	}
 	// if maybeOrganizationId is not empty, return the organization with that ID, if the user is a member of it
 	stmt := OrganizationTable.SELECT(

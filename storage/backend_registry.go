@@ -13,11 +13,11 @@ func GetBackend(name string) StorageBackend {
 }
 
 func init() {
-	s3Cache, err := lru.New2Q[uint32, Storage](0x20)
+	s3StorageInstanceCache, err := lru.New2Q[uint32, *S3Storage](0x20)
 	if err != nil {
 		panic(err)
 	}
 	RegisterBackend("s3", &S3StorageBackend{
-		cache: s3Cache,
+		cache: s3StorageInstanceCache,
 	})
 }

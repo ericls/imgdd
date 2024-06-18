@@ -1,6 +1,7 @@
 package storage
 
 import (
+	dm "imgdd/domainmodels"
 	"io"
 )
 
@@ -24,5 +25,11 @@ type Storage interface {
 }
 
 type StorageBackend interface {
-	FromJSON(jsonConfig []byte) Storage
+	FromJSON(jsonConfig []byte) (Storage, error)
+}
+
+type StorageRepo interface {
+	GetStorageDefinitionByID(id string) (*dm.StorageDefinition, error)
+	ListStorageDefinitions(organizationUserId string) ([]*dm.StorageDefinition, error)
+	CreateStorageDefinition(organizationUserId string, storage_type string, config string, identifier string, isEnabled bool, priority int32) (*dm.StorageDefinition, error)
 }
