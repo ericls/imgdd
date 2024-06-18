@@ -83,9 +83,9 @@ function TopNavAuthInfo() {
 export function TopNav() {
   return (
     <div className="top-nav sticky top-0 p-2 flex justify-between text-neutral-800 dark:text-neutral-200 text-end z-50">
-      <div>
+      <div className="flex items-center">
         {/* left */}
-        <Link to="/">
+        <Link to="/" className="">
           <TextLogoSmall className="text-2xl" />
         </Link>
       </div>

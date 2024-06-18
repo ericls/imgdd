@@ -72,14 +72,16 @@ export function SiteAdminLayout() {
     ];
   }, [location]);
   return (
-    <div className="main min-h-full flex flex-col mx-2">
-      <TopNav />
+    <div className="main min-h-full flex flex-col">
+      <div className={classnames(SECOND_LAYER, "mb-0 px-2")}>
+        <TopNav />
+      </div>
       <div className="grow relative z-0 flex gap-6">
-        <div className="site-admin-sidebar basis-56 pb-2">
+        <div className="site-admin-sidebar basis-56">
           <div
             className={classNames(
               SECOND_LAYER,
-              "rounded-md h-full overflow-y-auto sticky buttom-0"
+              "h-full overflow-y-auto sticky buttom-0"
             )}
           >
             <div className="site-admin-sidebar-menu py-4 flex flex-col gap-4">
@@ -129,7 +131,7 @@ export function SiteAdminLayout() {
             </div>
           </div>
         </div>
-        <div className="site-admin-main grow min-h-full flex flex-col">
+        <div className="site-admin-main grow min-h-full flex flex-col mt-2">
           <div className="grow">
             <LazyRouteFallback />
             <Outlet />
