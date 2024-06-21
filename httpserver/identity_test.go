@@ -16,7 +16,7 @@ import (
 func TestLoginLogout(t *testing.T) {
 	conn := db.GetConnection(&TEST_DB_CONF)
 	identityRepo := identity.NewDBIdentityRepo(conn)
-	test_support.ResetDatabase(TEST_DB_CONF)
+	test_support.ResetDatabase(&TEST_DB_CONF)
 	contextUserManager := httpserver.NewContextUserManager("foo", identityRepo)
 	testIdentityManager := httpserver.IdentityManager{
 		IdentityRepo:       identityRepo,

@@ -2,8 +2,8 @@ package identity
 
 import "imgdd/db"
 
-func AddUserToGroup(groupKey, userEmail string, dbConf db.DBConfigDef) error {
-	conn := db.GetConnection(&dbConf)
+func AddUserToGroup(groupKey, userEmail string, dbConf *db.DBConfigDef) error {
+	conn := db.GetConnection(dbConf)
 	defer conn.Close()
 	repo := NewDBIdentityRepo(conn)
 	user := repo.GetUserByEmail(userEmail)

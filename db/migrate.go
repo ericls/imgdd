@@ -16,7 +16,7 @@ var fs embed.FS
 
 var logger = logging.GetLogger("main")
 
-func getMigrateInstance(conf DBConfigDef) *migrate.Migrate {
+func getMigrateInstance(conf *DBConfigDef) *migrate.Migrate {
 	d, err := iofs.New(fs, "migrations")
 	if err != nil {
 		logger.Panic().Err(err)
@@ -28,7 +28,7 @@ func getMigrateInstance(conf DBConfigDef) *migrate.Migrate {
 	return m
 }
 
-func RunMigrationUp(conf DBConfigDef) {
+func RunMigrationUp(conf *DBConfigDef) {
 	m := getMigrateInstance(conf)
 	if err := m.Up(); err != nil {
 		if err == migrate.ErrNoChange {
@@ -41,7 +41,7 @@ func RunMigrationUp(conf DBConfigDef) {
 	}
 }
 
-func MigrateToVersion(conf DBConfigDef, version uint) {
+func MigrateToVersion(conf *DBConfigDef, version uint) {
 	m := getMigrateInstance(conf)
 	if err := m.Migrate(version); err != nil {
 		if err == migrate.ErrNoChange {

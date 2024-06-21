@@ -5,8 +5,8 @@ import (
 	. "imgdd/db/.gen/imgdd/public/table"
 )
 
-func PopulateBuiltInRoles(dbConfig DBConfigDef) {
-	conn := GetConnection(&dbConfig)
+func PopulateBuiltInRoles(dbConfig *DBConfigDef) {
+	conn := GetConnection(dbConfig)
 	stmt := RoleTable.INSERT(
 		RoleTable.Key,
 		RoleTable.DisplayName,

@@ -9,7 +9,7 @@ import (
 )
 
 func TestRepoCRUD(t *testing.T) {
-	test_support.ResetDatabase(TEST_DB_CONF)
+	test_support.ResetDatabase(&TEST_DB_CONF)
 
 	// Create a new storage repo
 	dbConn := db.GetConnection(&TEST_DB_CONF)

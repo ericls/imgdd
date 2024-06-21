@@ -61,10 +61,10 @@ func main() {
 			Action: func(ctx *cli.Context) error {
 				dbConf := db.ReadConfigFromEnv()
 				if migrateVersion > 0 {
-					db.MigrateToVersion(dbConf, migrateVersion)
+					db.MigrateToVersion(&dbConf, migrateVersion)
 					return nil
 				} else {
-					db.RunMigrationUp(dbConf)
+					db.RunMigrationUp(&dbConf)
 				}
 				return nil
 			},
@@ -74,7 +74,7 @@ func main() {
 			Name: "populate-built-in-roles",
 			Action: func(ctx *cli.Context) error {
 				dbConf := db.ReadConfigFromEnv()
-				db.PopulateBuiltInRoles(dbConf)
+				db.PopulateBuiltInRoles(&dbConf)
 				return nil
 			},
 		},
@@ -94,8 +94,8 @@ func main() {
 			},
 			Action: func(ctx *cli.Context) error {
 				dbConf := db.ReadConfigFromEnv()
-				db.PopulateBuiltInRoles(dbConf)
-				err := identity.AddUserToGroup(ctx.String("group-key"), ctx.String("user-email"), dbConf)
+				db.PopulateBuiltInRoles(&dbConf)
+				err := identity.AddUserToGroup(ctx.String("group-key"), ctx.String("user-email"), &dbConf)
 				return err
 			},
 		},
@@ -135,7 +135,7 @@ func main() {
 				Name: "reset-db",
 				Action: func(ctx *cli.Context) error {
 					dbConf := db.ReadConfigFromEnv()
-					test_support.ResetDatabase(dbConf)
+					test_support.ResetDatabase(&dbConf)
 					return nil
 				},
 			},

@@ -2,8 +2,8 @@ package test_support
 
 import "imgdd/db"
 
-func ResetDatabase(dbConf db.DBConfigDef) {
-	conn := db.GetConnection(&dbConf)
+func ResetDatabase(dbConf *db.DBConfigDef) {
+	conn := db.GetConnection(dbConf)
 	conn.Exec(`DO $$ DECLARE
   r RECORD;
 BEGIN

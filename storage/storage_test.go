@@ -55,8 +55,8 @@ func TestMain(m *testing.M) {
 	}); err != nil {
 		log.Fatalf("Could not connect to database: %s", err)
 	}
-	db.RunMigrationUp(TEST_DB_CONF)
-	db.PopulateBuiltInRoles(TEST_DB_CONF)
+	db.RunMigrationUp(&TEST_DB_CONF)
+	db.PopulateBuiltInRoles(&TEST_DB_CONF)
 
 	minio_container, err := pool.RunWithOptions(&dockertest.RunOptions{
 		Repository: "minio/minio",

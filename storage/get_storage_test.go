@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetStorage(t *testing.T) {
-	test_support.ResetDatabase(TEST_DB_CONF)
+	test_support.ResetDatabase(&TEST_DB_CONF)
 	dbConn := db.GetConnection(&TEST_DB_CONF)
 	repo := storage.NewDBStorageRepo(dbConn)
 

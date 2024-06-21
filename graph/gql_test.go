@@ -37,7 +37,7 @@ func newTestContext(tObj *testing.T) *TestContext {
 }
 
 func (tc *TestContext) reset() {
-	test_support.ResetDatabase(TEST_DB_CONF)
+	test_support.ResetDatabase(&TEST_DB_CONF)
 }
 
 func (tc *TestContext) makeGqlServer() *httptest.Server {

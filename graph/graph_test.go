@@ -49,8 +49,8 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Could not connect to database: %s", err)
 	}
 	println("Migrating db")
-	db.RunMigrationUp(TEST_DB_CONF)
-	db.PopulateBuiltInRoles(TEST_DB_CONF)
+	db.RunMigrationUp(&TEST_DB_CONF)
+	db.PopulateBuiltInRoles(&TEST_DB_CONF)
 
 	code := m.Run()
 	if err := pool.Purge(resource); err != nil {
