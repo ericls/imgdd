@@ -5,10 +5,10 @@ import (
 	"imgdd/domainmodels"
 )
 
-func GetStorage(storageDef domainmodels.StorageDefinition) (Storage, error) {
-	if storageDef.Type == "s3" {
+func GetStorage(storageDef *domainmodels.StorageDefinition) (Storage, error) {
+	if storageDef.StorageType == "s3" {
 		backend := GetBackend("s3")
 		return backend.FromJSON([]byte(storageDef.Config))
 	}
-	return nil, errors.New("Invalid storage type")
+	return nil, errors.New("invalid storage type")
 }

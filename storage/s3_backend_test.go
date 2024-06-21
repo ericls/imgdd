@@ -6,56 +6,16 @@ import (
 	"io"
 	"log"
 	"testing"
-	"time"
-
-	"github.com/ory/dockertest/v3"
 )
 
-var testBucket = "test-bucket"
-var testAccess = "minio"
-var testSecret = "minio123"
 var data = []byte("test data")
 
 func TestS3Storage(t *testing.T) {
-
-	pool, err := dockertest.NewPool("")
-	pool.MaxWait = 10 * time.Second
-	if err != nil {
-		log.Fatalf("Could not construct pool: %s", err)
-	}
-
-	// uses pool to try to connect to Docker
-	err = pool.Client.Ping()
-	if err != nil {
-		log.Fatalf("Could not connect to Docker: %s", err)
-	}
-
-	// pulls an image, creates a container based on it and runs it
-	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
-		Repository: "minio/minio",
-		Tag:        "RELEASE.2021-04-22T15-44-28Z",
-		Env: []string{
-			"MINIO_ROOT_USER=" + testAccess,
-			"MINIO_ROOT_PASSWORD=" + testSecret,
-		},
-		ExposedPorts: []string{"9000"},
-		Cmd:          []string{"server", "/data"},
-	})
-	defer func() {
-		if err := pool.Purge(resource); err != nil {
-			log.Fatalf("Could not purge resource: %s", err)
-		}
-	}()
-	if err != nil {
-		log.Fatalf("Could not start resource: %s", err)
-	}
-	port := resource.GetPort("9000/tcp")
-
 	conf := storage.S3StorageConfig{
-		Endpoint: "http://localhost:" + port,
-		Bucket:   testBucket,
-		Access:   testAccess,
-		Secret:   testSecret,
+		Endpoint: "http://localhost:" + testS3Port,
+		Bucket:   testS3Bucket,
+		Access:   testS3Access,
+		Secret:   testS3Secret,
 	}
 
 	// Create a new S3 storage backend
@@ -71,14 +31,14 @@ func TestS3Storage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := pool.Retry(func() error {
+	if err := dockerTestPool.Retry(func() error {
 		return s3Storage.CheckConnection()
 	}); err != nil {
 		log.Fatalf("Could not connect to minio: %s", err)
 	}
 
 	// create bucket
-	err = s3Storage.CreateBucket(testBucket)
+	err = s3Storage.CreateBucket(testS3Bucket)
 	if err != nil {
 		t.Fatal(err)
 	}

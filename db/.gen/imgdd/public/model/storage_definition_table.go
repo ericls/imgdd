@@ -13,12 +13,12 @@ import (
 )
 
 type StorageDefinitionTable struct {
-	ID         uuid.UUID `sql:"primary_key"`
-	Type       string
-	Identifier string
-	Config     string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	IsEnabled  bool
-	Priority   int32
+	ID          uuid.UUID `sql:"primary_key"`
+	StorageType string
+	Identifier  string
+	Config      string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	IsEnabled   bool
+	Priority    int32
 }

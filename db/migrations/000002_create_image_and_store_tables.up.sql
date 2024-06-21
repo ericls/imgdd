@@ -1,7 +1,7 @@
 BEGIN;
 -- Create the image tables
 CREATE TABLE image_table (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID REFERENCES organization_table(id) ON DELETE SET NULL,
     created_by UUID REFERENCES user_table(id) ON DELETE SET NULL,
     --
@@ -33,9 +33,9 @@ ADD
 
 -- Storage Config table
 CREATE TABLE storage_definition_table (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    type CHARACTER VARYING(255) NOT NULL,
+    storage_type CHARACTER VARYING(255) NOT NULL,
     identifier CHARACTER VARYING(255) NOT NULL,
     config JSONB NOT NULL DEFAULT '{}',
 
@@ -55,7 +55,7 @@ ADD
 
 -- Stored Image table
 CREATE TABLE stored_image_table (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     image_id UUID REFERENCES image_table(id) ON DELETE SET NULL,
     storage_definition_id UUID REFERENCES storage_definition_table(id) ON DELETE SET NULL,
 

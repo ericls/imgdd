@@ -30,6 +30,8 @@ type StorageBackend interface {
 
 type StorageRepo interface {
 	GetStorageDefinitionByID(id string) (*dm.StorageDefinition, error)
-	ListStorageDefinitions(organizationUserId string) ([]*dm.StorageDefinition, error)
-	CreateStorageDefinition(organizationUserId string, storage_type string, config string, identifier string, isEnabled bool, priority int32) (*dm.StorageDefinition, error)
+	GetStorageDefinitionByIdentifier(id string) (*dm.StorageDefinition, error)
+	ListStorageDefinitions() ([]*dm.StorageDefinition, error)
+	CreateStorageDefinition(storage_type string, config string, identifier string, isEnabled bool, priority int64) (*dm.StorageDefinition, error)
+	UpdateStorageDefinition(identifier string, storage_type *string, config *string, isEnabled *bool, priority *int64) (*dm.StorageDefinition, error)
 }

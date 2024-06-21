@@ -17,14 +17,14 @@ type storageDefinitionTableTable struct {
 	postgres.Table
 
 	// Columns
-	ID         postgres.ColumnString
-	Type       postgres.ColumnString
-	Identifier postgres.ColumnString
-	Config     postgres.ColumnString
-	CreatedAt  postgres.ColumnTimestampz
-	UpdatedAt  postgres.ColumnTimestampz
-	IsEnabled  postgres.ColumnBool
-	Priority   postgres.ColumnInteger
+	ID          postgres.ColumnString
+	StorageType postgres.ColumnString
+	Identifier  postgres.ColumnString
+	Config      postgres.ColumnString
+	CreatedAt   postgres.ColumnTimestampz
+	UpdatedAt   postgres.ColumnTimestampz
+	IsEnabled   postgres.ColumnBool
+	Priority    postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -65,30 +65,30 @@ func newStorageDefinitionTableTable(schemaName, tableName, alias string) *Storag
 
 func newStorageDefinitionTableTableImpl(schemaName, tableName, alias string) storageDefinitionTableTable {
 	var (
-		IDColumn         = postgres.StringColumn("id")
-		TypeColumn       = postgres.StringColumn("type")
-		IdentifierColumn = postgres.StringColumn("identifier")
-		ConfigColumn     = postgres.StringColumn("config")
-		CreatedAtColumn  = postgres.TimestampzColumn("created_at")
-		UpdatedAtColumn  = postgres.TimestampzColumn("updated_at")
-		IsEnabledColumn  = postgres.BoolColumn("is_enabled")
-		PriorityColumn   = postgres.IntegerColumn("priority")
-		allColumns       = postgres.ColumnList{IDColumn, TypeColumn, IdentifierColumn, ConfigColumn, CreatedAtColumn, UpdatedAtColumn, IsEnabledColumn, PriorityColumn}
-		mutableColumns   = postgres.ColumnList{TypeColumn, IdentifierColumn, ConfigColumn, CreatedAtColumn, UpdatedAtColumn, IsEnabledColumn, PriorityColumn}
+		IDColumn          = postgres.StringColumn("id")
+		StorageTypeColumn = postgres.StringColumn("storage_type")
+		IdentifierColumn  = postgres.StringColumn("identifier")
+		ConfigColumn      = postgres.StringColumn("config")
+		CreatedAtColumn   = postgres.TimestampzColumn("created_at")
+		UpdatedAtColumn   = postgres.TimestampzColumn("updated_at")
+		IsEnabledColumn   = postgres.BoolColumn("is_enabled")
+		PriorityColumn    = postgres.IntegerColumn("priority")
+		allColumns        = postgres.ColumnList{IDColumn, StorageTypeColumn, IdentifierColumn, ConfigColumn, CreatedAtColumn, UpdatedAtColumn, IsEnabledColumn, PriorityColumn}
+		mutableColumns    = postgres.ColumnList{StorageTypeColumn, IdentifierColumn, ConfigColumn, CreatedAtColumn, UpdatedAtColumn, IsEnabledColumn, PriorityColumn}
 	)
 
 	return storageDefinitionTableTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:         IDColumn,
-		Type:       TypeColumn,
-		Identifier: IdentifierColumn,
-		Config:     ConfigColumn,
-		CreatedAt:  CreatedAtColumn,
-		UpdatedAt:  UpdatedAtColumn,
-		IsEnabled:  IsEnabledColumn,
-		Priority:   PriorityColumn,
+		ID:          IDColumn,
+		StorageType: StorageTypeColumn,
+		Identifier:  IdentifierColumn,
+		Config:      ConfigColumn,
+		CreatedAt:   CreatedAtColumn,
+		UpdatedAt:   UpdatedAtColumn,
+		IsEnabled:   IsEnabledColumn,
+		Priority:    PriorityColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

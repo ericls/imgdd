@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestUserManager(t *testing.T) {
+func TestIdentityRepo(t *testing.T) {
 	conn := db.GetConnection(&TEST_DB_CONF)
 	identityRepo := NewDBIdentityRepo(conn)
 	emailAddr := "test@home.arpa"
@@ -35,7 +35,6 @@ func TestUserManager(t *testing.T) {
 	} else {
 		assertUser(orgUsers[0], nil)
 	}
-	// orgUser = identityRepo.GetUserByEmail("test@home.arpa")
 	assertUser(orgUser, nil)
 	identityRepo.AddRoleToOrganizationUser(orgUser.Id, "member")
 	orgUser = identityRepo.GetOrganizationUserById(orgUser.Id)
