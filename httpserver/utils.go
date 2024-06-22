@@ -14,3 +14,11 @@ func NewGqlResolver(identityManager *IdentityManager) *graph.Resolver {
 		LogoutFn:           identityManager.LogoutContext,
 	}
 }
+
+func NewGraphConfig(resolver *graph.Resolver) graph.Config {
+	config := graph.Config{
+		Resolvers: resolver,
+	}
+	config.Directives.IsSiteOwner = graph.IsSiteOwner(resolver)
+	return config
+}

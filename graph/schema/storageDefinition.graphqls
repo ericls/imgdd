@@ -1,0 +1,25 @@
+type S3StorageConfig {
+  bucket: String!
+  endpoint: String!
+  access: String!
+  secret: String!
+}
+
+type OtherStorageConfig {
+    _empty: String
+}
+
+union StorageConfig = S3StorageConfig | OtherStorageConfig
+
+type StorageDefinition {
+  identifier: String!
+  #type: StorageTypeEnum!  This is expressed in type of config
+  config: StorageConfig!
+  isEnabled: Boolean!
+  priority: Int!
+}
+
+
+extend type Viewer {
+  storageDefinitions: [StorageDefinition!]! @isSiteOwner
+}

@@ -1,0 +1,1 @@
+directive @isSiteOwner on FIELD_DEFINITION

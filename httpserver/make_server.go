@@ -63,7 +63,7 @@ func MakeServer(conf *HttpServerConfigDef) *http.Server {
 
 	graphqlServer := gqlgenHandler.NewDefaultServer(
 		graph.NewExecutableSchema(
-			graph.Config{Resolvers: gqlResolver},
+			NewGraphConfig(gqlResolver),
 		),
 	)
 

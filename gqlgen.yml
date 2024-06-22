@@ -81,6 +81,11 @@ models:
         value: ./graph/model.PermissionName_AdminAccess
       SiteOwnerAccess:
         value: ./graph/model.PermissionName_SiteOwnerAccess
+  StorageTypeEnum:
+    model: ./graph/model.StorageTypeEnum
+    enum_values:
+      S3:
+        value: ./graph/model.StorageType_S3
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID
