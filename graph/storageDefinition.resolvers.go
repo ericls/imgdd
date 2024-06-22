@@ -6,11 +6,20 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"imgdd/graph/model"
 )
 
 // StorageDefinitions is the resolver for the storageDefinitions field.
 func (r *viewerResolver) StorageDefinitions(ctx context.Context, obj *model.Viewer) ([]*model.StorageDefinition, error) {
-	panic(fmt.Errorf("not implemented: StorageDefinitions - storageDefinitions"))
+	repo := r.StorageRepo
+	storageDefinitions, err := repo.ListStorageDefinitions()
+	if err != nil {
+		return nil, err
+	}
+	ret := make([]*model.StorageDefinition, len(storageDefinitions))
+	for i, storageDefinition := range storageDefinitions {
+		s, _ := model.FromStorageDefinition(storageDefinition)
+		ret[i] = s
+	}
+	return ret, nil
 }

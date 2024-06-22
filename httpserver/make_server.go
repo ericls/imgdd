@@ -6,6 +6,7 @@ import (
 	"imgdd/db"
 	"imgdd/graph"
 	"imgdd/identity"
+	"imgdd/storage"
 	"io/fs"
 	"net/http"
 	"time"
@@ -57,9 +58,10 @@ func MakeServer(conf *HttpServerConfigDef) *http.Server {
 	r.Use(RWContextMiddleware) // This should come after SessionMiddleware
 
 	identityRepo := identity.NewDBIdentityRepo(conn)
+	storageRepo := storage.NewDBStorageRepo(conn)
 	r.Use(graph.NewLoadersMiddleware(identityRepo))
 	identityManager := NewIdentityManager(identityRepo)
-	gqlResolver := NewGqlResolver(identityManager)
+	gqlResolver := NewGqlResolver(identityManager, storageRepo)
 
 	graphqlServer := gqlgenHandler.NewDefaultServer(
 		graph.NewExecutableSchema(

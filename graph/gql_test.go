@@ -12,6 +12,7 @@ import (
 	"imgdd/graph/model"
 	"imgdd/httpserver"
 	"imgdd/identity"
+	"imgdd/storage"
 	"imgdd/test_support"
 
 	"github.com/99designs/gqlgen/client"
@@ -21,6 +22,7 @@ import (
 
 type TestContext struct {
 	identityRepo    identity.IdentityRepo
+	storageRepo     storage.StorageRepo
 	identityManager *httpserver.IdentityManager
 	tObj            *testing.T
 }
@@ -29,8 +31,10 @@ func newTestContext(tObj *testing.T) *TestContext {
 	conn := db.GetConnection(&TEST_DB_CONF)
 	identityRepo := identity.NewDBIdentityRepo(conn)
 	identityManager := httpserver.NewIdentityManager(identityRepo)
+	storageRepo := storage.NewDBStorageRepo(conn)
 	return &TestContext{
 		identityRepo:    identityRepo,
+		storageRepo:     storageRepo,
 		identityManager: identityManager,
 		tObj:            tObj,
 	}
@@ -41,7 +45,7 @@ func (tc *TestContext) reset() {
 }
 
 func (tc *TestContext) makeGqlServer() *httptest.Server {
-	resolver := httpserver.NewGqlResolver(tc.identityManager)
+	resolver := httpserver.NewGqlResolver(tc.identityManager, tc.storageRepo)
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(httpserver.NewGraphConfig(resolver)))
 	// NOTE: the order of code should be reversed compared to Mux.use
 	handler := tc.identityManager.Middleware(srv)

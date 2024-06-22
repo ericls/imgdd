@@ -1,5 +1,10 @@
 package model
 
+import (
+	"encoding/json"
+	"imgdd/domainmodels"
+)
+
 type StorageTypeEnum string
 
 const (
@@ -30,4 +35,25 @@ type StorageDefinition struct {
 	Config     StorageConfig `json:"config"`
 	IsEnabled  bool          `json:"isEnabled"`
 	Priority   int           `json:"priority"`
+}
+
+func FromStorageDefinition(sd *domainmodels.StorageDefinition) (*StorageDefinition, error) {
+	storageType := StorageTypeEnum(sd.StorageType)
+	var storageConfig StorageConfig
+	if storageType == StorageType_S3 {
+		var conf S3StorageConfig
+		err := json.Unmarshal([]byte(sd.Config), &conf)
+		if err != nil {
+			return nil, err
+		}
+		storageConfig = &conf
+	} else {
+		storageConfig = &OtherStorageConfig{}
+	}
+	return &StorageDefinition{
+		Identifier: sd.Identifier,
+		IsEnabled:  sd.IsEnabled,
+		Priority:   int(sd.Priority),
+		Config:     storageConfig,
+	}, nil
 }

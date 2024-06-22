@@ -2,13 +2,15 @@ package httpserver
 
 import (
 	"imgdd/graph"
+	"imgdd/storage"
 )
 
 type ContextKey string
 
-func NewGqlResolver(identityManager *IdentityManager) *graph.Resolver {
+func NewGqlResolver(identityManager *IdentityManager, storageRepo storage.StorageRepo) *graph.Resolver {
 	return &graph.Resolver{
 		IdentityRepo:       identityManager.IdentityRepo,
+		StorageRepo:        storageRepo,
 		ContextUserManager: identityManager.ContextUserManager,
 		LoginFn:            identityManager.AuthenticateContext,
 		LogoutFn:           identityManager.LogoutContext,
