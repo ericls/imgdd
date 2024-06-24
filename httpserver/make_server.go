@@ -13,6 +13,7 @@ import (
 
 	gqlgenHandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
@@ -76,8 +77,11 @@ func MakeServer(conf *HttpServerConfigDef) *http.Server {
 
 	mountStatic(r, conf.StaticFS)
 	r.PathPrefix("/").HandlerFunc(makeAppHandler(conf))
+
 	srv := &http.Server{
-		Handler:      r,
+		Handler: LoggerMiddleware(
+			handlers.RecoveryHandler()(r),
+		),
 		Addr:         conf.Bind,
 		WriteTimeout: time.Duration(conf.WriteTimeout) * time.Second,
 		ReadTimeout:  time.Duration(conf.ReadTimeout) * time.Second,

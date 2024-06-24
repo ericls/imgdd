@@ -14,13 +14,13 @@ import (
 )
 
 var store sessions.Store
-var logger zerolog.Logger
+var sessionLogger zerolog.Logger
 
 const session_context_key = ContextKey("context-session")
 const session_cookie_name = "session"
 
 func init() {
-	logger = logging.GetLogger("httpserver")
+	sessionLogger = logging.GetLogger("httpserver")
 	client := redis.NewClient(&redis.Options{
 		Addr: strings.TrimPrefix(Config.RedisURIForSession, "redis://"),
 	})
@@ -35,7 +35,7 @@ func init() {
 		HttpOnly: true,
 	})
 	if err != nil {
-		logger.Err(err).Msg("failed to create redis session store")
+		sessionLogger.Err(err).Msg("failed to create redis session store")
 	}
 	store = s
 }
@@ -57,16 +57,16 @@ func SessionMiddleware(next http.Handler) http.Handler {
 		r_with_cs := r.WithContext(newContext)
 		explicitly_wrote_header := false
 		wrapped_w := httpsnoop.Wrap(w, httpsnoop.Hooks{
-			Write: func(httpsnoop.WriteFunc) httpsnoop.WriteFunc {
+			Write: func(inner_w httpsnoop.WriteFunc) httpsnoop.WriteFunc {
 				if !explicitly_wrote_header {
 					saveSession(w, r_with_cs)
 				}
-				return w.Write
+				return inner_w
 			},
-			WriteHeader: func(httpsnoop.WriteHeaderFunc) httpsnoop.WriteHeaderFunc {
+			WriteHeader: func(inner_w httpsnoop.WriteHeaderFunc) httpsnoop.WriteHeaderFunc {
 				explicitly_wrote_header = true
 				saveSession(w, r_with_cs)
-				return w.WriteHeader
+				return inner_w
 			},
 		})
 		next.ServeHTTP(wrapped_w, r_with_cs)
@@ -98,7 +98,7 @@ func GetSessionValue(r *http.Request, key string) string {
 func GetContextSession(r *http.Request) (*ContextSession, bool) {
 	// Session middleware is not used
 	if r.Context().Value(session_context_key) == nil {
-		logger.Error().Msg("session context key not found. Is the session middleware used?")
+		sessionLogger.Error().Msg("session context key not found. Is the session middleware used?")
 		return nil, false
 	}
 	context_session, ok := r.Context().Value(session_context_key).(*ContextSession)

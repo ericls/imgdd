@@ -200,6 +200,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/felixge/httpsnoop v1.0.4
 	github.com/go-jet/jet/v2 v2.10.1
+	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/sessions v1.2.2
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
