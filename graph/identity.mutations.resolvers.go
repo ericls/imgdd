@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"imgdd/graph/model"
+	"imgdd/identity"
 )
 
 // Authenticate is the resolver for the authenticate field.
@@ -16,7 +17,7 @@ func (r *mutationResolver) Authenticate(ctx context.Context, email string, passw
 	if user == nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	if !r.ContextUserManager.ValidateUserPassword(user.Id, password) {
+	if !identity.CheckPasswordByUserId(user.Id, password, r.IdentityRepo) {
 		return nil, fmt.Errorf("password incorrect")
 	}
 	_, orgUser := r.IdentityRepo.GetOrganizationForUser(user.Id, *organizationID)

@@ -6,8 +6,65 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"imgdd/graph/model"
+	"imgdd/storage"
 )
+
+// CreateStorageDefinition is the resolver for the createStorageDefinition field.
+func (r *mutationResolver) CreateStorageDefinition(ctx context.Context, input model.CreateStorageDefinitionInput) (*model.StorageDefinition, error) {
+	repo := r.StorageRepo
+	storageType := input.StorageType
+	config := input.ConfigJSON
+	backend := storage.GetBackend(string(storageType))
+	if backend == nil {
+		return nil, errors.New("invalid storage type")
+	}
+	err := backend.ValidateJSONConfig([]byte(config))
+	if err != nil {
+		return nil, err
+	}
+	created, err := repo.CreateStorageDefinition(
+		string(storageType),
+		config,
+		input.Identifier,
+		input.IsEnabled,
+		int64(input.Priority),
+	)
+	if err != nil {
+		return nil, err
+	}
+	s, err := model.FromStorageDefinition(created)
+	return s, err
+}
+
+// UpdateStorageDefinition is the resolver for the updateStorageDefinition field.
+func (r *mutationResolver) UpdateStorageDefinition(ctx context.Context, input model.UpdateStorageDefinitionInput) (*model.StorageDefinition, error) {
+	repo := r.StorageRepo
+	config := input.ConfigJSON
+	var priority int64
+	var priorityPtr *int64
+	if input.Priority != nil {
+		priority = int64(*input.Priority)
+		priorityPtr = &priority
+	}
+	_, err := repo.GetStorageDefinitionByIdentifier(input.Identifier)
+	if err != nil {
+		return nil, err
+	}
+	updated, err := repo.UpdateStorageDefinition(
+		input.Identifier,
+		nil,
+		config,
+		input.IsEnabled,
+		priorityPtr,
+	)
+	if err != nil {
+		return nil, err
+	}
+	s, err := model.FromStorageDefinition(updated)
+	return s, err
+}
 
 // StorageDefinitions is the resolver for the storageDefinitions field.
 func (r *viewerResolver) StorageDefinitions(ctx context.Context, obj *model.Viewer) ([]*model.StorageDefinition, error) {

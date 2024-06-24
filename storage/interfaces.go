@@ -25,7 +25,8 @@ type Storage interface {
 }
 
 type StorageBackend interface {
-	FromJSON(jsonConfig []byte) (Storage, error)
+	FromJSONConfig(jsonConfig []byte) (Storage, error)
+	ValidateJSONConfig(jsonConfig []byte) error
 }
 
 type StorageRepo interface {

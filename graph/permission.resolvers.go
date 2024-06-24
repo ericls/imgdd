@@ -7,11 +7,12 @@ package graph
 import (
 	"context"
 	"imgdd/graph/model"
+	"imgdd/identity"
 )
 
 // HasPermission is the resolver for the hasPermission field.
 func (r *viewerResolver) HasPermission(ctx context.Context, obj *model.Viewer, permission model.PermissionNameEnum) (bool, error) {
-	currentUser := r.ContextUserManager.GetCurrentOrganizationUser(ctx)
+	currentUser := identity.GetCurrentOrganizationUser(r.ContextUserManager, ctx)
 	if currentUser == nil {
 		return false, nil
 	}

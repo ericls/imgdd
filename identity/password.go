@@ -21,3 +21,8 @@ func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }
+
+func CheckPasswordByUserId(userId, password string, identityRepo IdentityRepo) bool {
+	hashedPassword := identityRepo.GetUserPassword(userId)
+	return CheckPasswordHash(password, hashedPassword)
+}

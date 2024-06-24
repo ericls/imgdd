@@ -1,6 +1,7 @@
 package identity
 
 import (
+	"context"
 	dm "imgdd/domainmodels"
 )
 
@@ -15,4 +16,16 @@ type AuthorizedUser struct {
 type AuthenticationInfo struct {
 	AuthenticatedUser *AuthenticatedUser
 	AuthorizedUser    *AuthorizedUser
+}
+
+func GetCurrentOrganizationUser(cu ContextUserManager, c context.Context) *dm.OrganizationUser {
+	authInfo := cu.GetAuthenticationInfo(c)
+	if authInfo == nil {
+		return nil
+	}
+	authUser := authInfo.AuthorizedUser
+	if authUser == nil {
+		return nil
+	}
+	return authUser.OrganizationUser
 }

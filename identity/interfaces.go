@@ -8,6 +8,7 @@ import (
 type IdentityRepo interface {
 	CreateUserWithOrganization(email string, organizationName string, password string) (*dm.OrganizationUser, error)
 	CreateUser(email string, password string) (*dm.User, error)
+	AddRoleToOrganizationUser(organizationUserId string, roleKey string) error
 
 	GetUserById(id string) *dm.User
 	GetUsersByIds(ids []string) []*dm.User
@@ -26,8 +27,10 @@ type IdentityRepo interface {
 }
 
 type ContextUserManager interface {
+	// GetAuthenticationInfo returns the authentication info from the given context.
 	GetAuthenticationInfo(c context.Context) *AuthenticationInfo
+	// WithAuthenticationInfo returns a new context with the given authentication info.
 	WithAuthenticationInfo(c context.Context, authenticationInfo *AuthenticationInfo) context.Context
-	ValidateUserPassword(userId string, suppliedPassword string) bool
-	GetCurrentOrganizationUser(c context.Context) *dm.OrganizationUser
+	// SetAuthenticationInfo sets the given authentication info to the given context.
+	SetAuthenticationInfo(c context.Context, authenticationInfo *AuthenticationInfo)
 }

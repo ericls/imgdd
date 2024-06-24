@@ -51,8 +51,10 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Mutation struct {
 		Authenticate               func(childComplexity int, email string, password string, organizationID *string) int
+		CreateStorageDefinition    func(childComplexity int, input model.CreateStorageDefinitionInput) int
 		CreateUserWithOrganization func(childComplexity int, input model.CreateUserWithOrganizationInput) int
 		Logout                     func(childComplexity int) int
+		UpdateStorageDefinition    func(childComplexity int, input model.UpdateStorageDefinitionInput) int
 	}
 
 	Organization struct {
@@ -90,6 +92,7 @@ type ComplexityRoot struct {
 
 	StorageDefinition struct {
 		Config     func(childComplexity int) int
+		Id         func(childComplexity int) int
 		Identifier func(childComplexity int) int
 		IsEnabled  func(childComplexity int) int
 		Priority   func(childComplexity int) int
@@ -117,6 +120,8 @@ type MutationResolver interface {
 	Authenticate(ctx context.Context, email string, password string, organizationID *string) (*model.ViewerResult, error)
 	Logout(ctx context.Context) (*model.ViewerResult, error)
 	CreateUserWithOrganization(ctx context.Context, input model.CreateUserWithOrganizationInput) (*model.ViewerResult, error)
+	CreateStorageDefinition(ctx context.Context, input model.CreateStorageDefinitionInput) (*model.StorageDefinition, error)
+	UpdateStorageDefinition(ctx context.Context, input model.UpdateStorageDefinitionInput) (*model.StorageDefinition, error)
 }
 type QueryResolver interface {
 	Viewer(ctx context.Context) (*model.Viewer, error)
@@ -159,6 +164,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.Authenticate(childComplexity, args["email"].(string), args["password"].(string), args["organizationId"].(*string)), true
 
+	case "Mutation.createStorageDefinition":
+		if e.complexity.Mutation.CreateStorageDefinition == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createStorageDefinition_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateStorageDefinition(childComplexity, args["input"].(model.CreateStorageDefinitionInput)), true
+
 	case "Mutation.createUserWithOrganization":
 		if e.complexity.Mutation.CreateUserWithOrganization == nil {
 			break
@@ -177,6 +194,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.Logout(childComplexity), true
+
+	case "Mutation.updateStorageDefinition":
+		if e.complexity.Mutation.UpdateStorageDefinition == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateStorageDefinition_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateStorageDefinition(childComplexity, args["input"].(model.UpdateStorageDefinitionInput)), true
 
 	case "Organization.id":
 		if e.complexity.Organization.ID == nil {
@@ -290,6 +319,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StorageDefinition.Config(childComplexity), true
 
+	case "StorageDefinition.id":
+		if e.complexity.StorageDefinition.Id == nil {
+			break
+		}
+
+		return e.complexity.StorageDefinition.Id(childComplexity), true
+
 	case "StorageDefinition.identifier":
 		if e.complexity.StorageDefinition.Identifier == nil {
 			break
@@ -381,6 +417,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCreateUserWithOrganizationInput,
+		ec.unmarshalInputcreateStorageDefinitionInput,
+		ec.unmarshalInputupdateStorageDefinitionInput,
 	)
 	first := true
 
@@ -539,6 +577,21 @@ func (ec *executionContext) field_Mutation_authenticate_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createStorageDefinition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.CreateStorageDefinitionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNcreateStorageDefinitionInput2imgddᚋgraphᚋmodelᚐCreateStorageDefinitionInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createUserWithOrganization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -546,6 +599,21 @@ func (ec *executionContext) field_Mutation_createUserWithOrganization_args(ctx c
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCreateUserWithOrganizationInput2imgddᚋgraphᚋmodelᚐCreateUserWithOrganizationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateStorageDefinition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UpdateStorageDefinitionInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNupdateStorageDefinitionInput2imgddᚋgraphᚋmodelᚐUpdateStorageDefinitionInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -782,6 +850,174 @@ func (ec *executionContext) fieldContext_Mutation_createUserWithOrganization(ctx
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createUserWithOrganization_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createStorageDefinition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createStorageDefinition(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateStorageDefinition(rctx, fc.Args["input"].(model.CreateStorageDefinitionInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsSiteOwner == nil {
+				return nil, errors.New("directive isSiteOwner is not implemented")
+			}
+			return ec.directives.IsSiteOwner(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.StorageDefinition); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *imgdd/graph/model.StorageDefinition`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.StorageDefinition)
+	fc.Result = res
+	return ec.marshalOStorageDefinition2ᚖimgddᚋgraphᚋmodelᚐStorageDefinition(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createStorageDefinition(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_StorageDefinition_id(ctx, field)
+			case "identifier":
+				return ec.fieldContext_StorageDefinition_identifier(ctx, field)
+			case "config":
+				return ec.fieldContext_StorageDefinition_config(ctx, field)
+			case "isEnabled":
+				return ec.fieldContext_StorageDefinition_isEnabled(ctx, field)
+			case "priority":
+				return ec.fieldContext_StorageDefinition_priority(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StorageDefinition", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createStorageDefinition_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateStorageDefinition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateStorageDefinition(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateStorageDefinition(rctx, fc.Args["input"].(model.UpdateStorageDefinitionInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsSiteOwner == nil {
+				return nil, errors.New("directive isSiteOwner is not implemented")
+			}
+			return ec.directives.IsSiteOwner(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.StorageDefinition); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *imgdd/graph/model.StorageDefinition`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.StorageDefinition)
+	fc.Result = res
+	return ec.marshalOStorageDefinition2ᚖimgddᚋgraphᚋmodelᚐStorageDefinition(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateStorageDefinition(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_StorageDefinition_id(ctx, field)
+			case "identifier":
+				return ec.fieldContext_StorageDefinition_identifier(ctx, field)
+			case "config":
+				return ec.fieldContext_StorageDefinition_config(ctx, field)
+			case "isEnabled":
+				return ec.fieldContext_StorageDefinition_isEnabled(ctx, field)
+			case "priority":
+				return ec.fieldContext_StorageDefinition_priority(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StorageDefinition", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateStorageDefinition_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -1606,6 +1842,50 @@ func (ec *executionContext) fieldContext_S3StorageConfig_secret(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _StorageDefinition_id(ctx context.Context, field graphql.CollectedField, obj *model.StorageDefinition) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StorageDefinition_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Id, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StorageDefinition_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StorageDefinition",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _StorageDefinition_identifier(ctx context.Context, field graphql.CollectedField, obj *model.StorageDefinition) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_StorageDefinition_identifier(ctx, field)
 	if err != nil {
@@ -2123,6 +2403,8 @@ func (ec *executionContext) fieldContext_Viewer_storageDefinitions(_ context.Con
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "id":
+				return ec.fieldContext_StorageDefinition_id(ctx, field)
 			case "identifier":
 				return ec.fieldContext_StorageDefinition_identifier(ctx, field)
 			case "config":
@@ -4006,6 +4288,109 @@ func (ec *executionContext) unmarshalInputCreateUserWithOrganizationInput(ctx co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputcreateStorageDefinitionInput(ctx context.Context, obj interface{}) (model.CreateStorageDefinitionInput, error) {
+	var it model.CreateStorageDefinitionInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"identifier", "storageType", "configJSON", "isEnabled", "priority"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "identifier":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identifier"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Identifier = data
+		case "storageType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("storageType"))
+			data, err := ec.unmarshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStorageTypeEnum(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StorageType = data
+		case "configJSON":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configJSON"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ConfigJSON = data
+		case "isEnabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isEnabled"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsEnabled = data
+		case "priority":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Priority = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputupdateStorageDefinitionInput(ctx context.Context, obj interface{}) (model.UpdateStorageDefinitionInput, error) {
+	var it model.UpdateStorageDefinitionInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"identifier", "configJSON", "isEnabled", "priority"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "identifier":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identifier"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Identifier = data
+		case "configJSON":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configJSON"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ConfigJSON = data
+		case "isEnabled":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isEnabled"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsEnabled = data
+		case "priority":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Priority = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -4077,6 +4462,14 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "createStorageDefinition":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createStorageDefinition(ctx, field)
+			})
+		case "updateStorageDefinition":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateStorageDefinition(ctx, field)
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4420,6 +4813,11 @@ func (ec *executionContext) _StorageDefinition(ctx context.Context, sel ast.Sele
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("StorageDefinition")
+		case "id":
+			out.Values[i] = ec._StorageDefinition_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "identifier":
 			out.Values[i] = ec._StorageDefinition_identifier(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -5257,6 +5655,33 @@ func (ec *executionContext) marshalNStorageDefinition2ᚖimgddᚋgraphᚋmodel�
 	return ec._StorageDefinition(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStorageTypeEnum(ctx context.Context, v interface{}) (model.StorageTypeEnum, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := unmarshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStorageTypeEnum[tmp]
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStorageTypeEnum(ctx context.Context, sel ast.SelectionSet, v model.StorageTypeEnum) graphql.Marshaler {
+	res := graphql.MarshalString(marshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStorageTypeEnum[v])
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+var (
+	unmarshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStorageTypeEnum = map[string]model.StorageTypeEnum{
+		"S3":    model.StorageType_S3,
+		"Other": model.StorageType_Other,
+	}
+	marshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStorageTypeEnum = map[model.StorageTypeEnum]string{
+		model.StorageType_S3:    "S3",
+		model.StorageType_Other: "Other",
+	}
+)
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5563,6 +5988,16 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
+func (ec *executionContext) unmarshalNcreateStorageDefinitionInput2imgddᚋgraphᚋmodelᚐCreateStorageDefinitionInput(ctx context.Context, v interface{}) (model.CreateStorageDefinitionInput, error) {
+	res, err := ec.unmarshalInputcreateStorageDefinitionInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNupdateStorageDefinitionInput2imgddᚋgraphᚋmodelᚐUpdateStorageDefinitionInput(ctx context.Context, v interface{}) (model.UpdateStorageDefinitionInput, error) {
+	res, err := ec.unmarshalInputupdateStorageDefinitionInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5589,11 +6024,34 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalInt(*v)
+	return res
+}
+
 func (ec *executionContext) marshalOOrganizationUser2ᚖimgddᚋgraphᚋmodelᚐOrganizationUser(ctx context.Context, sel ast.SelectionSet, v *model.OrganizationUser) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._OrganizationUser(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOStorageDefinition2ᚖimgddᚋgraphᚋmodelᚐStorageDefinition(ctx context.Context, sel ast.SelectionSet, v *model.StorageDefinition) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._StorageDefinition(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

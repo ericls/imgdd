@@ -2,6 +2,7 @@ package storage
 
 import (
 	"encoding/json"
+	"errors"
 	"hash/fnv"
 	"imgdd/utils"
 	"io"
@@ -50,7 +51,7 @@ type S3StorageBackend struct {
 	cache *lru.TwoQueueCache[uint32, *S3Storage]
 }
 
-func (s *S3StorageBackend) FromJSON(config []byte) (Storage, error) {
+func (s *S3StorageBackend) FromJSONConfig(config []byte) (Storage, error) {
 	var conf S3StorageConfig
 	err := json.Unmarshal(config, &conf)
 	if err != nil {
@@ -69,6 +70,18 @@ func (s *S3StorageBackend) FromJSON(config []byte) (Storage, error) {
 	store.ensureClient()
 	s.cache.Add(hash, &store)
 	return &store, nil
+}
+
+func (s *S3StorageBackend) ValidateJSONConfig(config []byte) error {
+	var conf S3StorageConfig
+	err := json.Unmarshal(config, &conf)
+	if err != nil {
+		return err
+	}
+	if conf.Endpoint == "" || conf.Bucket == "" || conf.Access == "" || conf.Secret == "" {
+		return errors.New("invalid S3 storage config")
+	}
+	return nil
 }
 
 type S3Storage struct {

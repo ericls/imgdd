@@ -1,71 +1,15 @@
 package graph_test
 
 import (
-	"net/http/httptest"
-	"reflect"
-	"runtime"
-	"strings"
 	"testing"
 
-	"imgdd/db"
-	"imgdd/graph"
 	"imgdd/graph/model"
-	"imgdd/httpserver"
-	"imgdd/identity"
-	"imgdd/storage"
-	"imgdd/test_support"
+	"imgdd/utils"
 
-	"github.com/99designs/gqlgen/client"
-	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/stretchr/testify/require"
 )
 
-type TestContext struct {
-	identityRepo    identity.IdentityRepo
-	storageRepo     storage.StorageRepo
-	identityManager *httpserver.IdentityManager
-	tObj            *testing.T
-}
-
-func newTestContext(tObj *testing.T) *TestContext {
-	conn := db.GetConnection(&TEST_DB_CONF)
-	identityRepo := identity.NewDBIdentityRepo(conn)
-	identityManager := httpserver.NewIdentityManager(identityRepo)
-	storageRepo := storage.NewDBStorageRepo(conn)
-	return &TestContext{
-		identityRepo:    identityRepo,
-		storageRepo:     storageRepo,
-		identityManager: identityManager,
-		tObj:            tObj,
-	}
-}
-
-func (tc *TestContext) reset() {
-	test_support.ResetDatabase(&TEST_DB_CONF)
-}
-
-func (tc *TestContext) makeGqlServer() *httptest.Server {
-	resolver := httpserver.NewGqlResolver(tc.identityManager, tc.storageRepo)
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(httpserver.NewGraphConfig(resolver)))
-	// NOTE: the order of code should be reversed compared to Mux.use
-	handler := tc.identityManager.Middleware(srv)
-	handler = graph.NewLoadersMiddleware(tc.identityRepo)(handler)
-	handler = httpserver.RWContextMiddleware(handler)
-	handler = httpserver.SessionMiddleware(handler)
-	return httptest.NewServer(handler)
-}
-
-func (tc *TestContext) runCaseWithClient(f func(t *testing.T, c *client.Client, tc *TestContext)) {
-	tc.reset()
-	server := tc.makeGqlServer()
-	client := client.New(server.Config.Handler)
-	name := strings.Split(runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name(), ".")[1]
-	tc.tObj.Run(name, func(innerT *testing.T) {
-		f(innerT, client, tc)
-	})
-}
-
-func tAuthenticate(t *testing.T, client *client.Client, tc *TestContext) {
+func tAuthenticate(t *testing.T, tc *TestContext) {
 	var resp struct {
 		Authenticate *model.ViewerResult
 	}
@@ -73,7 +17,7 @@ func tAuthenticate(t *testing.T, client *client.Client, tc *TestContext) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = client.Post(`
+	err = tc.client.Post(`
 	mutation {
 		authenticate(email: "test@example.com", password: "password") {
 			viewer {
@@ -95,7 +39,183 @@ func tAuthenticate(t *testing.T, client *client.Client, tc *TestContext) {
 	require.Equal(t, orgUser.Id, resp.Authenticate.Viewer.OrganizationUser.ID)
 }
 
+func tCreateStorageDefinition(t *testing.T, tc *TestContext) {
+	var resp struct {
+		CreateStorageDefinition *struct {
+			Id         string
+			Identifier string
+			Config     model.S3StorageConfig
+			IsEnabled  bool
+			Priority   int
+		}
+	}
+
+	configJSON := `{
+		"bucket": "test-bucket",
+		"endpoint": "us-west-2",
+		"access": "test",
+		"secret": "test"
+	}`
+	tc.forceAuthenticate(asSiteOwner)
+	err := tc.client.Post(`
+	mutation {
+		createStorageDefinition(input: {
+			storageType: S3
+			configJSON: "`+utils.JsonEscape(configJSON)+`"
+			identifier: "test"
+			isEnabled: true
+			priority: 1
+		}) {
+			id
+			identifier
+			isEnabled
+			priority
+			config {
+				... on S3StorageConfig {
+					bucket
+					endpoint
+					access
+					secret
+				}
+			}
+		}
+	}`, &resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp.CreateStorageDefinition)
+	// check that the storage definition was created
+	storageDefinition, err := tc.storageRepo.GetStorageDefinitionByIdentifier("test")
+	require.NoError(t, err)
+	require.NotNil(t, storageDefinition)
+}
+
+func tCreateStorageDefinitionWithInvalidConfig(t *testing.T, tc *TestContext) {
+	var resp struct {
+		CreateStorageDefinition *model.StorageDefinition
+	}
+	tc.forceAuthenticate(asSiteOwner)
+	configJSON := `{
+		"bucket": "test-bucket",
+		"endpoint": "us-west-2",
+		"INVALID": "test",
+		"secret": "test"
+	}`
+	err := tc.client.Post(`
+	mutation {
+		createStorageDefinition(input: {
+			storageType: S3
+			configJSON: "`+utils.JsonEscape(configJSON)+`"
+			identifier: "test"
+			isEnabled: true
+			priority: 1
+		}) {
+			id
+			identifier
+			isEnabled
+			priority
+			config {
+				... on S3StorageConfig {
+					bucket
+					endpoint
+					access
+					secret
+				}
+			}
+		}
+	}`, &resp)
+	require.Error(t, err)
+	require.Nil(t, resp.CreateStorageDefinition)
+}
+
+func tListStorageDefinitions(t *testing.T, tc *TestContext) {
+	var resp struct {
+		Viewer *struct {
+			Id                 string
+			StorageDefinitions []*struct {
+				Id         string
+				Identifier string
+				IsEnabled  bool
+				Priority   int
+				Config     *model.S3StorageConfig
+			}
+		}
+	}
+	tc.forceAuthenticate(asSiteOwner)
+	gqlQuery := `
+	query {
+		viewer {
+			id
+			storageDefinitions {
+				id
+				identifier
+				isEnabled
+				priority
+				config {
+					... on S3StorageConfig {
+						bucket
+						endpoint
+						access
+						secret
+					}
+				}
+			}
+		}
+	}`
+	err := tc.client.Post(gqlQuery, &resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp.Viewer)
+	require.Len(t, resp.Viewer.StorageDefinitions, 0)
+	// create a storage definition
+	configJSON := `{
+		"bucket": "test-bucket",
+		"endpoint": "us-west-2",
+		"access": "test",
+		"secret": "test"
+	}`
+	tc.storageRepo.CreateStorageDefinition("s3", configJSON, "test1", true, 1)
+	err = tc.client.Post(gqlQuery, &resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp.Viewer)
+	require.Len(t, resp.Viewer.StorageDefinitions, 1)
+}
+
+func tUpdateStorageDefinition(t *testing.T, tc *TestContext) {
+	var resp struct {
+		UpdateStorageDefinition *model.StorageDefinition
+	}
+	tc.forceAuthenticate(asSiteOwner)
+	configJSON := `{
+		"bucket": "test-bucket",
+		"endpoint": "us-west-2",
+		"access": "test",
+		"secret": "test"
+	}`
+	tc.storageRepo.CreateStorageDefinition("s3", configJSON, "test1", true, 1)
+	err := tc.client.Post(`
+	mutation {
+		updateStorageDefinition(input: {
+			identifier: "test1"
+			isEnabled: false
+			priority: 2
+		}) {
+			id
+			identifier
+			isEnabled
+			priority
+		}
+	}`, &resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp.UpdateStorageDefinition)
+	require.Equal(t, false, resp.UpdateStorageDefinition.IsEnabled)
+	require.Equal(t, 2, resp.UpdateStorageDefinition.Priority)
+}
+
 func TestResolver(t *testing.T) {
 	tc := newTestContext(t)
-	tc.runCaseWithClient(tAuthenticate)
+	tc.runTestCases(
+		tAuthenticate,
+		tCreateStorageDefinition,
+		tCreateStorageDefinitionWithInvalidConfig,
+		tListStorageDefinitions,
+		tUpdateStorageDefinition,
+	)
 }

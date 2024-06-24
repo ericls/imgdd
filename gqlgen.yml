@@ -86,6 +86,8 @@ models:
     enum_values:
       S3:
         value: ./graph/model.StorageType_S3
+      Other:
+        value: ./graph/model.StorageType_Other
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID

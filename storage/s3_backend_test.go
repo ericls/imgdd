@@ -25,7 +25,7 @@ func TestS3Storage(t *testing.T) {
 	}
 
 	// Create a new S3 storage
-	store, err := backend.FromJSON(conf.ToJSON())
+	store, err := backend.FromJSONConfig(conf.ToJSON())
 	s3Storage := store.(*storage.S3Storage)
 	if err != nil {
 		t.Fatal(err)

@@ -2,7 +2,6 @@ package httpserver
 
 import (
 	"context"
-	"imgdd/domainmodels"
 	"imgdd/identity"
 	"net/http"
 )
@@ -32,25 +31,17 @@ func (cu *HttpContextUserManager) GetAuthenticationInfo(c context.Context) *iden
 	return v
 }
 
-func (cu *HttpContextUserManager) GetCurrentOrganizationUser(c context.Context) *domainmodels.OrganizationUser {
-	authInfo := cu.GetAuthenticationInfo(c)
-	if authInfo == nil {
-		return nil
-	}
-	authUser := authInfo.AuthorizedUser
-	if authUser == nil {
-		return nil
-	}
-	return authUser.OrganizationUser
-}
-
 func (cu *HttpContextUserManager) WithAuthenticationInfo(c context.Context, authenticationInfo *identity.AuthenticationInfo) context.Context {
 	return context.WithValue(c, cu.contextKey, authenticationInfo)
 }
 
-func (cu *HttpContextUserManager) ValidateUserPassword(userId string, suppliedPassword string) bool {
-	hashedPassword := cu.identityRepo.GetUserPassword(userId)
-	return identity.CheckPasswordHash(suppliedPassword, hashedPassword)
+func (cu *HttpContextUserManager) SetAuthenticationInfo(c context.Context, authenticationInfo *identity.AuthenticationInfo) {
+	existing := cu.GetAuthenticationInfo(c)
+	if existing == nil {
+		return
+	}
+	existing.AuthenticatedUser = authenticationInfo.AuthenticatedUser
+	existing.AuthorizedUser = authenticationInfo.AuthorizedUser
 }
 
 type IdentityManager struct {
@@ -106,15 +97,15 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 func (i *IdentityManager) AuthenticateContext(c context.Context, userId string, organzationUserId string) {
 	w := GetResponseWriter(c)
 	r := GetRequest(c)
+	// Set authentication info on the session for next requests
 	Authenticate(w, r, userId, organzationUserId)
 	user := i.IdentityRepo.GetUserById(userId)
 	orgUser := i.IdentityRepo.GetOrganizationUserById(organzationUserId)
-	authContext := i.ContextUserManager.GetAuthenticationInfo(c)
-	if authContext == nil {
-		authContext = &identity.AuthenticationInfo{}
-	}
-	authContext.AuthenticatedUser.User = user
-	authContext.AuthorizedUser.OrganizationUser = orgUser
+	// Set authentication info on the context for this request
+	i.ContextUserManager.SetAuthenticationInfo(c, &identity.AuthenticationInfo{
+		AuthenticatedUser: &identity.AuthenticatedUser{User: user},
+		AuthorizedUser:    &identity.AuthorizedUser{OrganizationUser: orgUser},
+	})
 }
 
 func (i *IdentityManager) LogoutContext(c context.Context) {
