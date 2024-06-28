@@ -11,6 +11,7 @@ export const SECONDARY_TEXT_COLOR_DIMMER =
 export const SECONDARY_TEXT_COLOR_HILIGHT =
   "text-neutral-900 dark:text-neutral-100";
 export const HEADING_1 = cx("text-3xl font-bold tracking-tight", TEXT_COLOR);
+export const HEADING_2 = cx("text-2xl font-bold tracking-tight", TEXT_COLOR);
 export const BASE_LAYER = "bg-neutral-100 dark:bg-neutral-900";
 export const BASE_LAYER_HOVER =
   "hover:bg-neutral-200 hover:dark:bg-neutral-700";

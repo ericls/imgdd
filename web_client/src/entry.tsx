@@ -44,11 +44,11 @@ const router = createBrowserRouter([
         element: <Navigate to="/site-admin/storage" replace />,
       },
       {
-        path: "storage",
+        path: "storage/*",
         index: true,
         lazy: async () => {
           const { StorageConfig } = await import(
-            "./site-admin/pages/storageConfig"
+            "./site-admin/pages/storageConfig/storageConfigIndex"
           );
           return {
             element: <StorageConfig />,

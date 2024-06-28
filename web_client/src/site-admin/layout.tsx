@@ -76,7 +76,7 @@ export function SiteAdminLayout() {
       <div className={classnames(SECOND_LAYER, "mb-0 px-2")}>
         <TopNav />
       </div>
-      <div className="grow relative z-0 flex gap-6">
+      <div className="grow relative z-0 flex">
         <div className="site-admin-sidebar basis-56">
           <div
             className={classNames(
@@ -131,7 +131,7 @@ export function SiteAdminLayout() {
             </div>
           </div>
         </div>
-        <div className="site-admin-main grow min-h-full flex flex-col mt-2">
+        <div className="site-admin-main grow min-h-full flex flex-col mt-4 mr-4 ml-4">
           <div className="grow">
             <LazyRouteFallback />
             <Outlet />

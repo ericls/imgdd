@@ -17,6 +17,8 @@ const documents = {
     "\nmutation authenticate($email: String!, $password: String!) {\n  authenticate(email: $email, password: $password) {\n    viewer {\n      id\n      organizationUser {\n        id\n        user {\n          id\n          email\n          name\n        }\n      }\n    }\n  }\n}\n": types.AuthenticateDocument,
     "\nquery Auth {\n  viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n  }\n}\n": types.AuthDocument,
     "\nmutation Logout {\n  logout {\n    viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n  }\n  }\n}\n": types.LogoutDocument,
+    "\n  query ListStorageDef {\n    viewer {\n      storageDefinitions {\n        ...StorageDefinitionFragment\n      }\n    }\n  }\n": types.ListStorageDefDocument,
+    "\n  fragment StorageDefinitionFragment on StorageDefinition {\n    id\n    identifier\n    __typename\n    isEnabled\n    priority\n    config {\n      ... on S3StorageConfig {\n        bucket\n        endpoint\n        access\n        secret\n      }\n    }\n  }\n": types.StorageDefinitionFragmentFragmentDoc,
 };
 
 /**
@@ -49,6 +51,14 @@ export function gql(source: "\nquery Auth {\n  viewer {\n    id\n    organizatio
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\nmutation Logout {\n  logout {\n    viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n  }\n  }\n}\n"): (typeof documents)["\nmutation Logout {\n  logout {\n    viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n  }\n  }\n}\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query ListStorageDef {\n    viewer {\n      storageDefinitions {\n        ...StorageDefinitionFragment\n      }\n    }\n  }\n"): (typeof documents)["\n  query ListStorageDef {\n    viewer {\n      storageDefinitions {\n        ...StorageDefinitionFragment\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  fragment StorageDefinitionFragment on StorageDefinition {\n    id\n    identifier\n    __typename\n    isEnabled\n    priority\n    config {\n      ... on S3StorageConfig {\n        bucket\n        endpoint\n        access\n        secret\n      }\n    }\n  }\n"): (typeof documents)["\n  fragment StorageDefinitionFragment on StorageDefinition {\n    id\n    identifier\n    __typename\n    isEnabled\n    priority\n    config {\n      ... on S3StorageConfig {\n        bucket\n        endpoint\n        access\n        secret\n      }\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

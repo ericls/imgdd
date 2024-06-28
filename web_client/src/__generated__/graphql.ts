@@ -23,8 +23,10 @@ export type CreateUserWithOrganizationInput = {
 export type Mutation = {
   __typename?: 'Mutation';
   authenticate: ViewerResult;
+  createStorageDefinition?: Maybe<StorageDefinition>;
   createUserWithOrganization: ViewerResult;
   logout: ViewerResult;
+  updateStorageDefinition?: Maybe<StorageDefinition>;
 };
 
 
@@ -35,8 +37,18 @@ export type MutationAuthenticateArgs = {
 };
 
 
+export type MutationCreateStorageDefinitionArgs = {
+  input: CreateStorageDefinitionInput;
+};
+
+
 export type MutationCreateUserWithOrganizationArgs = {
   input: CreateUserWithOrganizationInput;
+};
+
+
+export type MutationUpdateStorageDefinitionArgs = {
+  input: UpdateStorageDefinitionInput;
 };
 
 export type Organization = {
@@ -52,6 +64,11 @@ export type OrganizationUser = {
   organization: Organization;
   roles: Array<Role>;
   user: User;
+};
+
+export type OtherStorageConfig = {
+  __typename?: 'OtherStorageConfig';
+  _empty?: Maybe<Scalars['String']>;
 };
 
 export enum PermissionNameEnum {
@@ -70,6 +87,30 @@ export type Role = {
   name: Scalars['String'];
 };
 
+export type S3StorageConfig = {
+  __typename?: 'S3StorageConfig';
+  access: Scalars['String'];
+  bucket: Scalars['String'];
+  endpoint: Scalars['String'];
+  secret: Scalars['String'];
+};
+
+export type StorageConfig = OtherStorageConfig | S3StorageConfig;
+
+export type StorageDefinition = {
+  __typename?: 'StorageDefinition';
+  config: StorageConfig;
+  id: Scalars['ID'];
+  identifier: Scalars['String'];
+  isEnabled: Scalars['Boolean'];
+  priority: Scalars['Int'];
+};
+
+export enum StorageTypeEnum {
+  Other = 'Other',
+  S3 = 'S3'
+}
+
 export type User = {
   __typename?: 'User';
   email: Scalars['String'];
@@ -82,6 +123,7 @@ export type Viewer = {
   hasPermission: Scalars['Boolean'];
   id: Scalars['ID'];
   organizationUser?: Maybe<OrganizationUser>;
+  storageDefinitions: Array<StorageDefinition>;
 };
 
 
@@ -92,6 +134,21 @@ export type ViewerHasPermissionArgs = {
 export type ViewerResult = {
   __typename?: 'ViewerResult';
   viewer: Viewer;
+};
+
+export type CreateStorageDefinitionInput = {
+  configJSON: Scalars['String'];
+  identifier: Scalars['String'];
+  isEnabled: Scalars['Boolean'];
+  priority: Scalars['Int'];
+  storageType: StorageTypeEnum;
+};
+
+export type UpdateStorageDefinitionInput = {
+  configJSON?: InputMaybe<Scalars['String']>;
+  identifier: Scalars['String'];
+  isEnabled?: InputMaybe<Scalars['Boolean']>;
+  priority?: InputMaybe<Scalars['Int']>;
 };
 
 export type CreateUserWithOrganizationMutationVariables = Exact<{
@@ -119,8 +176,16 @@ export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
 export type LogoutMutation = { __typename?: 'Mutation', logout: { __typename?: 'ViewerResult', viewer: { __typename?: 'Viewer', id: string, hasAdminAccess: boolean, hasSiteOwnerAccess: boolean, organizationUser?: { __typename?: 'OrganizationUser', id: string, user: { __typename?: 'User', id: string, email: string, name: string } } | null } } };
 
+export type ListStorageDefQueryVariables = Exact<{ [key: string]: never; }>;
 
+
+export type ListStorageDefQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', storageDefinitions: Array<{ __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config: { __typename?: 'OtherStorageConfig' } | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string } }> } };
+
+export type StorageDefinitionFragmentFragment = { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config: { __typename?: 'OtherStorageConfig' } | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string } };
+
+export const StorageDefinitionFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StorageDefinitionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"StorageDefinition"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"identifier"}},{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"isEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"S3StorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bucket"}},{"kind":"Field","name":{"kind":"Name","value":"endpoint"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"secret"}}]}}]}}]}}]} as unknown as DocumentNode<StorageDefinitionFragmentFragment, unknown>;
 export const CreateUserWithOrganizationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createUserWithOrganization"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateUserWithOrganizationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createUserWithOrganization"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<CreateUserWithOrganizationMutation, CreateUserWithOrganizationMutationVariables>;
 export const AuthenticateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"authenticate"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"authenticate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<AuthenticateMutation, AuthenticateMutationVariables>;
 export const AuthDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Auth"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}},{"kind":"Field","alias":{"kind":"Name","value":"hasAdminAccess"},"name":{"kind":"Name","value":"hasPermission"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"permission"},"value":{"kind":"EnumValue","value":"AdminAccess"}}]},{"kind":"Field","alias":{"kind":"Name","value":"hasSiteOwnerAccess"},"name":{"kind":"Name","value":"hasPermission"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"permission"},"value":{"kind":"EnumValue","value":"SiteOwnerAccess"}}]}]}}]}}]} as unknown as DocumentNode<AuthQuery, AuthQueryVariables>;
 export const LogoutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"Logout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}},{"kind":"Field","alias":{"kind":"Name","value":"hasAdminAccess"},"name":{"kind":"Name","value":"hasPermission"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"permission"},"value":{"kind":"EnumValue","value":"AdminAccess"}}]},{"kind":"Field","alias":{"kind":"Name","value":"hasSiteOwnerAccess"},"name":{"kind":"Name","value":"hasPermission"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"permission"},"value":{"kind":"EnumValue","value":"SiteOwnerAccess"}}]}]}}]}}]}}]} as unknown as DocumentNode<LogoutMutation, LogoutMutationVariables>;
+export const ListStorageDefDocument = {"kind":"Document", "definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ListStorageDef"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"storageDefinitions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StorageDefinitionFragment"}}]}}]}}]}},...StorageDefinitionFragmentFragmentDoc.definitions]} as unknown as DocumentNode<ListStorageDefQuery, ListStorageDefQueryVariables>;
