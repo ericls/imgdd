@@ -15,9 +15,8 @@ import { TopNav } from "~src/common/TopNav";
 import {
   PRIMARY_BORDER_COLOR,
   PRIMARY_TEXT_COLOR,
-  SECONDARY_TEXT_COLOR_DIM,
+  SECONDARY_TEXT_COLOR,
   SECONDARY_TEXT_COLOR_DIMMER,
-  SECOND_LAYER,
 } from "~src/ui/classNames";
 
 export function SiteAdminLayout() {
@@ -73,17 +72,12 @@ export function SiteAdminLayout() {
   }, [location]);
   return (
     <div className="main min-h-full flex flex-col">
-      <div className={classnames(SECOND_LAYER, "mb-0 px-2")}>
+      <div className={classnames("mb-0 px-4")}>
         <TopNav />
       </div>
       <div className="grow relative z-0 flex">
         <div className="site-admin-sidebar basis-56">
-          <div
-            className={classNames(
-              SECOND_LAYER,
-              "h-full overflow-y-auto sticky buttom-0"
-            )}
-          >
+          <div className={classNames("h-full overflow-y-auto sticky buttom-0")}>
             <div className="site-admin-sidebar-menu py-4 flex flex-col gap-4">
               {sideBarMenuGroups.map((group) => (
                 <div key={group.title}>
@@ -101,7 +95,7 @@ export function SiteAdminLayout() {
                         key={item.title}
                         className={classnames("w-full", {
                           [PRIMARY_TEXT_COLOR]: item.active,
-                          [SECONDARY_TEXT_COLOR_DIM]: !item.active,
+                          [SECONDARY_TEXT_COLOR]: !item.active,
                         })}
                       >
                         <Link

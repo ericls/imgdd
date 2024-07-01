@@ -29,6 +29,7 @@ type StorageDefinition {
 
 extend type Viewer {
   storageDefinitions: [StorageDefinition!]! @isSiteOwner
+  getStorageDefinition(id: ID!): StorageDefinition @isSiteOwner
 }
 
 input createStorageDefinitionInput {

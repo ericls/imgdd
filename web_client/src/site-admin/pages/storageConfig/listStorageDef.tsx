@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 const listStorageDefQuery = gql(`
   query ListStorageDef {
     viewer {
+      id
       storageDefinitions {
         ...StorageDefinitionFragment
       }
@@ -32,9 +33,9 @@ export function ListStorageDef() {
     [navigate]
   );
   return (
-    <div>
+    <div className="m-auto max-w-5xl">
       <h1 className={classNames(HEADING_2, "font-poppins")}>Storage Backend</h1>
-      {loading && <BlockLoader />}
+      {!storageDefs && loading && <BlockLoader />}
       <div className="mt-4">
         <DumbStorageDefTable
           data={storageDefs?.viewer.storageDefinitions || []}

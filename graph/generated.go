@@ -105,10 +105,11 @@ type ComplexityRoot struct {
 	}
 
 	Viewer struct {
-		HasPermission      func(childComplexity int, permission model.PermissionNameEnum) int
-		ID                 func(childComplexity int) int
-		OrganizationUser   func(childComplexity int) int
-		StorageDefinitions func(childComplexity int) int
+		GetStorageDefinition func(childComplexity int, id string) int
+		HasPermission        func(childComplexity int, permission model.PermissionNameEnum) int
+		ID                   func(childComplexity int) int
+		OrganizationUser     func(childComplexity int) int
+		StorageDefinitions   func(childComplexity int) int
 	}
 
 	ViewerResult struct {
@@ -131,6 +132,7 @@ type ViewerResolver interface {
 	OrganizationUser(ctx context.Context, obj *model.Viewer) (*model.OrganizationUser, error)
 	HasPermission(ctx context.Context, obj *model.Viewer, permission model.PermissionNameEnum) (bool, error)
 	StorageDefinitions(ctx context.Context, obj *model.Viewer) ([]*model.StorageDefinition, error)
+	GetStorageDefinition(ctx context.Context, obj *model.Viewer, id string) (*model.StorageDefinition, error)
 }
 
 type executableSchema struct {
@@ -367,6 +369,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Name(childComplexity), true
+
+	case "Viewer.getStorageDefinition":
+		if e.complexity.Viewer.GetStorageDefinition == nil {
+			break
+		}
+
+		args, err := ec.field_Viewer_getStorageDefinition_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Viewer.GetStorageDefinition(childComplexity, args["id"].(string)), true
 
 	case "Viewer.hasPermission":
 		if e.complexity.Viewer.HasPermission == nil {
@@ -634,6 +648,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Viewer_getStorageDefinition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -1442,6 +1471,8 @@ func (ec *executionContext) fieldContext_Query_viewer(_ context.Context, field g
 				return ec.fieldContext_Viewer_hasPermission(ctx, field)
 			case "storageDefinitions":
 				return ec.fieldContext_Viewer_storageDefinitions(ctx, field)
+			case "getStorageDefinition":
+				return ec.fieldContext_Viewer_getStorageDefinition(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Viewer", field.Name)
 		},
@@ -2420,6 +2451,90 @@ func (ec *executionContext) fieldContext_Viewer_storageDefinitions(_ context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Viewer_getStorageDefinition(ctx context.Context, field graphql.CollectedField, obj *model.Viewer) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Viewer_getStorageDefinition(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Viewer().GetStorageDefinition(rctx, obj, fc.Args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsSiteOwner == nil {
+				return nil, errors.New("directive isSiteOwner is not implemented")
+			}
+			return ec.directives.IsSiteOwner(ctx, obj, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.StorageDefinition); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *imgdd/graph/model.StorageDefinition`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.StorageDefinition)
+	fc.Result = res
+	return ec.marshalOStorageDefinition2ᚖimgddᚋgraphᚋmodelᚐStorageDefinition(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Viewer_getStorageDefinition(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Viewer",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_StorageDefinition_id(ctx, field)
+			case "identifier":
+				return ec.fieldContext_StorageDefinition_identifier(ctx, field)
+			case "config":
+				return ec.fieldContext_StorageDefinition_config(ctx, field)
+			case "isEnabled":
+				return ec.fieldContext_StorageDefinition_isEnabled(ctx, field)
+			case "priority":
+				return ec.fieldContext_StorageDefinition_priority(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StorageDefinition", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Viewer_getStorageDefinition_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ViewerResult_viewer(ctx context.Context, field graphql.CollectedField, obj *model.ViewerResult) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ViewerResult_viewer(ctx, field)
 	if err != nil {
@@ -2467,6 +2582,8 @@ func (ec *executionContext) fieldContext_ViewerResult_viewer(_ context.Context, 
 				return ec.fieldContext_Viewer_hasPermission(ctx, field)
 			case "storageDefinitions":
 				return ec.fieldContext_Viewer_storageDefinitions(ctx, field)
+			case "getStorageDefinition":
+				return ec.fieldContext_Viewer_getStorageDefinition(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Viewer", field.Name)
 		},
@@ -5039,6 +5156,39 @@ func (ec *executionContext) _Viewer(ctx context.Context, sel ast.SelectionSet, o
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "getStorageDefinition":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Viewer_getStorageDefinition(ctx, field, obj)
 				return res
 			}
 

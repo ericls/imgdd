@@ -80,3 +80,14 @@ func (r *viewerResolver) StorageDefinitions(ctx context.Context, obj *model.View
 	}
 	return ret, nil
 }
+
+// GetStorageDefinition is the resolver for the getStorageDefinition field.
+func (r *viewerResolver) GetStorageDefinition(ctx context.Context, obj *model.Viewer, id string) (*model.StorageDefinition, error) {
+	repo := r.StorageRepo
+	storageDefinition, err := repo.GetStorageDefinitionById(id)
+	if err != nil {
+		return nil, err
+	}
+	s, err := model.FromStorageDefinition(storageDefinition)
+	return s, err
+}

@@ -1,5 +1,6 @@
 import { gql } from "~src/__generated__";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const storageDefinitionFragment = gql(/* GraphQL */ `
   fragment StorageDefinitionFragment on StorageDefinition {
     id
@@ -18,4 +19,20 @@ const storageDefinitionFragment = gql(/* GraphQL */ `
   }
 `);
 
-type storageType = "S3" | "__";
+export const createStorageDefMutation = gql(/* GraphQL */ `
+  mutation CreateStorageDef($input: createStorageDefinitionInput!) {
+    createStorageDefinition(input: $input) {
+      ...StorageDefinitionFragment
+    }
+  }
+`);
+
+export const updateStorageDefMutation = gql(/* GraphQL */ `
+  mutation UpdateStorageDef($input: updateStorageDefinitionInput!) {
+    updateStorageDefinition(input: $input) {
+      ...StorageDefinitionFragment
+    }
+  }
+`);
+
+export type StorageType = "S3" | "__other";

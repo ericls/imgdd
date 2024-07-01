@@ -103,7 +103,7 @@ export function DumbStorageDefTable({
           </Button>
         ) : null}
       </div>
-      <table className="w-full text-sm text-left">
+      <table className="w-full text-sm text-left rounded-md overflow-hidden">
         <thead
           className={classNames(
             "bg-neutral-50 dark:bg-neutral-700",
