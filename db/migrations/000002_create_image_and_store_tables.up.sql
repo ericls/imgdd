@@ -2,8 +2,7 @@ BEGIN;
 -- Create the image tables
 CREATE TABLE image_table (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id UUID REFERENCES organization_table(id) ON DELETE SET NULL,
-    created_by UUID REFERENCES user_table(id) ON DELETE SET NULL,
+    created_by UUID REFERENCES organization_user_table(id) ON DELETE SET NULL,
     --
     name CHARACTER VARYING(255) NOT NULL,
     -- this is the unique identifier for the image, used for URL

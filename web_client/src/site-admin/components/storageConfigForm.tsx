@@ -19,6 +19,7 @@ type StorageProviderConfigData = S3StorageConfigData | { __other: string };
 type StorageConfigData = {
   storageType: "S3" | "__other";
   identifier: string;
+  priority: number;
   providerConfig: StorageProviderConfigData;
 };
 
@@ -71,6 +72,7 @@ export function StorageConfigForm({
     defaultValues: {
       storageType: initialValue?.storageType || "S3",
       identifier: initialValue?.identifier || "",
+      priority: initialValue?.priority || 1,
     },
   });
   const storageTypeValue = commonFieldsForm.watch("storageType");
@@ -96,6 +98,7 @@ export function StorageConfigForm({
         variables: {
           input: {
             identifier: commonData.identifier,
+            priority: commonData.priority,
             configJSON: JSON.stringify(providerConfigData),
           },
         },
@@ -111,7 +114,7 @@ export function StorageConfigForm({
                 : StorageTypeEnum.Other,
             configJSON: JSON.stringify(providerConfigData),
             isEnabled: true,
-            priority: 1,
+            priority: commonData.priority,
           },
         },
       }).then((res) => ({ id: res.data?.createStorageDefinition?.id }));
@@ -132,6 +135,7 @@ export function StorageConfigForm({
     createStorageDef,
     afterSave,
   ]);
+  console.log(initialValue);
   return (
     <div>
       <form>
@@ -152,6 +156,12 @@ export function StorageConfigForm({
             label="Identifier"
             {...commonFieldsForm.register("identifier", { required: true })}
             disabled={!!id}
+          />
+          <InputWithLabel
+            containerClassName="flex flex-col gap-1 max-w-full"
+            label="Priority"
+            {...commonFieldsForm.register("priority", { valueAsNumber: true })}
+            type="number"
           />
           {storageTypeValue === "S3" ? (
             <S3ProviderConfigForm form={providerConfigForm} />

@@ -17,18 +17,17 @@ type imageTableTable struct {
 	postgres.Table
 
 	// Columns
-	ID             postgres.ColumnString
-	OrganizationID postgres.ColumnString
-	CreatedBy      postgres.ColumnString
-	Name           postgres.ColumnString
-	Identifier     postgres.ColumnString
-	Root           postgres.ColumnString
-	Parent         postgres.ColumnString
-	Changes        postgres.ColumnString
-	UploaderIP     postgres.ColumnString
-	CreatedAt      postgres.ColumnTimestampz
-	UpdatedAt      postgres.ColumnTimestampz
-	DeletedAt      postgres.ColumnTimestampz
+	ID         postgres.ColumnString
+	CreatedBy  postgres.ColumnString
+	Name       postgres.ColumnString
+	Identifier postgres.ColumnString
+	Root       postgres.ColumnString
+	Parent     postgres.ColumnString
+	Changes    postgres.ColumnString
+	UploaderIP postgres.ColumnString
+	CreatedAt  postgres.ColumnTimestampz
+	UpdatedAt  postgres.ColumnTimestampz
+	DeletedAt  postgres.ColumnTimestampz
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -69,38 +68,36 @@ func newImageTableTable(schemaName, tableName, alias string) *ImageTableTable {
 
 func newImageTableTableImpl(schemaName, tableName, alias string) imageTableTable {
 	var (
-		IDColumn             = postgres.StringColumn("id")
-		OrganizationIDColumn = postgres.StringColumn("organization_id")
-		CreatedByColumn      = postgres.StringColumn("created_by")
-		NameColumn           = postgres.StringColumn("name")
-		IdentifierColumn     = postgres.StringColumn("identifier")
-		RootColumn           = postgres.StringColumn("root")
-		ParentColumn         = postgres.StringColumn("parent")
-		ChangesColumn        = postgres.StringColumn("changes")
-		UploaderIPColumn     = postgres.StringColumn("uploader_ip")
-		CreatedAtColumn      = postgres.TimestampzColumn("created_at")
-		UpdatedAtColumn      = postgres.TimestampzColumn("updated_at")
-		DeletedAtColumn      = postgres.TimestampzColumn("deleted_at")
-		allColumns           = postgres.ColumnList{IDColumn, OrganizationIDColumn, CreatedByColumn, NameColumn, IdentifierColumn, RootColumn, ParentColumn, ChangesColumn, UploaderIPColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn}
-		mutableColumns       = postgres.ColumnList{OrganizationIDColumn, CreatedByColumn, NameColumn, IdentifierColumn, RootColumn, ParentColumn, ChangesColumn, UploaderIPColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn}
+		IDColumn         = postgres.StringColumn("id")
+		CreatedByColumn  = postgres.StringColumn("created_by")
+		NameColumn       = postgres.StringColumn("name")
+		IdentifierColumn = postgres.StringColumn("identifier")
+		RootColumn       = postgres.StringColumn("root")
+		ParentColumn     = postgres.StringColumn("parent")
+		ChangesColumn    = postgres.StringColumn("changes")
+		UploaderIPColumn = postgres.StringColumn("uploader_ip")
+		CreatedAtColumn  = postgres.TimestampzColumn("created_at")
+		UpdatedAtColumn  = postgres.TimestampzColumn("updated_at")
+		DeletedAtColumn  = postgres.TimestampzColumn("deleted_at")
+		allColumns       = postgres.ColumnList{IDColumn, CreatedByColumn, NameColumn, IdentifierColumn, RootColumn, ParentColumn, ChangesColumn, UploaderIPColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn}
+		mutableColumns   = postgres.ColumnList{CreatedByColumn, NameColumn, IdentifierColumn, RootColumn, ParentColumn, ChangesColumn, UploaderIPColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn}
 	)
 
 	return imageTableTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:             IDColumn,
-		OrganizationID: OrganizationIDColumn,
-		CreatedBy:      CreatedByColumn,
-		Name:           NameColumn,
-		Identifier:     IdentifierColumn,
-		Root:           RootColumn,
-		Parent:         ParentColumn,
-		Changes:        ChangesColumn,
-		UploaderIP:     UploaderIPColumn,
-		CreatedAt:      CreatedAtColumn,
-		UpdatedAt:      UpdatedAtColumn,
-		DeletedAt:      DeletedAtColumn,
+		ID:         IDColumn,
+		CreatedBy:  CreatedByColumn,
+		Name:       NameColumn,
+		Identifier: IdentifierColumn,
+		Root:       RootColumn,
+		Parent:     ParentColumn,
+		Changes:    ChangesColumn,
+		UploaderIP: UploaderIPColumn,
+		CreatedAt:  CreatedAtColumn,
+		UpdatedAt:  UpdatedAtColumn,
+		DeletedAt:  DeletedAtColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

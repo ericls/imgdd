@@ -44,6 +44,7 @@ export function UpdateOrCreateStorageDef() {
     return {
       storageType,
       identifier: storageDef.identifier,
+      priority: storageDef.priority,
       providerConfig:
         providerConfig.__typename === "S3StorageConfig"
           ? {

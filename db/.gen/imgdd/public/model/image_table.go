@@ -13,16 +13,15 @@ import (
 )
 
 type ImageTable struct {
-	ID             uuid.UUID `sql:"primary_key"`
-	OrganizationID *uuid.UUID
-	CreatedBy      *uuid.UUID
-	Name           string
-	Identifier     string
-	Root           *uuid.UUID
-	Parent         *uuid.UUID
-	Changes        string
-	UploaderIP     *string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	DeletedAt      *time.Time
+	ID         uuid.UUID `sql:"primary_key"`
+	CreatedBy  *uuid.UUID
+	Name       string
+	Identifier string
+	Root       *uuid.UUID
+	Parent     *uuid.UUID
+	Changes    string
+	UploaderIP *string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	DeletedAt  *time.Time
 }

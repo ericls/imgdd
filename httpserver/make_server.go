@@ -70,8 +70,9 @@ func MakeServer(conf *HttpServerConfigDef) *http.Server {
 		),
 	)
 
-	r.Handle("/gql_playground", playground.Handler("GraphQL playground", "/query"))
+	r.Handle("/gql_playground", playground.Handler("IMGDD GraphQL", "/query"))
 	r.Handle("/query", graphqlServer)
+	r.Handle("/upload", http.HandlerFunc(uploadHandler))
 
 	r.Use(identityManager.Middleware)
 
