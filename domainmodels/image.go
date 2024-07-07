@@ -1,19 +1,23 @@
 package domainmodels
 
 type Image struct {
-	Id        string
-	StorageId string
-	Filename  string
-	MimeType  string
-	ByteSize  int64
-	ETag      string
+	Id              string
+	CreatedById     string
+	Name            string
+	Identifier      string
+	RootId          string
+	ParentId        string
+	UploaderIP      string
+	MIMEType        string
+	NominalWidth    int32
+	NominalHeight   int32
+	NominalByteSize int32
 }
 
 type StoredImage struct {
-	Id                  string
-	StorageDefinitionId string
-	Filename            string
-	MimeType            string
-	ETag                string
-	ByteSize            int64
+	Id                string
+	Image             *Image
+	StorageDefinition *StorageDefinition
+	FileIdentifier    string
+	CopiedFrom        *StoredImage
 }

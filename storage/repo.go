@@ -73,7 +73,9 @@ func (repo *DBStorageRepo) GetStorageDefinitionByIdentifier(identifier string) (
 func (repo *DBStorageRepo) ListStorageDefinitions() ([]*dm.StorageDefinition, error) {
 	stmt := SELECT(
 		StorageDefinitionTable.AllColumns,
-	).FROM(StorageDefinitionTable)
+	).FROM(StorageDefinitionTable).ORDER_BY(
+		StorageDefinitionTable.Priority.ASC(),
+	)
 	dest := []model.StorageDefinitionTable{}
 	err := stmt.Query(repo.DB, &dest)
 	if err != nil {

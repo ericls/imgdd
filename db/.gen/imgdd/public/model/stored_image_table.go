@@ -17,7 +17,7 @@ type StoredImageTable struct {
 	ImageID             *uuid.UUID
 	StorageDefinitionID *uuid.UUID
 	FileIdentifier      string
-	CopiedFrom          *uuid.UUID
+	CopiedFromID        *uuid.UUID
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 	IsFileDeleted       bool

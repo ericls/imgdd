@@ -101,7 +101,7 @@ export function Uplodaer() {
       );
       const formdata = new FormData();
       formdata.append("image", file, file.name);
-      request.open("POST", "/api/v1/upload");
+      request.open("POST", "/upload");
       request.send(formdata);
     },
     [setUploadingFiles]

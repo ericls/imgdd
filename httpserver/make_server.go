@@ -6,6 +6,7 @@ import (
 	"imgdd/db"
 	"imgdd/graph"
 	"imgdd/identity"
+	"imgdd/image"
 	"imgdd/storage"
 	"io/fs"
 	"net/http"
@@ -60,6 +61,7 @@ func MakeServer(conf *HttpServerConfigDef) *http.Server {
 
 	identityRepo := identity.NewDBIdentityRepo(conn)
 	storageRepo := storage.NewDBStorageRepo(conn)
+	imageRepo := image.NewDBImageRepo(conn)
 	r.Use(graph.NewLoadersMiddleware(identityRepo))
 	identityManager := NewIdentityManager(identityRepo)
 	gqlResolver := NewGqlResolver(identityManager, storageRepo)
@@ -70,11 +72,11 @@ func MakeServer(conf *HttpServerConfigDef) *http.Server {
 		),
 	)
 
+	r.Use(identityManager.Middleware)
+
 	r.Handle("/gql_playground", playground.Handler("IMGDD GraphQL", "/query"))
 	r.Handle("/query", graphqlServer)
-	r.Handle("/upload", http.HandlerFunc(uploadHandler))
-
-	r.Use(identityManager.Middleware)
+	r.Handle("/upload", MakeUploadHandler(conn, identityManager, storageRepo, imageRepo))
 
 	mountStatic(r, conf.StaticFS)
 	r.PathPrefix("/").HandlerFunc(makeAppHandler(conf))

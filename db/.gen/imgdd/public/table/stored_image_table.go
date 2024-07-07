@@ -21,7 +21,7 @@ type storedImageTableTable struct {
 	ImageID             postgres.ColumnString
 	StorageDefinitionID postgres.ColumnString
 	FileIdentifier      postgres.ColumnString
-	CopiedFrom          postgres.ColumnString
+	CopiedFromID        postgres.ColumnString
 	CreatedAt           postgres.ColumnTimestampz
 	UpdatedAt           postgres.ColumnTimestampz
 	IsFileDeleted       postgres.ColumnBool
@@ -69,12 +69,12 @@ func newStoredImageTableTableImpl(schemaName, tableName, alias string) storedIma
 		ImageIDColumn             = postgres.StringColumn("image_id")
 		StorageDefinitionIDColumn = postgres.StringColumn("storage_definition_id")
 		FileIdentifierColumn      = postgres.StringColumn("file_identifier")
-		CopiedFromColumn          = postgres.StringColumn("copied_from")
+		CopiedFromIDColumn        = postgres.StringColumn("copied_from_id")
 		CreatedAtColumn           = postgres.TimestampzColumn("created_at")
 		UpdatedAtColumn           = postgres.TimestampzColumn("updated_at")
 		IsFileDeletedColumn       = postgres.BoolColumn("is_file_deleted")
-		allColumns                = postgres.ColumnList{IDColumn, ImageIDColumn, StorageDefinitionIDColumn, FileIdentifierColumn, CopiedFromColumn, CreatedAtColumn, UpdatedAtColumn, IsFileDeletedColumn}
-		mutableColumns            = postgres.ColumnList{ImageIDColumn, StorageDefinitionIDColumn, FileIdentifierColumn, CopiedFromColumn, CreatedAtColumn, UpdatedAtColumn, IsFileDeletedColumn}
+		allColumns                = postgres.ColumnList{IDColumn, ImageIDColumn, StorageDefinitionIDColumn, FileIdentifierColumn, CopiedFromIDColumn, CreatedAtColumn, UpdatedAtColumn, IsFileDeletedColumn}
+		mutableColumns            = postgres.ColumnList{ImageIDColumn, StorageDefinitionIDColumn, FileIdentifierColumn, CopiedFromIDColumn, CreatedAtColumn, UpdatedAtColumn, IsFileDeletedColumn}
 	)
 
 	return storedImageTableTable{
@@ -85,7 +85,7 @@ func newStoredImageTableTableImpl(schemaName, tableName, alias string) storedIma
 		ImageID:             ImageIDColumn,
 		StorageDefinitionID: StorageDefinitionIDColumn,
 		FileIdentifier:      FileIdentifierColumn,
-		CopiedFrom:          CopiedFromColumn,
+		CopiedFromID:        CopiedFromIDColumn,
 		CreatedAt:           CreatedAtColumn,
 		UpdatedAt:           UpdatedAtColumn,
 		IsFileDeleted:       IsFileDeletedColumn,

@@ -355,7 +355,6 @@ func (repo *DBIdentityRepo) GetOrganizationForUser(userId string, maybeOrganizat
 		}{}
 		err := stmt.Query(repo.DB, &dest)
 		if err != nil {
-			println("Error", err)
 			return nil, nil
 		}
 		if len(dest) != 1 {

@@ -148,7 +148,7 @@ func (s *S3Storage) GetReader(filename string) io.Reader {
 	return r
 }
 
-func (s *S3Storage) Save(file SeekerReader, filename string, mimeType string) error {
+func (s *S3Storage) Save(file utils.SeekerReader, filename string, mimeType string) error {
 	_, err := s.client.Value().uploader.Upload(&s3manager.UploadInput{
 		Bucket:      &s.bucket,
 		Body:        file,
