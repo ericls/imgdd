@@ -1,8 +1,12 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"imgdd/internal"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 )
 
 var connectStringToDBMap = map[string]*sql.DB{}
@@ -12,8 +16,12 @@ func GetConnection(c *DBConfigDef) *sql.DB {
 	if db, ok := connectStringToDBMap[connectString]; ok {
 		return db
 	}
-	new_db, err := sql.Open("postgres", connectString)
+	poolCfg, err := pgxpool.ParseConfig(connectString)
+	poolCfg.MinConns = 2
 	internal.PanicOnError(err)
-	connectStringToDBMap[connectString] = new_db
-	return new_db
+	pool, err := pgxpool.NewWithConfig(context.Background(), poolCfg)
+	internal.PanicOnError(err)
+	conn := stdlib.OpenDBFromPool(pool)
+	connectStringToDBMap[connectString] = conn
+	return conn
 }
