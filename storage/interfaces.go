@@ -13,7 +13,7 @@ type FileMeta struct {
 }
 
 type Storage interface {
-	GetReader(filename string) io.Reader
+	GetReader(filename string) io.ReadCloser
 	Save(file utils.SeekerReader, filename string, mimeType string) error
 	GetMeta(filename string) FileMeta
 	Delete(filename string) error
@@ -32,4 +32,6 @@ type StorageRepo interface {
 	ListStorageDefinitions() ([]*dm.StorageDefinition, error)
 	CreateStorageDefinition(storage_type string, config string, identifier string, isEnabled bool, priority int64) (*dm.StorageDefinition, error)
 	UpdateStorageDefinition(identifier string, storage_type *string, config *string, isEnabled *bool, priority *int64) (*dm.StorageDefinition, error)
+
+	GetStoredImageByIdentifierAndMimeType(identifier, mime string) (*dm.StoredImage, error)
 }

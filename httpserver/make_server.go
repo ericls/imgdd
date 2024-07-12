@@ -76,7 +76,8 @@ func MakeServer(conf *HttpServerConfigDef) *http.Server {
 
 	r.Handle("/gql_playground", playground.Handler("IMGDD GraphQL", "/query"))
 	r.Handle("/query", graphqlServer)
-	r.Handle("/upload", MakeUploadHandler(conn, identityManager, storageRepo, imageRepo))
+	r.Handle("/upload", makeUploadHandler(identityManager, storageRepo, imageRepo))
+	r.PathPrefix("/image").HandlerFunc(makeImageHandler(storageRepo))
 
 	mountStatic(r, conf.StaticFS)
 	r.PathPrefix("/").HandlerFunc(makeAppHandler(conf))

@@ -77,6 +77,12 @@ export function Uplodaer() {
           return;
         }
         if (filename && url) {
+          // if URL is full URL, use that URL
+          // otherwise build one based on current URL
+          if (!url.startsWith("http")) {
+            url = `${window.location.origin}${url}`;
+            console.log(url);
+          }
           setCurrentFile({
             loaded: true,
             uploadedFileName: filename,

@@ -167,3 +167,47 @@ func (repo *DBStorageRepo) UpdateStorageDefinition(identifier string, storage_ty
 		Priority:    dest.Priority,
 	}, nil
 }
+
+func (repo *DBStorageRepo) GetStoredImageByIdentifierAndMimeType(identifier, mime string) (*dm.StoredImage, error) {
+	stmt := SELECT(
+		StoredImageTable.AllColumns,
+		StorageDefinitionTable.AllColumns,
+	).FROM(StoredImageTable.INNER_JOIN(
+		ImageTable, ImageTable.ID.EQ(StoredImageTable.ImageID),
+	).INNER_JOIN(
+		StorageDefinitionTable, StorageDefinitionTable.ID.EQ(StoredImageTable.StorageDefinitionID),
+	)).WHERE(
+		ImageTable.Identifier.EQ(String(identifier)).
+			AND(
+				StoredImageTable.IsFileDeleted.EQ(Bool(false)),
+			).
+			AND(
+				ImageTable.MimeType.EQ(String(mime)),
+			).
+			AND(
+				StorageDefinitionTable.IsEnabled.EQ(Bool(true)),
+			),
+	).ORDER_BY(
+		StorageDefinitionTable.Priority.ASC(),
+	)
+	dest := struct {
+		StoredImageTable       model.StoredImageTable
+		StorageDefinitionTable model.StorageDefinitionTable
+	}{}
+	err := stmt.Query(repo.DB, &dest)
+	if err != nil {
+		return nil, err
+	}
+	return &dm.StoredImage{
+		Id:             dest.StoredImageTable.ID.String(),
+		FileIdentifier: dest.StoredImageTable.FileIdentifier,
+		StorageDefinition: &dm.StorageDefinition{
+			Id:          dest.StorageDefinitionTable.ID.String(),
+			Identifier:  dest.StorageDefinitionTable.Identifier,
+			StorageType: dest.StorageDefinitionTable.StorageType,
+			Config:      dest.StorageDefinitionTable.Config,
+			IsEnabled:   dest.StorageDefinitionTable.IsEnabled,
+			Priority:    dest.StorageDefinitionTable.Priority,
+		},
+	}, nil
+}

@@ -134,7 +134,7 @@ func (fw FakeWriterAt) WriteAt(p []byte, offset int64) (n int, err error) {
 	return fw.w.Write(p)
 }
 
-func (s *S3Storage) GetReader(filename string) io.Reader {
+func (s *S3Storage) GetReader(filename string) io.ReadCloser {
 	downloader := s.client.Value().downloader
 	r, w := io.Pipe()
 	go func() {

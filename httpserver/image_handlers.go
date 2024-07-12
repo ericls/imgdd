@@ -1,7 +1,6 @@
 package httpserver
 
 import (
-	"database/sql"
 	"encoding/json"
 	"imgdd/domainmodels"
 	"imgdd/identity"
@@ -9,16 +8,54 @@ import (
 	"imgdd/storage"
 	"imgdd/utils"
 	"io"
+	"mime"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 )
 
 type UploadReturn struct {
+	Filename   string `json:"filename"`
+	URL        string `json:"url"`
 	Identifier string `json:"identifier"`
 }
 
-func MakeUploadHandler(conn *sql.DB, identityManager *IdentityManager, storageRepo storage.StorageRepo, imageRepo image.ImageRepo) http.HandlerFunc {
+func getFileExtFromMIMEType(mimeType string) string {
+	if strings.HasPrefix(mimeType, "image/") {
+		exts, err := mime.ExtensionsByType(mimeType)
+		if err == nil && len(exts) > 0 {
+			return exts[0]
+		}
+	}
+	return ""
+}
+
+func getImageURL(identifier string, mimeType string, isSecure bool) string {
+	maybeImageDomain := Config.ImageDomain
+	suffix := getFileExtFromMIMEType(mimeType)
+	if suffix == "" {
+		return ""
+	}
+	filename := identifier + suffix
+	if maybeImageDomain != "" {
+		if isSecure {
+			return "https://" + maybeImageDomain + "/image/" + filename
+		}
+		return "http://" + maybeImageDomain + "/image/" + filename
+	}
+	return "/image/" + filename
+}
+
+func isSecure(
+	r *http.Request,
+) bool {
+	return strings.HasPrefix(r.Proto, "HTTPS/")
+}
+
+func makeUploadHandler(
+	identityManager *IdentityManager, storageRepo storage.StorageRepo, imageRepo image.ImageRepo,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.ParseMultipartForm(10 * 1024 * 1024) // 10 MB
 		_, fileHeader, err := r.FormFile("image")
@@ -118,6 +155,8 @@ func MakeUploadHandler(conn *sql.DB, identityManager *IdentityManager, storageRe
 			return
 		}
 		ret := UploadReturn{
+			Filename:   storedImage.Image.Name,
+			URL:        getImageURL(storedImage.Image.Identifier, declaredMimeType, isSecure(r)),
 			Identifier: storedImage.Image.Identifier,
 		}
 		serialized, err := json.Marshal(ret)
@@ -128,5 +167,64 @@ func MakeUploadHandler(conn *sql.DB, identityManager *IdentityManager, storageRe
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(serialized)
+	}
+}
+
+func splitIdentifierExt(filename string) (string, string) {
+	parts := strings.Split(filename, ".")
+	if len(parts) < 2 {
+		return parts[0], ""
+	}
+	return strings.Join(parts[:len(parts)-1], "."), parts[len(parts)-1]
+
+}
+
+func makeImageHandler(
+	storeRepo storage.StorageRepo,
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		filename := r.URL.Path[len("/image/"):]
+		if filename == "" {
+			http.Error(w, "Not found", http.StatusNotFound)
+			httpLogger.Info().Msg("No filename")
+			return
+		}
+		identifier, ext := splitIdentifierExt(filename)
+		mimeType := mime.TypeByExtension("." + ext)
+		if mimeType == "" {
+			http.Error(w, "Not found", http.StatusNotFound)
+			httpLogger.Info().Msg("No MIME type")
+			return
+		}
+		storedImage, err := storeRepo.GetStoredImageByIdentifierAndMimeType(
+			identifier,
+			mimeType,
+		)
+		if err != nil {
+			http.Error(w, "Not found", http.StatusNotFound)
+			httpLogger.Error().Str(
+				"identifier",
+				identifier,
+			).Err(err).Msg("Unable to get stored image")
+			return
+		}
+		storageInstance, err := storage.GetStorage(storedImage.StorageDefinition)
+		if err != nil {
+			http.Error(w, "Not found", http.StatusNotFound)
+			httpLogger.Info().Err(err).Msg("Unable to get storage instance")
+			return
+		}
+		reader := storageInstance.GetReader(storedImage.FileIdentifier)
+		if reader == nil {
+			http.Error(w, "Not found", http.StatusNotFound)
+			httpLogger.Info().Str(
+				"file_identifier",
+				storedImage.FileIdentifier,
+			).Msg("Unable to get reader")
+			return
+		}
+		defer reader.Close()
+		w.Header().Set("Content-Type", mimeType)
+		io.Copy(w, reader)
 	}
 }

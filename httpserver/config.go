@@ -14,6 +14,7 @@ type HttpServerConfigDef struct {
 	SessionKey         string
 	RedisURIForSession string
 	SiteName           string
+	ImageDomain        string
 }
 
 var Config HttpServerConfigDef
@@ -37,5 +38,6 @@ func readServerConfigFromEnv() HttpServerConfigDef {
 		SessionKey:         getenv("IMGDD_SESSION_KEY", "NOT_SECURE_KEY"),
 		RedisURIForSession: getenv("IMGDD_REDIS_URI_FOR_SESSION", "redis://localhost:30102"),
 		SiteName:           getenv("IMGDD_SITE_NAME", "imgdd"),
+		ImageDomain:        getenv("IMGDD_IMAGE_DOMAIN", ""),
 	}
 }
