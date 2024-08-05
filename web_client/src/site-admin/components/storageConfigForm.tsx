@@ -20,6 +20,7 @@ type StorageConfigData = {
   storageType: "S3" | "__other";
   identifier: string;
   priority: number;
+  isEnabled: boolean;
   providerConfig: StorageProviderConfigData;
 };
 
@@ -73,6 +74,7 @@ export function StorageConfigForm({
       storageType: initialValue?.storageType || "S3",
       identifier: initialValue?.identifier || "",
       priority: initialValue?.priority || 1,
+      isEnabled: initialValue?.isEnabled ?? true,
     },
   });
   const storageTypeValue = commonFieldsForm.watch("storageType");
@@ -99,6 +101,7 @@ export function StorageConfigForm({
           input: {
             identifier: commonData.identifier,
             priority: commonData.priority,
+            isEnabled: commonData.isEnabled,
             configJSON: JSON.stringify(providerConfigData),
           },
         },
@@ -135,7 +138,6 @@ export function StorageConfigForm({
     createStorageDef,
     afterSave,
   ]);
-  console.log(initialValue);
   return (
     <div>
       <form>
@@ -156,6 +158,12 @@ export function StorageConfigForm({
             label="Identifier"
             {...commonFieldsForm.register("identifier", { required: true })}
             disabled={!!id}
+          />
+          <InputWithLabel
+            containerClassName="flex flex-col gap-1 max-w-full"
+            label="Enabled"
+            type="checkbox"
+            {...commonFieldsForm.register("isEnabled")}
           />
           <InputWithLabel
             containerClassName="flex flex-col gap-1 max-w-full"

@@ -1,13 +1,21 @@
 import React, { useId } from "react";
 import cx from "classnames";
-import { DEFAULT_INPUT, DEFAULT_INPUT_LABEL } from "./classNames";
+import {
+  DEFAULT_INPUT,
+  DEFAULT_INPUT_CHECKBOX,
+  DEFAULT_INPUT_LABEL,
+} from "./classNames";
 
 export const Input = React.forwardRef<
   HTMLInputElement,
   JSX.IntrinsicElements["input"]
 >(({ className, ...props }, ref) => {
+  let defaultClassName = DEFAULT_INPUT;
+  if (props.type === "checkbox") {
+    defaultClassName = DEFAULT_INPUT_CHECKBOX;
+  }
   return (
-    <input ref={ref} className={cx(className, DEFAULT_INPUT)} {...props} />
+    <input ref={ref} className={cx(className, defaultClassName)} {...props} />
   );
 });
 

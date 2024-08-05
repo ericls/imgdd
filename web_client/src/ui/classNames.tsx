@@ -36,6 +36,9 @@ export const DEFAULT_INPUT =
   "dark:bg-neutral-800 dark:border-neutral-900 dark:placeholder-neutral-400 dark:text-neutral-100 " +
   "dark:focus:border-indigo-500 " +
   "disabled:opacity-50 disabled:cursor-not-allowed ";
+export const DEFAULT_INPUT_CHECKBOX =
+  "accent-pink-700 rounded-md px-2 py-2 " +
+  "disabled:opacity-50 disabled:cursor-not-allowed ";
 
 // list of classes that we want tailwind to include
 ["rounded-full", "bg-primary-600"];

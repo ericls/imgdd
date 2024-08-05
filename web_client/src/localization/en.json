@@ -4,7 +4,7 @@
     },
     "uploader": {
         "mainHelpText": "Drag and drop or click to choose files",
-        "copyAllUrls": "Copy all URLs",
+        "copyAllURLs": "Copy all URLs",
         "copyFormat": "Copy {{format}}"
     },
     "auth": {
