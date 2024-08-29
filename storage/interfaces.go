@@ -9,7 +9,7 @@ import (
 type FileMeta struct {
 	ByteSize    int64
 	ContentType string
-	ETag        string
+	ETag        string // This should be quoted
 }
 
 type Storage interface {

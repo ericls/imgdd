@@ -10,6 +10,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -214,6 +215,7 @@ func makeImageHandler(
 			httpLogger.Info().Err(err).Msg("Unable to get storage instance")
 			return
 		}
+		meta := storageInstance.GetMeta(storedImage.FileIdentifier)
 		reader := storageInstance.GetReader(storedImage.FileIdentifier)
 		if reader == nil {
 			http.Error(w, "Not found", http.StatusNotFound)
@@ -225,6 +227,15 @@ func makeImageHandler(
 		}
 		defer reader.Close()
 		w.Header().Set("Content-Type", mimeType)
+		w.Header().Set("Content-Length", strconv.FormatInt(meta.ByteSize, 10))
+		if meta.ETag != "" {
+			w.Header().Set("ETag", "W/"+meta.ETag)
+		}
+		w.Header().Set("X-IMGDD-SI", storedImage.StorageDefinition.Identifier)
+		w.WriteHeader(http.StatusOK)
+		if r.Method == http.MethodHead {
+			return
+		}
 		io.Copy(w, reader)
 	}
 }
