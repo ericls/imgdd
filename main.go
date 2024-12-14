@@ -10,6 +10,8 @@ import (
 	"imgdd/test_support"
 	"log"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v2"
@@ -22,6 +24,27 @@ func init() {
 	if err != nil {
 		logger.Warn().Err(err).Msg("Could not load .env file")
 	}
+}
+
+func getGoBinPath() string {
+	cmd := exec.Command("go", "env", "GOBIN")
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	goBinPath := strings.TrimSpace(string(output))
+
+	if goBinPath == "" {
+		cmd = exec.Command("go", "env", "GOPATH")
+		output, err = cmd.CombinedOutput()
+		if err != nil {
+			log.Fatal(err)
+		}
+		goBinPath = strings.TrimSpace(string(output)) + "/bin"
+	}
+	return goBinPath
 }
 
 func main() {
@@ -136,6 +159,22 @@ func main() {
 				Action: func(ctx *cli.Context) error {
 					dbConf := db.ReadConfigFromEnv()
 					test_support.ResetDatabase(&dbConf)
+					return nil
+				},
+			},
+		)
+	}
+	if buildflag.IsDev {
+		commands = append(commands,
+			&cli.Command{
+				Name: "dev-server",
+				Action: func(ctx *cli.Context) error {
+					goBinPath := getGoBinPath()
+					cmd := exec.Command(goBinPath+"/air", "-c", ".air.toml", "serve")
+					cmd.Stdout = os.Stdout
+					cmd.Stderr = os.Stderr
+					cmd.Stdin = os.Stdin
+					cmd.Run()
 					return nil
 				},
 			},
