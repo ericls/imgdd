@@ -56,6 +56,15 @@ type UpdateStorageDefinitionInput struct {
 	Priority   *int    `json:"priority,omitempty"`
 }
 
+type StorageDefinitionConnectivityResult struct {
+	Ok    bool    `json:"ok"`
+	Error *string `json:"error,omitempty"`
+}
+
+type CheckStorageDefinitionConnectivityInput struct {
+	ID string `json:"id"`
+}
+
 func FromStorageDefinition(sd *domainmodels.StorageDefinition) (*StorageDefinition, error) {
 	storageType := StorageTypeEnum(sd.StorageType)
 	var storageConfig StorageConfig
@@ -69,7 +78,6 @@ func FromStorageDefinition(sd *domainmodels.StorageDefinition) (*StorageDefiniti
 	} else {
 		storageConfig = OtherStorageConfig{}
 	}
-	storageConfig.IsStorageConfig()
 	return &StorageDefinition{
 		Id:         sd.Id,
 		Identifier: sd.Identifier,

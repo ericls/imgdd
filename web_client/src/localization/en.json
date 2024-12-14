@@ -1,4 +1,10 @@
 {
+    "common": {
+        "buttonLabel": {
+            "edit": "Edit",
+            "save": "Save"
+        }
+    },
     "home": {
         "tagLine": "Fast image delivery across the globe, for free."
     },
@@ -24,5 +30,23 @@
         "forgotPasswordLink": "Forgot your password?",
         "buttonSignIn": "Sign in",
         "buttonCreateAccount": "Create account"
+    },
+    "storageDefTable": {
+        "identifier": "Identifier",
+        "enabled": "Enabled",
+        "storageType": "Storage type",
+        "actions": "Actions",
+        "priority": "Priority",
+        "addNew": "Add new"
+    },
+    "storageConfigForm": {
+        "storageType":"Storage type",
+        "identifier": "Identifier",
+        "enabled": "Enabled",
+        "priority": "Priority",
+        "bucket": "Bucket",
+        "endpoint": "Endpoint",
+        "access": "Access",
+        "secret": "Secret"
     }
 }

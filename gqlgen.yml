@@ -109,3 +109,7 @@ models:
         resolver: true
       id:
         resolver: true
+  StorageDefinition:
+    fields:
+      connectivity:
+        resolver: true

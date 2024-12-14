@@ -66,6 +66,48 @@ func (r *mutationResolver) UpdateStorageDefinition(ctx context.Context, input mo
 	return s, err
 }
 
+// CheckStorageDefinitionConnectivity is the resolver for the checkStorageDefinitionConnectivity field.
+func (r *mutationResolver) CheckStorageDefinitionConnectivity(ctx context.Context, input model.CheckStorageDefinitionConnectivityInput) (*model.StorageDefinitionConnectivityResult, error) {
+	repo := r.StorageRepo
+	storageDefinition, err := repo.GetStorageDefinitionById(input.ID)
+	if err != nil {
+		return nil, err
+	}
+	backend, err := storage.GetStorage(storageDefinition)
+	if err != nil {
+		return nil, err
+	}
+	err = backend.CheckConnection()
+	if err != nil {
+		errMessage := err.Error()
+		return &model.StorageDefinitionConnectivityResult{
+			Ok:    false,
+			Error: &errMessage,
+		}, nil
+	}
+	return &model.StorageDefinitionConnectivityResult{
+		Ok: true,
+	}, nil
+}
+
+// Connectivity is the resolver for the connectivity field.
+func (r *storageDefinitionResolver) Connectivity(ctx context.Context, obj *model.StorageDefinition) (bool, error) {
+	repo := r.StorageRepo
+	storageDefinition, err := repo.GetStorageDefinitionById(obj.Id)
+	if err != nil {
+		return false, err
+	}
+	backend, err := storage.GetStorage(storageDefinition)
+	if err != nil {
+		return false, err
+	}
+	err = backend.CheckConnection()
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // StorageDefinitions is the resolver for the storageDefinitions field.
 func (r *viewerResolver) StorageDefinitions(ctx context.Context, obj *model.Viewer) ([]*model.StorageDefinition, error) {
 	repo := r.StorageRepo
@@ -91,3 +133,10 @@ func (r *viewerResolver) GetStorageDefinition(ctx context.Context, obj *model.Vi
 	s, err := model.FromStorageDefinition(storageDefinition)
 	return s, err
 }
+
+// StorageDefinition returns StorageDefinitionResolver implementation.
+func (r *Resolver) StorageDefinition() StorageDefinitionResolver {
+	return &storageDefinitionResolver{r}
+}
+
+type storageDefinitionResolver struct{ *Resolver }

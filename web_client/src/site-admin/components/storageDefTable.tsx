@@ -15,6 +15,7 @@ import {
 } from "~src/ui/classNames";
 
 import { Button } from "~src/ui/button";
+import { useTranslation } from "react-i18next";
 
 type StorageDef = ListStorageDefQuery["viewer"]["storageDefinitions"][number];
 
@@ -29,9 +30,11 @@ export function DumbStorageDefTable({
   onAddNew?: () => void;
   onEdit?: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const columns = React.useMemo(
     () => [
       columnHelper.accessor("identifier", {
+        header: t("storageDefTable.identifier"),
         cell: (info) => info.getValue(),
       }),
       columnHelper.accessor((row) => row.config.__typename, {
@@ -47,19 +50,24 @@ export function DumbStorageDefTable({
           })();
           return <span>{storageTypeStr}</span>;
         },
-        header: () => <span>Storage Type</span>,
+        header: () => <span>{t("storageDefTable.storageType")}</span>,
       }),
       columnHelper.accessor("isEnabled", {
-        header: "Enabled",
+        header: t("storageDefTable.enabled"),
+        cell: (info) => {
+          const value = info.getValue();
+          return <span>{value ? "Yes" : "No"}</span>;
+        },
       }),
       columnHelper.accessor("priority", {
-        header: "Priority",
+        header: t("storageDefTable.priority"),
       }),
       columnHelper.accessor(
         (row) => {
           return row;
         },
         {
+          header: t("storageDefTable.actions"),
           id: "actions",
           cell: (row) => {
             // Edit button
@@ -78,7 +86,7 @@ export function DumbStorageDefTable({
                     }}
                   >
                     <EditIcon />
-                    Edit
+                    {t("common.buttonLabel.edit")}
                   </Button>
                 ) : null}
               </div>
@@ -87,7 +95,7 @@ export function DumbStorageDefTable({
         }
       ),
     ],
-    [onEdit]
+    [onEdit, t]
   );
   const table = useReactTable({
     data,
@@ -99,7 +107,7 @@ export function DumbStorageDefTable({
       <div className="flex justify-end items-center mb-2 p-1">
         {onAddNew ? (
           <Button variant="secondary" onClick={onAddNew} className={"text-sm"}>
-            Add New
+            {t("storageDefTable.addNew")}
           </Button>
         ) : null}
       </div>

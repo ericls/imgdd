@@ -18,6 +18,7 @@ import { AuthProvider } from "./lib/auth";
 import { SiteAdminLayout } from "./site-admin/layout";
 import { AppLayout } from "./app/layout";
 import { AppMainPage } from "./app/pages/main";
+import { PromptContainer } from "./ui/prompt";
 
 function AutoDarkToastContainer() {
   const darkContext = React.useContext(DarkModeContext);
@@ -86,6 +87,7 @@ function Root() {
       <ApolloProvider client={apolloClient}>
         <AuthProvider>
           <DarkModeProvider>
+            <PromptContainer />
             <RouterProvider router={router} />
             <AutoDarkToastContainer />
           </DarkModeProvider>

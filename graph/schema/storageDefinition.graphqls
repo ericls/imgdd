@@ -24,6 +24,12 @@ type StorageDefinition {
   config: StorageConfig!
   isEnabled: Boolean!
   priority: Int!
+  connectivity: Boolean!
+}
+
+type StorageDefinitionConnectivityResult {
+  ok: Boolean!
+  error: String
 }
 
 
@@ -47,7 +53,12 @@ input updateStorageDefinitionInput {
   priority: Int
 }
 
+input checkStorageDefinitionConnectivityInput {
+  id: ID!
+}
+
 extend type Mutation {
   createStorageDefinition(input: createStorageDefinitionInput!): StorageDefinition @isSiteOwner
   updateStorageDefinition(input: updateStorageDefinitionInput!): StorageDefinition @isSiteOwner
+  checkStorageDefinitionConnectivity(input: checkStorageDefinitionConnectivityInput!): StorageDefinitionConnectivityResult @isSiteOwner
 }

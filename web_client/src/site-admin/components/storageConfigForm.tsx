@@ -6,6 +6,7 @@ import { SelectWithLabel } from "~src/ui/select";
 import { createStorageDefMutation, updateStorageDefMutation } from "../types";
 import { StorageTypeEnum } from "~src/__generated__/graphql";
 import { Button } from "~src/ui/button";
+import { useTranslation } from "react-i18next";
 
 type S3StorageConfigData = {
   bucket: string;
@@ -35,26 +36,27 @@ function S3ProviderConfigForm({
 }: {
   form: ReturnType<typeof useForm<StorageProviderConfigData>>;
 }) {
+  const { t } = useTranslation();
   return (
     <>
       <InputWithLabel
         containerClassName="flex flex-col gap-1 max-w-full"
-        label="Bucket"
+        label={t("storageConfigForm.bucket")}
         {...form.register("bucket", { required: true })}
       />
       <InputWithLabel
         containerClassName="flex flex-col gap-1 max-w-full"
-        label="Endpoint"
+        label={t("storageConfigForm.endpoint")}
         {...form.register("endpoint", { required: true })}
       />
       <InputWithLabel
         containerClassName="flex flex-col gap-1 max-w-full"
-        label="Access"
+        label={t("storageConfigForm.access")}
         {...form.register("access", { required: true })}
       />
       <InputWithLabel
         containerClassName="flex flex-col gap-1 max-w-full"
-        label="Secret"
+        label={t("storageConfigForm.secret")}
         type="password"
         {...form.register("secret", {
           required: true,
@@ -69,6 +71,7 @@ export function StorageConfigForm({
   id,
   afterSave,
 }: StorageConfigFormProps) {
+  const { t } = useTranslation();
   const commonFieldsForm = useForm<Omit<StorageConfigData, "providerConfig">>({
     defaultValues: {
       storageType: initialValue?.storageType || "S3",
@@ -144,7 +147,7 @@ export function StorageConfigForm({
         <div className="flex flex-col gap-4 mt-6">
           <SelectWithLabel
             containerClassName="flex flex-col gap-1 max-w-full"
-            label="Storage Type"
+            label={t("storageConfigForm.storageType")}
             value={storageTypeValue}
             {...commonFieldsForm.register("storageType", {
               value: storageTypeValue,
@@ -155,19 +158,19 @@ export function StorageConfigForm({
           </SelectWithLabel>
           <InputWithLabel
             containerClassName="flex flex-col gap-1 max-w-full"
-            label="Identifier"
+            label={t("storageConfigForm.identifier")}
             {...commonFieldsForm.register("identifier", { required: true })}
             disabled={!!id}
           />
           <InputWithLabel
             containerClassName="flex flex-col gap-1 max-w-full"
-            label="Enabled"
+            label={t("storageConfigForm.enabled")}
             type="checkbox"
             {...commonFieldsForm.register("isEnabled")}
           />
           <InputWithLabel
             containerClassName="flex flex-col gap-1 max-w-full"
-            label="Priority"
+            label={t("storageConfigForm.priority")}
             {...commonFieldsForm.register("priority", { valueAsNumber: true })}
             type="number"
           />
@@ -181,7 +184,7 @@ export function StorageConfigForm({
         className="mt-6 w-full"
         disabled={isSubmitting}
       >
-        Save
+        {t("common.buttonLabel.save")}
       </Button>
     </div>
   );
