@@ -8,6 +8,7 @@ import (
 	"imgdd/graph/model"
 	"imgdd/httpserver"
 	"imgdd/identity"
+	"imgdd/image"
 	"imgdd/storage"
 	"imgdd/test_support"
 	"log"
@@ -113,7 +114,8 @@ func newTestContext(tObj *testing.T) *TestContext {
 	identityRepo := identity.NewDBIdentityRepo(conn)
 	identityManager := httpserver.NewIdentityManager(identityRepo)
 	storageRepo := storage.NewDBStorageRepo(conn)
-	resolver := httpserver.NewGqlResolver(identityManager, storageRepo)
+	imageRepo := image.NewDBImageRepo(conn)
+	resolver := httpserver.NewGqlResolver(identityManager, storageRepo, imageRepo)
 
 	// make server
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(httpserver.NewGraphConfig(resolver)))

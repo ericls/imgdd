@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"imgdd/identity"
+	"imgdd/image"
 	"imgdd/storage"
 )
 
@@ -14,6 +15,7 @@ import (
 type Resolver struct {
 	IdentityRepo       identity.IdentityRepo
 	StorageRepo        storage.StorageRepo
+	ImageRepo          image.ImageRepo
 	ContextUserManager identity.ContextUserManager
 	LoginFn            func(c context.Context, userId string, organizationUserId string)
 	LogoutFn           func(c context.Context)

@@ -1,8 +1,11 @@
 package domainmodels
 
+import "time"
+
 type Image struct {
 	Id              string
 	CreatedById     string
+	CreatedAt       time.Time
 	Name            string
 	Identifier      string
 	RootId          string

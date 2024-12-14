@@ -60,6 +60,7 @@ func (repo *DBImageRepo) GetImageById(id string) (*dm.Image, error) {
 	return &dm.Image{
 		Id:              dest.ID.String(),
 		Identifier:      dest.Identifier,
+		CreatedAt:       dest.CreatedAt,
 		Name:            dest.Name,
 		ParentId:        parentId,
 		RootId:          rootId,
@@ -171,4 +172,8 @@ func (repo *DBImageRepo) CreateAndSaveUploadedImage(image *dm.Image, fileBytes [
 		storedImage, err := txRepo.CreateStoredImage(image.Id, storageDefinitionId, fileIdentifier, nil)
 		return storedImage, err
 	})
+}
+
+func (repo *DBImageRepo) ListImages(filters ListImagesFilters, ordering ListImagesOrdering) ([]*dm.Image, error) {
+	return []*dm.Image{}, nil
 }

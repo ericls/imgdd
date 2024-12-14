@@ -1,0 +1,48 @@
+
+type Image {
+    id: ID!
+    url: String!
+    name: String!
+    identifier: String!
+    nominalWidth: Int!
+    nominalHeight: Int!
+    nominalByteSize: Int!
+    root: Image
+    createdAt: Time!
+}
+
+input ImageOrderByInput {
+    id: PaginationDirection
+    name: PaginationDirection
+    createdAt: PaginationDirection
+}
+
+input ImageFilterInput {
+    nameContains: String
+    createdAtLte: Time
+    createdAtGte: Time
+}
+
+type ImagePageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    endCursor: String
+}
+
+type ImageEdge {
+    node: Image!
+    cursor: String!
+}
+
+type ImagesResult {
+    edges: [ImageEdge!]!
+    pageInfo: ImagePageInfo!
+}
+
+extend type Viewer {
+    images(
+        orderBy: ImageOrderByInput
+        filters: ImageFilterInput
+        after: String
+    ): ImagesResult!
+}

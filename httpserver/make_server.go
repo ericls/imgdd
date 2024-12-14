@@ -64,7 +64,7 @@ func MakeServer(conf *HttpServerConfigDef) *http.Server {
 	imageRepo := image.NewDBImageRepo(conn)
 	r.Use(graph.NewLoadersMiddleware(identityRepo))
 	identityManager := NewIdentityManager(identityRepo)
-	gqlResolver := NewGqlResolver(identityManager, storageRepo)
+	gqlResolver := NewGqlResolver(identityManager, storageRepo, imageRepo)
 
 	graphqlServer := gqlgenHandler.NewDefaultServer(
 		graph.NewExecutableSchema(

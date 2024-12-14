@@ -1,3 +1,11 @@
+
+scalar Time
+
+enum PaginationDirection {
+    asc
+    desc
+}
+
 type Query {
   viewer: Viewer!
 }
