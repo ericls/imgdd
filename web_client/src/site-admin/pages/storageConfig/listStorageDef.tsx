@@ -6,6 +6,7 @@ import { HEADING_2 } from "~src/ui/classNames";
 import { BlockLoader } from "~src/ui/loader";
 import { DumbStorageDefTable } from "../../components/storageDefTable/storageDefTable";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const listStorageDefQuery = gql(`
   query ListStorageDef {
@@ -19,6 +20,7 @@ const listStorageDefQuery = gql(`
 `);
 
 export function ListStorageDef() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { data: storageDefs, loading } = useQuery(listStorageDefQuery, {
     fetchPolicy: "cache-and-network",
@@ -34,7 +36,9 @@ export function ListStorageDef() {
   );
   return (
     <div className="m-auto max-w-5xl">
-      <h1 className={classNames(HEADING_2, "font-poppins")}>Storage Backend</h1>
+      <h1 className={classNames(HEADING_2, "font-poppins")}>
+        {t("listStorageDefPage.title")}
+      </h1>
       {!storageDefs && loading && <BlockLoader />}
       <div className="mt-4">
         <DumbStorageDefTable

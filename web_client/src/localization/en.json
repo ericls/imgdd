@@ -31,6 +31,9 @@
         "buttonSignIn": "Sign in",
         "buttonCreateAccount": "Create account"
     },
+    "listStorageDefPage": {
+        "title": "Storage backend"
+    },
     "storageDefTable": {
         "identifier": "Identifier",
         "enabled": "Enabled",
