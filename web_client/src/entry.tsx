@@ -15,7 +15,6 @@ import { DarkModeContext, DarkModeProvider } from "./lib/darkMode";
 import "./i18n";
 import { apolloClient } from "./apollo";
 import { AuthProvider } from "./lib/auth";
-import { SiteAdminLayout } from "./site-admin/layout";
 import { AppLayout } from "./app/layout";
 import { AppMainPage } from "./app/pages/main";
 import { PromptContainer } from "./ui/prompt";
@@ -37,7 +36,12 @@ function ErrorPage() {
 const router = createBrowserRouter([
   {
     path: "site-admin",
-    element: <SiteAdminLayout />,
+    lazy: async () => {
+      const { SiteAdminLayout } = await import("./site-admin/layout");
+      return {
+        element: <SiteAdminLayout />,
+      };
+    },
     errorElement: <ErrorPage />,
     children: [
       {

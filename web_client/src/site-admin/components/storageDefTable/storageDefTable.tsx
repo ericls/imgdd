@@ -16,6 +16,7 @@ import {
 
 import { Button } from "~src/ui/button";
 import { useTranslation } from "react-i18next";
+import { StorageDefTableConnectivityCell } from "./connectivityCell";
 
 type StorageDef = ListStorageDefQuery["viewer"]["storageDefinitions"][number];
 
@@ -61,6 +62,12 @@ export function DumbStorageDefTable({
       }),
       columnHelper.accessor("priority", {
         header: t("storageDefTable.priority"),
+      }),
+      columnHelper.accessor("id", {
+        header: t("storageDefTable.connectivity"),
+        cell: (info) => {
+          return <StorageDefTableConnectivityCell id={info.getValue()} />;
+        },
       }),
       columnHelper.accessor(
         (row) => {

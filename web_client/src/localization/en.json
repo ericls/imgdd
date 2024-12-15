@@ -37,7 +37,8 @@
         "storageType": "Storage type",
         "actions": "Actions",
         "priority": "Priority",
-        "addNew": "Add new"
+        "addNew": "Add new",
+        "connectivity": "Connectivity"
     },
     "storageConfigForm": {
         "storageType":"Storage type",
@@ -48,5 +49,12 @@
         "endpoint": "Endpoint",
         "access": "Access",
         "secret": "Secret"
+    },
+    "storageDef": {
+        "connection": {
+            "success": "Connection successful",
+            "error": "Connection failed",
+            "unknown": "Connectivity Unknown"
+        }
     }
 }

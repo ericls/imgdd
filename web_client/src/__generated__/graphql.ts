@@ -12,6 +12,7 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  Time: any;
 };
 
 export type CreateUserWithOrganizationInput = {
@@ -20,9 +21,54 @@ export type CreateUserWithOrganizationInput = {
   userPassword: Scalars['String'];
 };
 
+export type Image = {
+  __typename?: 'Image';
+  createdAt: Scalars['Time'];
+  id: Scalars['ID'];
+  identifier: Scalars['String'];
+  name: Scalars['String'];
+  nominalByteSize: Scalars['Int'];
+  nominalHeight: Scalars['Int'];
+  nominalWidth: Scalars['Int'];
+  root?: Maybe<Image>;
+  url: Scalars['String'];
+};
+
+export type ImageEdge = {
+  __typename?: 'ImageEdge';
+  cursor: Scalars['String'];
+  node: Image;
+};
+
+export type ImageFilterInput = {
+  createdAtGte?: InputMaybe<Scalars['Time']>;
+  createdAtLte?: InputMaybe<Scalars['Time']>;
+  nameContains?: InputMaybe<Scalars['String']>;
+};
+
+export type ImageOrderByInput = {
+  createdAt?: InputMaybe<PaginationDirection>;
+  id?: InputMaybe<PaginationDirection>;
+  name?: InputMaybe<PaginationDirection>;
+};
+
+export type ImagePageInfo = {
+  __typename?: 'ImagePageInfo';
+  endCursor?: Maybe<Scalars['String']>;
+  hasNextPage: Scalars['Boolean'];
+  hasPreviousPage: Scalars['Boolean'];
+};
+
+export type ImagesResult = {
+  __typename?: 'ImagesResult';
+  edges: Array<ImageEdge>;
+  pageInfo: ImagePageInfo;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   authenticate: ViewerResult;
+  checkStorageDefinitionConnectivity?: Maybe<StorageDefinitionConnectivityResult>;
   createStorageDefinition?: Maybe<StorageDefinition>;
   createUserWithOrganization: ViewerResult;
   logout: ViewerResult;
@@ -34,6 +80,11 @@ export type MutationAuthenticateArgs = {
   email: Scalars['String'];
   organizationId?: InputMaybe<Scalars['String']>;
   password: Scalars['String'];
+};
+
+
+export type MutationCheckStorageDefinitionConnectivityArgs = {
+  input: CheckStorageDefinitionConnectivityInput;
 };
 
 
@@ -71,6 +122,11 @@ export type OtherStorageConfig = {
   _empty?: Maybe<Scalars['String']>;
 };
 
+export enum PaginationDirection {
+  Asc = 'asc',
+  Desc = 'desc'
+}
+
 export enum PermissionNameEnum {
   AdminAccess = 'AdminAccess',
   SiteOwnerAccess = 'SiteOwnerAccess'
@@ -100,10 +156,17 @@ export type StorageConfig = OtherStorageConfig | S3StorageConfig;
 export type StorageDefinition = {
   __typename?: 'StorageDefinition';
   config: StorageConfig;
+  connectivity: Scalars['Boolean'];
   id: Scalars['ID'];
   identifier: Scalars['String'];
   isEnabled: Scalars['Boolean'];
   priority: Scalars['Int'];
+};
+
+export type StorageDefinitionConnectivityResult = {
+  __typename?: 'StorageDefinitionConnectivityResult';
+  error?: Maybe<Scalars['String']>;
+  ok: Scalars['Boolean'];
 };
 
 export enum StorageTypeEnum {
@@ -123,6 +186,7 @@ export type Viewer = {
   getStorageDefinition?: Maybe<StorageDefinition>;
   hasPermission: Scalars['Boolean'];
   id: Scalars['ID'];
+  images: ImagesResult;
   organizationUser?: Maybe<OrganizationUser>;
   storageDefinitions: Array<StorageDefinition>;
 };
@@ -137,9 +201,20 @@ export type ViewerHasPermissionArgs = {
   permission: PermissionNameEnum;
 };
 
+
+export type ViewerImagesArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  filters?: InputMaybe<ImageFilterInput>;
+  orderBy?: InputMaybe<ImageOrderByInput>;
+};
+
 export type ViewerResult = {
   __typename?: 'ViewerResult';
   viewer: Viewer;
+};
+
+export type CheckStorageDefinitionConnectivityInput = {
+  id: Scalars['ID'];
 };
 
 export type CreateStorageDefinitionInput = {
@@ -182,6 +257,13 @@ export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
 export type LogoutMutation = { __typename?: 'Mutation', logout: { __typename?: 'ViewerResult', viewer: { __typename?: 'Viewer', id: string, hasAdminAccess: boolean, hasSiteOwnerAccess: boolean, organizationUser?: { __typename?: 'OrganizationUser', id: string, user: { __typename?: 'User', id: string, email: string, name: string } } | null } } };
 
+export type StorageDefTableConnectivityCellMutationMutationVariables = Exact<{
+  input: CheckStorageDefinitionConnectivityInput;
+}>;
+
+
+export type StorageDefTableConnectivityCellMutationMutation = { __typename?: 'Mutation', checkStorageDefinitionConnectivity?: { __typename?: 'StorageDefinitionConnectivityResult', ok: boolean, error?: string | null } | null };
+
 export type ListStorageDefQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -215,6 +297,7 @@ export const CreateUserWithOrganizationDocument = {"kind":"Document","definition
 export const AuthenticateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"authenticate"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"authenticate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<AuthenticateMutation, AuthenticateMutationVariables>;
 export const AuthDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Auth"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}},{"kind":"Field","alias":{"kind":"Name","value":"hasAdminAccess"},"name":{"kind":"Name","value":"hasPermission"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"permission"},"value":{"kind":"EnumValue","value":"AdminAccess"}}]},{"kind":"Field","alias":{"kind":"Name","value":"hasSiteOwnerAccess"},"name":{"kind":"Name","value":"hasPermission"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"permission"},"value":{"kind":"EnumValue","value":"SiteOwnerAccess"}}]}]}}]}}]} as unknown as DocumentNode<AuthQuery, AuthQueryVariables>;
 export const LogoutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"Logout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}},{"kind":"Field","alias":{"kind":"Name","value":"hasAdminAccess"},"name":{"kind":"Name","value":"hasPermission"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"permission"},"value":{"kind":"EnumValue","value":"AdminAccess"}}]},{"kind":"Field","alias":{"kind":"Name","value":"hasSiteOwnerAccess"},"name":{"kind":"Name","value":"hasPermission"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"permission"},"value":{"kind":"EnumValue","value":"SiteOwnerAccess"}}]}]}}]}}]}}]} as unknown as DocumentNode<LogoutMutation, LogoutMutationVariables>;
+export const StorageDefTableConnectivityCellMutationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"StorageDefTableConnectivityCellMutation"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"checkStorageDefinitionConnectivityInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"checkStorageDefinitionConnectivity"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ok"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<StorageDefTableConnectivityCellMutationMutation, StorageDefTableConnectivityCellMutationMutationVariables>;
 export const ListStorageDefDocument = {"kind":"Document", "definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ListStorageDef"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"storageDefinitions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StorageDefinitionFragment"}}]}}]}}]}},...StorageDefinitionFragmentFragmentDoc.definitions]} as unknown as DocumentNode<ListStorageDefQuery, ListStorageDefQueryVariables>;
 export const GetStorageDefDocument = {"kind":"Document", "definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetStorageDef"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"getStorageDefinition"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StorageDefinitionFragment"}}]}}]}}]}},...StorageDefinitionFragmentFragmentDoc.definitions]} as unknown as DocumentNode<GetStorageDefQuery, GetStorageDefQueryVariables>;
 export const CreateStorageDefDocument = {"kind":"Document", "definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateStorageDef"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"createStorageDefinitionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createStorageDefinition"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StorageDefinitionFragment"}}]}}]}},...StorageDefinitionFragmentFragmentDoc.definitions]} as unknown as DocumentNode<CreateStorageDefMutation, CreateStorageDefMutationVariables>;

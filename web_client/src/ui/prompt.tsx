@@ -12,6 +12,7 @@ type PromptProps = {
   onClose: () => void;
   onYes: () => void;
   onNo: () => void;
+  showCancel?: boolean;
 };
 type PromptStackItem = Omit<PromptProps, "onClose" | "onNo" | "onYes"> & {
   id: string;
@@ -81,6 +82,7 @@ function Prompt({
   onClose: _onClose,
   onYes,
   onNo,
+  showCancel,
 }: PromptProps) {
   return (
     <Transition.Root show as={Fragment}>
@@ -129,9 +131,11 @@ function Prompt({
                   >
                     {yesText}
                   </Button>
-                  <Button onClick={onNo} variant="transparent">
-                    Cancel
-                  </Button>
+                  {showCancel && (
+                    <Button onClick={onNo} variant="transparent">
+                      Cancel
+                    </Button>
+                  )}
                 </div>
               </Dialog.Panel>
             </Transition.Child>
@@ -152,4 +156,12 @@ export function prompt(options: Omit<PromptStackItem, "id" | "onResolve">) {
   });
   _promptStack.push({ ...options, onResolve: resolveFunc, id });
   return promise;
+}
+
+export function notice(title: string, content: React.ReactElement) {
+  return prompt({
+    title,
+    content,
+    showCancel: false,
+  });
 }

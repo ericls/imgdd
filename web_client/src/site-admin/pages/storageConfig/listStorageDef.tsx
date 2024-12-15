@@ -4,7 +4,7 @@ import React from "react";
 import { gql } from "~src/__generated__";
 import { HEADING_2 } from "~src/ui/classNames";
 import { BlockLoader } from "~src/ui/loader";
-import { DumbStorageDefTable } from "../../components/storageDefTable";
+import { DumbStorageDefTable } from "../../components/storageDefTable/storageDefTable";
 import { useNavigate } from "react-router-dom";
 
 const listStorageDefQuery = gql(`
