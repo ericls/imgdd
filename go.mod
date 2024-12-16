@@ -1,6 +1,8 @@
 module imgdd
 
-go 1.21
+go 1.21.0
+
+toolchain go1.22.6
 
 require (
 	github.com/99designs/gqlgen v0.17.49
@@ -218,6 +220,7 @@ require (
 	github.com/lib/pq v1.10.8 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/rbcervilla/redisstore/v9 v9.0.0
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/vikstrous/dataloadgen v0.0.6
