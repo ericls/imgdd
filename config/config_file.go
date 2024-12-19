@@ -1,6 +1,12 @@
 package config
 
-import "github.com/pelletier/go-toml/v2"
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/pelletier/go-toml/v2"
+)
 
 type DBConfigFileDef struct {
 	POSTGRES_DB       string `toml:"POSTGRES_DB" comment:"Postgres database name"`
@@ -8,7 +14,7 @@ type DBConfigFileDef struct {
 	POSTGRES_USER     string `toml:"POSTGRES_USER" comment:"Postgres user"`
 	POSTGRES_HOST     string `toml:"POSTGRES_HOST" comment:"Postgres host"`
 	POSTGRES_PORT     string `toml:"POSTGRES_PORT" comment:"Postgres port"`
-	LOG_QUERIES       bool   `toml:"LOG_QUERIES" comment:"Log queries used for debugging"`
+	LOG_QUERIES       bool   `toml:"LOG_QUERIES" comment:"Log queries, used for debugging"`
 }
 
 type RedisConfigFileDef struct {
@@ -31,9 +37,39 @@ type ConfigFileDef struct {
 	HTTPServer *HTTPServerConfigFileDef `toml:"HTTPServerConfig" comment:"HTTP server configuration"`
 }
 
-func ReadFromTomlFile(filename string) (*ConfigFileDef, error) {
+func resolveFilePath(userInput string, checkExist bool) (string, error) {
+	expandedPath := userInput
+	if userInput[:1] == "~" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("failed to get home directory: %w", err)
+		}
+		expandedPath = filepath.Join(homeDir, userInput[1:])
+	}
+	absolutePath, err := filepath.Abs(expandedPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve absolute path: %w", err)
+	}
+	if checkExist {
+		_, err = os.Stat(absolutePath)
+		if os.IsNotExist(err) {
+			return "", fmt.Errorf("file does not exist: %s", absolutePath)
+		} else if err != nil {
+			return "", fmt.Errorf("error checking file existence: %w", err)
+		}
+	}
+
+	return absolutePath, nil
+}
+
+func ReadFromTomlFile(filePath string) (*ConfigFileDef, error) {
+	resolvedPath, err := resolveFilePath(filePath, false)
+	println(resolvedPath, "here")
+	return nil, err
+}
+
+func ReadFromBytes(data []byte) (*ConfigFileDef, error) {
 	var x ConfigFileDef
-	data := []byte(`value  = "42"`)
 	toml.Unmarshal(data, &x)
 	return nil, nil
 }

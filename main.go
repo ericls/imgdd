@@ -2,6 +2,7 @@ package main
 
 import (
 	"imgdd/buildflag"
+	"imgdd/config"
 	"imgdd/db"
 	"imgdd/graph"
 	"imgdd/httpserver"
@@ -92,7 +93,6 @@ func main() {
 				return nil
 			},
 		},
-
 		{
 			Name: "populate-built-in-roles",
 			Action: func(ctx *cli.Context) error {
@@ -178,12 +178,26 @@ func main() {
 					return nil
 				},
 			},
+			&cli.Command{
+				Name: "foo",
+				Action: func(ctx *cli.Context) error {
+					config.ReadFromTomlFile(ctx.Path("config"))
+					return nil
+				},
+			},
 		)
 	}
 	app := &cli.App{
 		Name:        "imgdd",
 		Description: "imgdd command line tool",
-		Commands:    commands,
+		Flags: []cli.Flag{
+			&cli.PathFlag{
+				Name:    "config",
+				Aliases: []string{"c"},
+				Usage:   "Path to the config file",
+			},
+		},
+		Commands: commands,
 	}
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
