@@ -20,7 +20,7 @@ type HttpServerConfigDef struct {
 var Config HttpServerConfigDef
 
 func init() {
-	Config = readServerConfigFromEnv()
+	Config = ReadServerConfigFromEnv()
 }
 
 func getenv(key, fallback string) string {
@@ -30,7 +30,7 @@ func getenv(key, fallback string) string {
 	}
 	return value
 }
-func readServerConfigFromEnv() HttpServerConfigDef {
+func ReadServerConfigFromEnv() HttpServerConfigDef {
 	return HttpServerConfigDef{
 		Bind:               os.Getenv("imgdd_HTTP_BIND"),
 		WriteTimeout:       10,

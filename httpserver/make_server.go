@@ -48,11 +48,10 @@ func mountStatic(r *mux.Router, dir fs.FS) {
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fileServer))
 }
 
-func MakeServer(conf *HttpServerConfigDef) *http.Server {
+func MakeServer(conf *HttpServerConfigDef, dbConf *db.DBConfigDef) *http.Server {
 
-	dbConfig := db.ReadConfigFromEnv()
-	conn := db.GetConnection(&dbConfig)
-	db.PopulateBuiltInRoles(&dbConfig)
+	conn := db.GetConnection(dbConf)
+	db.PopulateBuiltInRoles(dbConf)
 
 	r := mux.NewRouter()
 	r.StrictSlash(true)

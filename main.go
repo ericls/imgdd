@@ -49,25 +49,34 @@ func getGoBinPath() string {
 }
 
 func main() {
-	var bind string
 	var migrateVersion uint = 0
+	getConfig := func(ctx *cli.Context) *config.ConfigDef {
+		conf, err := config.GetConfig(ctx.Path("config"))
+		if err != nil {
+			panic(err)
+		}
+		return conf
+	}
 	commands := []*cli.Command{
 		{
 			Name: "serve",
 			Flags: []cli.Flag{
 				&cli.StringFlag{
-					Name:        "bind",
-					Value:       "127.0.0.1:8000",
-					Usage:       "Which address to bind to when starting the server",
-					Destination: &bind,
+					Name:  "bind",
+					Value: "127.0.0.1:8000",
+					Usage: "Which address to bind to when starting the server",
 				},
 			},
 			Action: func(ctx *cli.Context) error {
-				httpServerConf := httpserver.Config
-				httpServerConf.Bind = bind
+				conf := getConfig(ctx)
+				httpServerConf := conf.HttpServer
+				bind := ctx.String("bind")
+				if bind != "" {
+					httpServerConf.Bind = bind
+				}
 				httpServerConf.StaticFS = MoutingFS.Static
 				httpServerConf.TemplatesFS = MoutingFS.Templates
-				srv := httpserver.MakeServer(&httpServerConf)
+				srv := httpserver.MakeServer(&httpServerConf, &conf.Db)
 				logger.Info().Str("bind", srv.Addr).Msg("Starting server")
 				return srv.ListenAndServe()
 			},
@@ -83,7 +92,7 @@ func main() {
 				},
 			},
 			Action: func(ctx *cli.Context) error {
-				dbConf := db.ReadConfigFromEnv()
+				dbConf := getConfig(ctx).Db
 				if migrateVersion > 0 {
 					db.MigrateToVersion(&dbConf, migrateVersion)
 					return nil
@@ -96,7 +105,7 @@ func main() {
 		{
 			Name: "populate-built-in-roles",
 			Action: func(ctx *cli.Context) error {
-				dbConf := db.ReadConfigFromEnv()
+				dbConf := getConfig(ctx).Db
 				db.PopulateBuiltInRoles(&dbConf)
 				return nil
 			},
@@ -116,14 +125,31 @@ func main() {
 				},
 			},
 			Action: func(ctx *cli.Context) error {
-				dbConf := db.ReadConfigFromEnv()
+				dbConf := getConfig(ctx).Db
 				db.PopulateBuiltInRoles(&dbConf)
 				err := identity.AddUserToGroup(ctx.String("group-key"), ctx.String("user-email"), &dbConf)
 				return err
 			},
 		},
+		{
+			Name: "gen-config",
+			Action: func(ctx *cli.Context) error {
+				if ctx.Path("config") == "" {
+					return config.PrintEmptyConfig()
+				}
+				return config.GenerateEmptyConfigFile(ctx.Path("config"))
+			},
+		},
+		{
+			Name: "print-config",
+			Action: func(ctx *cli.Context) error {
+				conf := getConfig(ctx)
+				conf.PrintConfig()
+				return nil
+			},
+		},
 	}
-	if buildflag.IsDebug {
+	if buildflag.IsDev {
 		commands = append(commands,
 			&cli.Command{
 				Name: "make-migration",
@@ -142,7 +168,7 @@ func main() {
 			&cli.Command{
 				Name: "jet",
 				Action: func(ctx *cli.Context) error {
-					dbConf := db.ReadConfigFromEnv()
+					dbConf := getConfig(ctx).Db
 					db.JetGenerate(dbConf)
 					return nil
 				},
@@ -157,7 +183,7 @@ func main() {
 			&cli.Command{
 				Name: "reset-db",
 				Action: func(ctx *cli.Context) error {
-					dbConf := db.ReadConfigFromEnv()
+					dbConf := getConfig(ctx).Db
 					test_support.ResetDatabase(&dbConf)
 					return nil
 				},
@@ -175,13 +201,6 @@ func main() {
 					cmd.Stderr = os.Stderr
 					cmd.Stdin = os.Stdin
 					cmd.Run()
-					return nil
-				},
-			},
-			&cli.Command{
-				Name: "foo",
-				Action: func(ctx *cli.Context) error {
-					config.ReadFromTomlFile(ctx.Path("config"))
 					return nil
 				},
 			},

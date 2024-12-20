@@ -9,3 +9,5 @@ tmp/
 
 web_client/dist/*
 !web_client/dist/.keep
+
+config.toml

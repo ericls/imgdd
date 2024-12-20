@@ -13,7 +13,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var sessionStore sessions.Store
+var _sessionStore sessions.Store
 var sessionLogger zerolog.Logger
 
 const session_context_key = ContextKey("context-session")
@@ -21,6 +21,12 @@ const session_cookie_name = "session"
 
 func init() {
 	sessionLogger = logging.GetLogger("httpserver")
+}
+
+func ensureSessionStore() sessions.Store {
+	if _sessionStore != nil {
+		return _sessionStore
+	}
 	client := redis.NewClient(&redis.Options{
 		Addr: strings.TrimPrefix(Config.RedisURIForSession, "redis://"),
 	})
@@ -37,7 +43,8 @@ func init() {
 	if err != nil {
 		sessionLogger.Err(err).Msg("failed to create redis session store")
 	}
-	sessionStore = s
+	_sessionStore = s
+	return ensureSessionStore()
 }
 
 type ContextSession struct {
@@ -108,7 +115,7 @@ func GetContextSession(r *http.Request) (*ContextSession, bool) {
 	}
 	// Session middleware is used but session is not initialized, initialize it
 	if context_session.session == nil {
-		session, _ := sessionStore.Get(r, session_cookie_name)
+		session, _ := ensureSessionStore().Get(r, session_cookie_name)
 		context_session.session = session
 	}
 	return context_session, true

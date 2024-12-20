@@ -14,13 +14,27 @@ type DBConfigFileDef struct {
 	POSTGRES_USER     string `toml:"POSTGRES_USER" comment:"Postgres user"`
 	POSTGRES_HOST     string `toml:"POSTGRES_HOST" comment:"Postgres host"`
 	POSTGRES_PORT     string `toml:"POSTGRES_PORT" comment:"Postgres port"`
-	LOG_QUERIES       bool   `toml:"LOG_QUERIES" comment:"Log queries, used for debugging"`
+	LOG_QUERIES       *bool  `toml:"LOG_QUERIES" comment:"Log queries, used for debugging"`
 }
 
 type RedisConfigFileDef struct {
 	REDIS_URI         string `toml:"REDIS_URI" comment:"Redis URI"`
 	CACHE_REDIS_URI   string `toml:"CACHE_REDIS_URI" comment:"Redis URI for caching, if different from main Redis"`
 	SESSION_REDIS_URI string `toml:"SESSION_REDIS_URI" comment:"Redis URI for session storage, if different from main Redis"`
+}
+
+func (r *RedisConfigFileDef) GetSessionRedisURI() string {
+	if r.SESSION_REDIS_URI != "" {
+		return r.SESSION_REDIS_URI
+	}
+	return r.REDIS_URI
+}
+
+func (r *RedisConfigFileDef) GetCacheRedisURI() string {
+	if r.CACHE_REDIS_URI != "" {
+		return r.CACHE_REDIS_URI
+	}
+	return r.REDIS_URI
 }
 
 type HTTPServerConfigFileDef struct {
@@ -35,6 +49,15 @@ type HTTPServerConfigFileDef struct {
 type ConfigFileDef struct {
 	DB         *DBConfigFileDef         `toml:"DBConfig" comment:"Database configuration"`
 	HTTPServer *HTTPServerConfigFileDef `toml:"HTTPServerConfig" comment:"HTTP server configuration"`
+	Redis      *RedisConfigFileDef      `toml:"RedisConfig" comment:"Redis configuration"`
+}
+
+var EmptyConfig = ConfigFileDef{
+	DB: &DBConfigFileDef{
+		LOG_QUERIES: new(bool),
+	},
+	HTTPServer: &HTTPServerConfigFileDef{},
+	Redis:      &RedisConfigFileDef{},
 }
 
 func resolveFilePath(userInput string, checkExist bool) (string, error) {
@@ -64,12 +87,68 @@ func resolveFilePath(userInput string, checkExist bool) (string, error) {
 
 func ReadFromTomlFile(filePath string) (*ConfigFileDef, error) {
 	resolvedPath, err := resolveFilePath(filePath, false)
-	println(resolvedPath, "here")
-	return nil, err
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve config file path: %w", err)
+	}
+	file, err := os.Open(resolvedPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+	bytes, err := os.ReadFile(resolvedPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+	return ReadFromBytes(bytes)
 }
 
-func ReadFromBytes(data []byte) (*ConfigFileDef, error) {
-	var x ConfigFileDef
-	toml.Unmarshal(data, &x)
-	return nil, nil
+func ReadFromBytes(bytes []byte) (*ConfigFileDef, error) {
+	var conf ConfigFileDef
+	err := toml.Unmarshal(bytes, &conf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+	return &conf, nil
+}
+
+func GenerateEmptyConfigFile(filePath string) error {
+	resolvedPath, err := resolveFilePath(filePath, false)
+	if err != nil {
+		return fmt.Errorf("failed to resolve config file path: %w", err)
+	}
+	// check the file is empty or the file does not exist
+	file, err := os.OpenFile(resolvedPath, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+	stat, err := file.Stat()
+	if err != nil {
+		return fmt.Errorf("failed to get file stat: %w", err)
+	}
+	if stat.Size() > 0 {
+		return fmt.Errorf("file is not empty: %s", resolvedPath)
+	}
+	tomlData, err := toml.Marshal(EmptyConfig)
+	if err != nil {
+		return fmt.Errorf("failed to marshal empty config: %w", err)
+	}
+	// write empty config to file
+	_, err = file.Write(tomlData)
+	if err != nil {
+		return fmt.Errorf("failed to write empty config to file: %w", err)
+	}
+	return nil
+}
+
+func PrintEmptyConfig() error {
+	tomlData, err := toml.Marshal(EmptyConfig)
+	if err != nil {
+		return fmt.Errorf("failed to marshal empty config: %w", err)
+	}
+	_, err = fmt.Print(string(tomlData))
+	if err != nil {
+		return fmt.Errorf("failed to print empty config: %w", err)
+	}
+	return nil
 }

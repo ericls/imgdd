@@ -14,7 +14,7 @@ type DBConfigDef struct {
 	POSTGRES_USER     string
 	POSTGRES_HOST     string
 	POSTGRES_PORT     string
-	LOG_QUERIES       bool
+	LOG_QUERIES       *bool
 }
 
 func (c *DBConfigDef) ConnectString() string {
@@ -56,15 +56,16 @@ func (c *DBConfigDef) SetLogQueries() {
 }
 
 func ReadConfigFromEnv() DBConfigDef {
+	logQueries := os.Getenv("LOG_QUERIES") == "true"
 	conf := DBConfigDef{
 		POSTGRES_DB:       os.Getenv("POSTGRES_DB"),
 		POSTGRES_PASSWORD: os.Getenv("POSTGRES_PASSWORD"),
 		POSTGRES_USER:     os.Getenv("POSTGRES_USER"),
 		POSTGRES_HOST:     os.Getenv("POSTGRES_HOST"),
 		POSTGRES_PORT:     os.Getenv("POSTGRES_PORT"),
-		LOG_QUERIES:       os.Getenv("LOG_QUERIES") == "true",
+		LOG_QUERIES:       &logQueries,
 	}
-	if conf.LOG_QUERIES {
+	if conf.LOG_QUERIES != nil && *conf.LOG_QUERIES {
 		conf.SetLogQueries()
 	}
 	return conf
