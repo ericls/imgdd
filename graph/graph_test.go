@@ -7,6 +7,7 @@ import (
 	"imgdd/graph"
 	"imgdd/graph/model"
 	"imgdd/httpserver"
+	"imgdd/httpserver/persister"
 	"imgdd/identity"
 	"imgdd/image"
 	"imgdd/storage"
@@ -24,6 +25,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/google/uuid"
 	"github.com/ory/dockertest/v3"
+	"github.com/redis/go-redis/v9"
 )
 
 var TEST_DB_CONF = db.DBConfigDef{
@@ -33,6 +35,8 @@ var TEST_DB_CONF = db.DBConfigDef{
 	POSTGRES_HOST:     "localhost",
 	POSTGRES_PORT:     "0", // this is set in TestMain
 }
+
+var TEST_REDIS_URI = "" // this is set in TestMain
 
 func TestMain(m *testing.M) {
 	pool, err := dockertest.NewPool("")
@@ -47,29 +51,41 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Could not connect to Docker: %s", err)
 	}
 
-	// pulls an image, creates a container based on it and runs it
-	resource, err := pool.Run("postgres", "alpine", TEST_DB_CONF.EnvLines())
+	db_resource, err := pool.Run("postgres", "alpine", TEST_DB_CONF.EnvLines())
 	if err != nil {
 		log.Fatalf("Could not start resource: %s", err)
 	}
-	TEST_DB_CONF.POSTGRES_PORT = resource.GetPort("5432/tcp")
+	TEST_DB_CONF.POSTGRES_PORT = db_resource.GetPort("5432/tcp")
 	println("Settingup db", TEST_DB_CONF.POSTGRES_PORT, "5432/tcp")
-
 	// TEST_DB_CONF.SetLogQueries()
-
-	// exponential backoff-retry, because the application in the container might not be ready to accept connections yet
 	if err := pool.Retry(func() error {
 		conn := db.GetConnection(&TEST_DB_CONF)
 		return conn.Ping()
 	}); err != nil {
 		log.Fatalf("Could not connect to database: %s", err)
 	}
+	redis_resouce, err := pool.Run("redis", "alpine", nil)
+	if err != nil {
+		log.Fatalf("Could not start redis for test: %s", err)
+	}
+	TEST_REDIS_URI = "redis://" + redis_resouce.GetHostPort("6379/tcp")
+	println("Settingup redis", TEST_REDIS_URI)
+	if err := pool.Retry(func() error {
+		client := redis.NewClient(&redis.Options{
+			Addr: strings.TrimPrefix(TEST_REDIS_URI, "redis://"),
+		})
+		return client.Ping(context.Background()).Err()
+	}); err != nil {
+		log.Fatalf("Could not connect to database: %s", err)
+	}
+
+	// exponential backoff-retry, because the application in the container might not be ready to accept connections yet
 	println("Migrating db")
 	db.RunMigrationUp(&TEST_DB_CONF)
 	db.PopulateBuiltInRoles(&TEST_DB_CONF)
 
 	code := m.Run()
-	if err := pool.Purge(resource); err != nil {
+	if err := pool.Purge(db_resource); err != nil {
 		log.Fatalf("Could not purge resource: %s", err)
 	}
 
@@ -112,7 +128,8 @@ func (m *TestContextUserManager) SetAuthenticationInfo(c context.Context, authen
 func newTestContext(tObj *testing.T) *TestContext {
 	conn := db.GetConnection(&TEST_DB_CONF)
 	identityRepo := identity.NewDBIdentityRepo(conn)
-	identityManager := httpserver.NewIdentityManager(identityRepo)
+	sessionPersister := persister.NewSessionPersister(TEST_REDIS_URI, nil, nil)
+	identityManager := httpserver.NewIdentityManager(identityRepo, sessionPersister)
 	storageRepo := storage.NewDBStorageRepo(conn)
 	imageRepo := image.NewDBImageRepo(conn)
 	resolver := httpserver.NewGqlResolver(identityManager, storageRepo, imageRepo)
@@ -123,7 +140,7 @@ func newTestContext(tObj *testing.T) *TestContext {
 	handler := identityManager.Middleware(srv)
 	handler = graph.NewLoadersMiddleware(identityRepo)(handler)
 	handler = httpserver.RWContextMiddleware(handler)
-	handler = httpserver.SessionMiddleware(handler)
+	handler = sessionPersister.Middleware(handler)
 	server := httptest.NewServer(handler)
 
 	// make client

@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"imgdd/httpserver/persister"
 	"imgdd/identity"
 	"net/http"
 )
@@ -47,18 +48,26 @@ func (cu *HttpContextUserManager) SetAuthenticationInfo(c context.Context, authe
 type IdentityManager struct {
 	IdentityRepo       identity.IdentityRepo
 	ContextUserManager identity.ContextUserManager
+	Persister          persister.Persister
 }
 
-func NewIdentityManager(identityRepo identity.IdentityRepo) *IdentityManager {
+func NewIdentityManager(identityRepo identity.IdentityRepo, persister persister.Persister) *IdentityManager {
 	return &IdentityManager{
 		IdentityRepo:       identityRepo,
 		ContextUserManager: NewContextUserManager("authInfo", identityRepo),
+		Persister:          persister,
 	}
 }
 
 func (i *IdentityManager) makeAuthenticationInfoFromRequest(r *http.Request) *identity.AuthenticationInfo {
-	authenticatedUserId := GetSessionValue(r, authenticated_user_id_session_key)
-	authorizedUserId := GetSessionValue(r, authroized_user_id_session_key)
+	authenticatedUserId, err := i.Persister.Get(r, authenticated_user_id_session_key)
+	if err != nil {
+		return nil
+	}
+	authorizedUserId, err := i.Persister.Get(r, authroized_user_id_session_key)
+	if err != nil {
+		return nil
+	}
 	authenticatedUser := identity.AuthenticatedUser{}
 	authorizedUser := identity.AuthorizedUser{}
 	if authenticatedUserId != "" {
@@ -83,22 +92,22 @@ func (i *IdentityManager) Middleware(next http.Handler) http.Handler {
 	})
 }
 
-func Authenticate(w http.ResponseWriter, r *http.Request, userId string, organizationUserId string) {
-	SetSessionValue(w, r, authenticated_user_id_session_key, userId)
-	SetSessionValue(w, r, authroized_user_id_session_key, organizationUserId)
+func (i *IdentityManager) Authenticate(w http.ResponseWriter, r *http.Request, userId string, organizationUserId string) {
+	i.Persister.Set(w, r, authenticated_user_id_session_key, userId)
+	i.Persister.Set(w, r, authroized_user_id_session_key, organizationUserId)
 }
 
-func Logout(w http.ResponseWriter, r *http.Request) {
-	SetSessionValue(w, r, authenticated_user_id_session_key, "")
-	SetSessionValue(w, r, authroized_user_id_session_key, "")
-	ClearSession(w, r)
+func (i *IdentityManager) Logout(w http.ResponseWriter, r *http.Request) {
+	i.Persister.Set(w, r, authenticated_user_id_session_key, "")
+	i.Persister.Set(w, r, authroized_user_id_session_key, "")
+	i.Persister.Clear(w, r)
 }
 
 func (i *IdentityManager) AuthenticateContext(c context.Context, userId string, organzationUserId string) {
 	w := GetResponseWriter(c)
 	r := GetRequest(c)
 	// Set authentication info on the session for next requests
-	Authenticate(w, r, userId, organzationUserId)
+	i.Authenticate(w, r, userId, organzationUserId)
 	user := i.IdentityRepo.GetUserById(userId)
 	orgUser := i.IdentityRepo.GetOrganizationUserById(organzationUserId)
 	// Set authentication info on the context for this request
@@ -116,5 +125,5 @@ func (i *IdentityManager) LogoutContext(c context.Context) {
 	}
 	w := GetResponseWriter(c)
 	r := GetRequest(c)
-	Logout(w, r)
+	i.Logout(w, r)
 }

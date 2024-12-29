@@ -32,8 +32,7 @@ func getFileExtFromMIMEType(mimeType string) string {
 	return ""
 }
 
-func getImageURL(identifier string, mimeType string, isSecure bool) string {
-	maybeImageDomain := Config.ImageDomain
+func getImageURL(maybeImageDomain string, identifier string, mimeType string, isSecure bool) string {
 	suffix := getFileExtFromMIMEType(mimeType)
 	if suffix == "" {
 		return ""
@@ -55,7 +54,10 @@ func isSecure(
 }
 
 func makeUploadHandler(
-	identityManager *IdentityManager, storageRepo storage.StorageRepo, imageRepo image.ImageRepo,
+	conf *HttpServerConfigDef,
+	identityManager *IdentityManager,
+	storageRepo storage.StorageRepo,
+	imageRepo image.ImageRepo,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.ParseMultipartForm(10 * 1024 * 1024) // 10 MB
@@ -157,7 +159,7 @@ func makeUploadHandler(
 		}
 		ret := UploadReturn{
 			Filename:   storedImage.Image.Name,
-			URL:        getImageURL(storedImage.Image.Identifier, declaredMimeType, isSecure(r)),
+			URL:        getImageURL(conf.ImageDomain, storedImage.Image.Identifier, declaredMimeType, isSecure(r)),
 			Identifier: storedImage.Image.Identifier,
 		}
 		serialized, err := json.Marshal(ret)

@@ -5,6 +5,7 @@ import (
 	"imgdd/buildflag"
 	"imgdd/db"
 	"imgdd/graph"
+	"imgdd/httpserver/persister"
 	"imgdd/identity"
 	"imgdd/image"
 	"imgdd/storage"
@@ -55,14 +56,16 @@ func MakeServer(conf *HttpServerConfigDef, dbConf *db.DBConfigDef) *http.Server 
 
 	r := mux.NewRouter()
 	r.StrictSlash(true)
-	r.Use(SessionMiddleware)
+	sessionPersister := persister.NewSessionPersister(conf.RedisURIForSession, nil, nil)
+	// r.Use(SessionMiddleware)
+	r.Use(sessionPersister.Middleware)
 	r.Use(RWContextMiddleware) // This should come after SessionMiddleware
 
 	identityRepo := identity.NewDBIdentityRepo(conn)
 	storageRepo := storage.NewDBStorageRepo(conn)
 	imageRepo := image.NewDBImageRepo(conn)
 	r.Use(graph.NewLoadersMiddleware(identityRepo))
-	identityManager := NewIdentityManager(identityRepo)
+	identityManager := NewIdentityManager(identityRepo, sessionPersister)
 	gqlResolver := NewGqlResolver(identityManager, storageRepo, imageRepo)
 
 	graphqlServer := gqlgenHandler.NewDefaultServer(
@@ -75,7 +78,7 @@ func MakeServer(conf *HttpServerConfigDef, dbConf *db.DBConfigDef) *http.Server 
 
 	r.Handle("/gql_playground", playground.Handler("IMGDD GraphQL", "/query"))
 	r.Handle("/query", graphqlServer)
-	r.Handle("/upload", makeUploadHandler(identityManager, storageRepo, imageRepo))
+	r.Handle("/upload", makeUploadHandler(conf, identityManager, storageRepo, imageRepo))
 	r.PathPrefix("/image").HandlerFunc(makeImageHandler(storageRepo))
 
 	mountStatic(r, conf.StaticFS)

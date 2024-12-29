@@ -40,7 +40,7 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			WriteTimeout:       configFile.HTTPServer.WriteTimeout,
 			ReadTimeout:        configFile.HTTPServer.ReadTimeout,
 			SessionKey:         configFile.HTTPServer.SessionKey,
-			RedisURIForSession: configFile.Redis.GetCacheRedisURI(),
+			RedisURIForSession: configFile.Redis.GetSessionRedisURI(),
 			SiteName:           configFile.HTTPServer.SiteName,
 		},
 	}, nil

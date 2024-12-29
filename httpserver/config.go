@@ -17,12 +17,6 @@ type HttpServerConfigDef struct {
 	ImageDomain        string
 }
 
-var Config HttpServerConfigDef
-
-func init() {
-	Config = ReadServerConfigFromEnv()
-}
-
 func getenv(key, fallback string) string {
 	value := os.Getenv(key)
 	if len(value) == 0 {
