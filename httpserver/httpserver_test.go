@@ -49,11 +49,11 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Could not connect to database: %s", err)
 	}
 
-	redis_resouce, err := pool.Run("redis", "alpine", nil)
+	redis_resource, err := pool.Run("redis", "alpine", nil)
 	if err != nil {
 		log.Fatalf("Could not start redis for test: %s", err)
 	}
-	TEST_REDIS_URI = "redis://" + redis_resouce.GetHostPort("6379/tcp")
+	TEST_REDIS_URI = "redis://" + redis_resource.GetHostPort("6379/tcp")
 	println("Settingup redis", TEST_REDIS_URI)
 	if err := pool.Retry(func() error {
 		client := redis.NewClient(&redis.Options{
@@ -70,6 +70,9 @@ func TestMain(m *testing.M) {
 
 	code := m.Run()
 	if err := pool.Purge(db_resource); err != nil {
+		log.Fatalf("Could not purge resource: %s", err)
+	}
+	if err := pool.Purge(redis_resource); err != nil {
 		log.Fatalf("Could not purge resource: %s", err)
 	}
 
