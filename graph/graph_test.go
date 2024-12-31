@@ -128,7 +128,7 @@ func (m *TestContextUserManager) SetAuthenticationInfo(c context.Context, authen
 func newTestContext(tObj *testing.T) *TestContext {
 	conn := db.GetConnection(&TEST_DB_CONF)
 	identityRepo := identity.NewDBIdentityRepo(conn)
-	sessionPersister := persister.NewSessionPersister(TEST_REDIS_URI, nil, nil)
+	sessionPersister := persister.NewSessionPersister(TEST_REDIS_URI, nil, nil, nil)
 	identityManager := httpserver.NewIdentityManager(identityRepo, sessionPersister)
 	storageRepo := storage.NewDBStorageRepo(conn)
 	imageRepo := image.NewDBImageRepo(conn)

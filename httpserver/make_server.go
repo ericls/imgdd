@@ -19,26 +19,72 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func makeAppHandler(conf *HttpServerConfigDef) http.HandlerFunc {
+type appHandlerOptions struct {
+	siteName          string
+	templatesFS       fs.FS
+	sessionHeaderName string
+	sessionUseCookie  bool
+}
+
+type appHandlerOption func(*appHandlerOptions)
+
+func withSessionHeaderName(name string) func(*appHandlerOptions) {
+	return func(o *appHandlerOptions) {
+		o.sessionHeaderName = name
+	}
+}
+
+func withSessionUseCookie(useCookie bool) func(*appHandlerOptions) {
+	return func(o *appHandlerOptions) {
+		o.sessionUseCookie = useCookie
+	}
+}
+
+func withSiteName(name string) func(*appHandlerOptions) {
+	return func(o *appHandlerOptions) {
+		o.siteName = name
+	}
+}
+
+func withTemplateFS(fs fs.FS) func(*appHandlerOptions) {
+	return func(o *appHandlerOptions) {
+		o.templatesFS = fs
+	}
+}
+
+func makeAppHandler(
+	options ...appHandlerOption,
+) http.HandlerFunc {
+	opts := appHandlerOptions{}
+	for _, opt := range options {
+		opt(&opts)
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		// renders the `app.gotmpl` template
-		template, err := template.ParseFS(conf.TemplatesFS, "*.gotmpl")
+		template, err := template.ParseFS(opts.templatesFS, "*.gotmpl")
 		if err != nil {
 			w.Write([]byte("Error rendering template"))
 		}
+		var sessionHeaderName string
+		if opts.sessionUseCookie {
+			sessionHeaderName = ""
+		} else {
+			sessionHeaderName = opts.sessionHeaderName
+		}
 		err = template.Execute(w, struct {
-			Version     string
-			VersionHash string
-			SiteName    string
-			Debug       bool
+			Version           string
+			VersionHash       string
+			SiteName          string
+			Debug             bool
+			SessionHeaderName string
 		}{
-			Version:     buildflag.VersionHash,
-			Debug:       buildflag.IsDebug,
-			SiteName:    conf.SiteName,
-			VersionHash: buildflag.VersionHash,
+			Version:           buildflag.VersionHash,
+			Debug:             buildflag.IsDebug,
+			SiteName:          opts.siteName,
+			VersionHash:       buildflag.VersionHash,
+			SessionHeaderName: sessionHeaderName,
 		})
 		if err != nil {
-			println(err.Error())
 			w.Write([]byte("Error rendering template 2"))
 		}
 	}
@@ -56,8 +102,8 @@ func MakeServer(conf *HttpServerConfigDef, dbConf *db.DBConfigDef) *http.Server 
 
 	r := mux.NewRouter()
 	r.StrictSlash(true)
-	sessionPersister := persister.NewSessionPersister(conf.RedisURIForSession, nil, nil)
-	// r.Use(SessionMiddleware)
+	sessionHeaderName := "x-session-token"
+	sessionPersister := persister.NewSessionPersister(conf.RedisURIForSession, nil, nil, &sessionHeaderName)
 	r.Use(sessionPersister.Middleware)
 	r.Use(RWContextMiddleware) // This should come after SessionMiddleware
 
@@ -82,7 +128,12 @@ func MakeServer(conf *HttpServerConfigDef, dbConf *db.DBConfigDef) *http.Server 
 	r.PathPrefix("/image").HandlerFunc(makeImageHandler(storageRepo))
 
 	mountStatic(r, conf.StaticFS)
-	r.PathPrefix("/").HandlerFunc(makeAppHandler(conf))
+	r.PathPrefix("/").HandlerFunc(makeAppHandler(
+		withSiteName(conf.SiteName),
+		withTemplateFS(conf.TemplatesFS),
+		withSessionHeaderName(sessionHeaderName),
+		withSessionUseCookie(sessionHeaderName == ""),
+	))
 
 	srv := &http.Server{
 		Handler: LoggerMiddleware(

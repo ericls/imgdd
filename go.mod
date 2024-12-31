@@ -1,8 +1,6 @@
 module imgdd
 
-go 1.21.0
-
-toolchain go1.22.6
+go 1.23.0
 
 require (
 	github.com/99designs/gqlgen v0.17.49

@@ -15,4 +15,5 @@ type Persister interface {
 	Get(r *http.Request, key string) (string, error)
 	Delete(w http.ResponseWriter, r *http.Request, key string) error
 	Clear(w http.ResponseWriter, r *http.Request) error
+	Rotate(w http.ResponseWriter, r *http.Request) error
 }

@@ -15,4 +15,5 @@ interface Window {
     deepLinkEnabled?: boolean;
   };
   VERSION: string;
+  SESSION_HEADER_NAME: string;
 }

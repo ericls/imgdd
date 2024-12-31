@@ -93,6 +93,7 @@ func (i *IdentityManager) Middleware(next http.Handler) http.Handler {
 }
 
 func (i *IdentityManager) Authenticate(w http.ResponseWriter, r *http.Request, userId string, organizationUserId string) {
+	i.Persister.Rotate(w, r)
 	i.Persister.Set(w, r, authenticated_user_id_session_key, userId)
 	i.Persister.Set(w, r, authroized_user_id_session_key, organizationUserId)
 }
