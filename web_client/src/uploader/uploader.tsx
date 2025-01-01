@@ -12,6 +12,7 @@ import copy from "copy-to-clipboard";
 import { Button } from "~src/ui/button";
 import { UploaderItem } from "./uploaderItem";
 import { useTranslation } from "react-i18next";
+import { addSessionHeaderToXMLHttpRequest } from "~src/lib/sessionToken";
 
 const FILE_SIZE_LIMIT = 5e6;
 
@@ -108,6 +109,7 @@ export function Uplodaer() {
       const formdata = new FormData();
       formdata.append("image", file, file.name);
       request.open("POST", "/upload");
+      addSessionHeaderToXMLHttpRequest(request);
       request.send(formdata);
     },
     [setUploadingFiles]

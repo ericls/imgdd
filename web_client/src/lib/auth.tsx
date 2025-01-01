@@ -60,7 +60,14 @@ const AuthContext = React.createContext<{
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data, loading } = useQuery(AUTH_QUERY);
   const [logout] = useMutation(LOGOUT_MUTATION);
-  const value = { data, isLoading: loading, logout };
+  const value = React.useMemo(() => {
+    function logoutAndReturn() {
+      logout().then(() => {
+        window.location.pathname = "/";
+      });
+    }
+    return { data, isLoading: loading, logout: logoutAndReturn };
+  }, [data, loading, logout]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

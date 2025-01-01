@@ -7,3 +7,13 @@ export function getSessionToken() {
 export function removeSessionToken() {
   localStorage.removeItem(TOKEN_NAME);
 }
+
+export function addSessionHeaderToXMLHttpRequest(request: XMLHttpRequest) {
+  if (!window.SESSION_HEADER_NAME) {
+    return;
+  }
+  const token = getSessionToken();
+  if (token) {
+    request.setRequestHeader(window.SESSION_HEADER_NAME, token);
+  }
+}

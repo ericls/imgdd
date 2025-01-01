@@ -75,6 +75,7 @@ func (repo *DBImageRepo) GetImageById(id string) (*dm.Image, error) {
 func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 	var parentId *string
 	var rootId *string
+	var createdById *string
 
 	if image.ParentId != "" {
 		parent, err := repo.GetImageById(image.ParentId)
@@ -87,6 +88,12 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 		} else {
 			rootId = &parent.Id
 		}
+	}
+
+	if image.CreatedById != "" {
+		createdById = &image.CreatedById
+	} else {
+		createdById = nil
 	}
 
 	stmt := ImageTable.INSERT(
@@ -106,7 +113,7 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 		parentId,
 		rootId,
 		image.UploaderIP,
-		image.CreatedById,
+		createdById,
 		image.MIMEType,
 		image.NominalByteSize,
 		image.NominalWidth,
