@@ -25,13 +25,13 @@ type imageTableTable struct {
 	ParentID        postgres.ColumnString
 	Changes         postgres.ColumnString
 	UploaderIP      postgres.ColumnString
-	CreatedAt       postgres.ColumnTimestampz
-	UpdatedAt       postgres.ColumnTimestampz
-	DeletedAt       postgres.ColumnTimestampz
+	MimeType        postgres.ColumnString
 	NominalWidth    postgres.ColumnInteger
 	NominalHeight   postgres.ColumnInteger
 	NominalByteSize postgres.ColumnInteger
-	MimeType        postgres.ColumnString
+	CreatedAt       postgres.ColumnTimestampz
+	UpdatedAt       postgres.ColumnTimestampz
+	DeletedAt       postgres.ColumnTimestampz
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -80,15 +80,15 @@ func newImageTableTableImpl(schemaName, tableName, alias string) imageTableTable
 		ParentIDColumn        = postgres.StringColumn("parent_id")
 		ChangesColumn         = postgres.StringColumn("changes")
 		UploaderIPColumn      = postgres.StringColumn("uploader_ip")
-		CreatedAtColumn       = postgres.TimestampzColumn("created_at")
-		UpdatedAtColumn       = postgres.TimestampzColumn("updated_at")
-		DeletedAtColumn       = postgres.TimestampzColumn("deleted_at")
+		MimeTypeColumn        = postgres.StringColumn("mime_type")
 		NominalWidthColumn    = postgres.IntegerColumn("nominal_width")
 		NominalHeightColumn   = postgres.IntegerColumn("nominal_height")
 		NominalByteSizeColumn = postgres.IntegerColumn("nominal_byte_size")
-		MimeTypeColumn        = postgres.StringColumn("mime_type")
-		allColumns            = postgres.ColumnList{IDColumn, CreatedByIDColumn, NameColumn, IdentifierColumn, RootIDColumn, ParentIDColumn, ChangesColumn, UploaderIPColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, MimeTypeColumn}
-		mutableColumns        = postgres.ColumnList{CreatedByIDColumn, NameColumn, IdentifierColumn, RootIDColumn, ParentIDColumn, ChangesColumn, UploaderIPColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, MimeTypeColumn}
+		CreatedAtColumn       = postgres.TimestampzColumn("created_at")
+		UpdatedAtColumn       = postgres.TimestampzColumn("updated_at")
+		DeletedAtColumn       = postgres.TimestampzColumn("deleted_at")
+		allColumns            = postgres.ColumnList{IDColumn, CreatedByIDColumn, NameColumn, IdentifierColumn, RootIDColumn, ParentIDColumn, ChangesColumn, UploaderIPColumn, MimeTypeColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn}
+		mutableColumns        = postgres.ColumnList{CreatedByIDColumn, NameColumn, IdentifierColumn, RootIDColumn, ParentIDColumn, ChangesColumn, UploaderIPColumn, MimeTypeColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn}
 	)
 
 	return imageTableTable{
@@ -103,13 +103,13 @@ func newImageTableTableImpl(schemaName, tableName, alias string) imageTableTable
 		ParentID:        ParentIDColumn,
 		Changes:         ChangesColumn,
 		UploaderIP:      UploaderIPColumn,
-		CreatedAt:       CreatedAtColumn,
-		UpdatedAt:       UpdatedAtColumn,
-		DeletedAt:       DeletedAtColumn,
+		MimeType:        MimeTypeColumn,
 		NominalWidth:    NominalWidthColumn,
 		NominalHeight:   NominalHeightColumn,
 		NominalByteSize: NominalByteSizeColumn,
-		MimeType:        MimeTypeColumn,
+		CreatedAt:       CreatedAtColumn,
+		UpdatedAt:       UpdatedAtColumn,
+		DeletedAt:       DeletedAtColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

@@ -21,11 +21,11 @@ type ImageTable struct {
 	ParentID        *uuid.UUID
 	Changes         string
 	UploaderIP      *string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	DeletedAt       *time.Time
+	MimeType        string
 	NominalWidth    int32
 	NominalHeight   int32
 	NominalByteSize int32
-	MimeType        string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	DeletedAt       *time.Time
 }
