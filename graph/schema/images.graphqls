@@ -34,6 +34,7 @@ input ImageFilterInput {
 type ImagePageInfo {
     hasNextPage: Boolean!
     hasPreviousPage: Boolean!
+    startCursor: String
     endCursor: String
     totalCount: Int
     currentCount: Int

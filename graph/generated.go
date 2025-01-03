@@ -76,6 +76,7 @@ type ComplexityRoot struct {
 		EndCursor       func(childComplexity int) int
 		HasNextPage     func(childComplexity int) int
 		HasPreviousPage func(childComplexity int) int
+		StartCursor     func(childComplexity int) int
 		TotalCount      func(childComplexity int) int
 	}
 
@@ -333,6 +334,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ImagePageInfo.HasPreviousPage(childComplexity), true
+
+	case "ImagePageInfo.startCursor":
+		if e.complexity.ImagePageInfo.StartCursor == nil {
+			break
+		}
+
+		return e.complexity.ImagePageInfo.StartCursor(childComplexity), true
 
 	case "ImagePageInfo.totalCount":
 		if e.complexity.ImagePageInfo.TotalCount == nil {
@@ -1988,6 +1996,47 @@ func (ec *executionContext) fieldContext_ImagePageInfo_hasPreviousPage(_ context
 	return fc, nil
 }
 
+func (ec *executionContext) _ImagePageInfo_startCursor(ctx context.Context, field graphql.CollectedField, obj *model.ImagePageInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ImagePageInfo_startCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ImagePageInfo_startCursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ImagePageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ImagePageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *model.ImagePageInfo) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ImagePageInfo_endCursor(ctx, field)
 	if err != nil {
@@ -2204,6 +2253,8 @@ func (ec *executionContext) fieldContext_ImagesResult_pageInfo(_ context.Context
 				return ec.fieldContext_ImagePageInfo_hasNextPage(ctx, field)
 			case "hasPreviousPage":
 				return ec.fieldContext_ImagePageInfo_hasPreviousPage(ctx, field)
+			case "startCursor":
+				return ec.fieldContext_ImagePageInfo_startCursor(ctx, field)
 			case "endCursor":
 				return ec.fieldContext_ImagePageInfo_endCursor(ctx, field)
 			case "totalCount":
@@ -6820,6 +6871,8 @@ func (ec *executionContext) _ImagePageInfo(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "startCursor":
+			out.Values[i] = ec._ImagePageInfo_startCursor(ctx, field, obj)
 		case "endCursor":
 			out.Values[i] = ec._ImagePageInfo_endCursor(ctx, field, obj)
 		case "totalCount":

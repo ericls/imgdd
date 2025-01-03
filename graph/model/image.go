@@ -49,6 +49,7 @@ type ImageOrderByInput struct {
 type ImagePageInfo struct {
 	HasNextPage     bool    `json:"hasNextPage"`
 	HasPreviousPage bool    `json:"hasPreviousPage"`
+	StartCursor     *string `json:"startCursor,omitempty"`
 	EndCursor       *string `json:"endCursor,omitempty"`
 	TotalCount      *int    `json:"count,omitempty"`
 	CurrentCount    *int    `json:"currentCount,omitempty"`
@@ -65,6 +66,7 @@ func FromListImageResult(r *domainmodels.ListImageResult, totalCount int, genCur
 	currentCount := len(r.Images)
 	edges := make([]*ImageEdge, currentCount)
 	var lastCursor string
+	var firstCursor string
 	for i, image := range r.Images {
 		cursor := genCursor(image)
 		edges[i] = &ImageEdge{
@@ -72,6 +74,9 @@ func FromListImageResult(r *domainmodels.ListImageResult, totalCount int, genCur
 			Cursor: cursor,
 		}
 		lastCursor = cursor
+		if i == 0 {
+			firstCursor = cursor
+		}
 	}
 	return &ImagesResult{
 		Edges: edges,
@@ -80,6 +85,7 @@ func FromListImageResult(r *domainmodels.ListImageResult, totalCount int, genCur
 			HasPreviousPage: r.HasPrev,
 			TotalCount:      &totalCount,
 			CurrentCount:    &currentCount,
+			StartCursor:     &firstCursor,
 			EndCursor:       &lastCursor,
 		},
 	}
