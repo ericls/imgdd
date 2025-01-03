@@ -184,7 +184,7 @@ func (repo *DBImageRepo) CreateAndSaveUploadedImage(image *dm.Image, fileBytes [
 	})
 }
 
-func hasPrevImageConditions(ordering ListImagesOrdering, image *dm.Image) []BoolExpression {
+func hasPrevImageConditions(ordering *ListImagesOrdering, image *dm.Image) []BoolExpression {
 	var conditions []BoolExpression
 	if ordering.ID != nil {
 		if *ordering.ID == PaginationDirectionAsc {
@@ -210,7 +210,7 @@ func hasPrevImageConditions(ordering ListImagesOrdering, image *dm.Image) []Bool
 	return conditions
 }
 
-func hasNextImageConditions(ordering ListImagesOrdering, image *dm.Image) []BoolExpression {
+func hasNextImageConditions(ordering *ListImagesOrdering, image *dm.Image) []BoolExpression {
 	var conditions []BoolExpression
 	if ordering.ID != nil {
 		if *ordering.ID == PaginationDirectionAsc {
@@ -242,8 +242,12 @@ func (repo *DBImageRepo) imageExists(conditions []BoolExpression) bool {
 	).FROM(
 		ImageTable,
 	)
-	for _, condition := range conditions {
-		statement = statement.WHERE(condition)
+	if len(conditions) > 0 {
+		acc := conditions[0]
+		for _, condition := range conditions[1:] {
+			acc = acc.AND(condition)
+		}
+		statement = statement.WHERE(acc)
 	}
 	statement = statement.LIMIT(1)
 	dest := []model.ImageTable{}
@@ -255,33 +259,49 @@ func (repo *DBImageRepo) imageExists(conditions []BoolExpression) bool {
 	return len(dest) > 0
 }
 
-func (repo *DBImageRepo) imageHasPrev(ordering ListImagesOrdering, image *dm.Image) bool {
+func (repo *DBImageRepo) imageHasPrev(ordering *ListImagesOrdering, image *dm.Image) bool {
 	conditions := hasPrevImageConditions(ordering, image)
 	return repo.imageExists(conditions)
 }
 
-func (repo *DBImageRepo) imageHasNext(ordering ListImagesOrdering, image *dm.Image) bool {
+func (repo *DBImageRepo) imageHasNext(ordering *ListImagesOrdering, image *dm.Image) bool {
 	conditions := hasNextImageConditions(ordering, image)
 	return repo.imageExists(conditions)
 }
 
-func (repo *DBImageRepo) ListImages(filters ListImagesFilters, ordering ListImagesOrdering) (dm.ListImageResult, error) {
+func (repo *DBImageRepo) filtersToWhere(filters *ListImagesFilters) BoolExpression {
+	wheres := []BoolExpression{}
+	if filters.CreatedAtGt != nil {
+		wheres = append(wheres, ImageTable.CreatedAt.GT(TimestampzT(*filters.CreatedAtGt)))
+	}
+	if filters.CreatedAtLt != nil {
+		wheres = append(wheres, ImageTable.CreatedAt.LT(TimestampzT(*filters.CreatedAtLt)))
+	}
+	if filters.NameContains != "" {
+		wheres = append(wheres, ImageTable.Name.LIKE(String("%"+filters.NameContains+"%")))
+	}
+	if filters.CreatedBy != nil {
+		wheres = append(wheres, ImageTable.CreatedByID.EQ(UUID(uuid.MustParse(*filters.CreatedBy))))
+	}
+	if len(wheres) == 0 {
+		return nil
+	}
+	acc := wheres[0]
+	for _, where := range wheres[1:] {
+		acc = acc.AND(where)
+	}
+	return acc
+}
+
+func (repo *DBImageRepo) ListImages(filters *ListImagesFilters, ordering *ListImagesOrdering) (dm.ListImageResult, error) {
 	stmt := ImageTable.SELECT(
 		ImageTable.AllColumns,
 	).FROM(
 		ImageTable,
 	)
-	if filters.CreatedAtGte != nil {
-		stmt = stmt.WHERE(ImageTable.CreatedAt.GT_EQ(TimestampzT(*filters.CreatedAtGte)))
-	}
-	if filters.CreatedAtLte != nil {
-		stmt = stmt.WHERE(ImageTable.CreatedAt.LT_EQ(TimestampzT(*filters.CreatedAtLte)))
-	}
-	if filters.NameContains != "" {
-		stmt = stmt.WHERE(ImageTable.Name.LIKE(String("%" + filters.NameContains + "%")))
-	}
-	if filters.CreatedBy != nil {
-		stmt = stmt.WHERE(ImageTable.CreatedByID.EQ(UUID(uuid.MustParse(*filters.CreatedBy))))
+	where := repo.filtersToWhere(filters)
+	if where != nil {
+		stmt = stmt.WHERE(where)
 	}
 	orderByClauses := []OrderByClause{}
 	if ordering.ID != nil {
@@ -332,12 +352,36 @@ func (repo *DBImageRepo) ListImages(filters ListImagesFilters, ordering ListImag
 			NominalByteSize: image.NominalByteSize,
 		}
 	}
-	firstImage := images[0]
-	lastImage := images[len(dest)-1]
+	hasNext := false
+	hasPrev := false
+	if len(images) > 0 {
+		firstImage := images[0]
+		lastImage := images[len(dest)-1]
+		hasNext = repo.imageHasNext(ordering, lastImage)
+		hasPrev = repo.imageHasPrev(ordering, firstImage)
+	}
 
 	return dm.ListImageResult{
 		Images:  images,
-		HasNext: repo.imageHasNext(ordering, lastImage),
-		HasPrev: repo.imageHasPrev(ordering, firstImage),
+		HasNext: hasNext,
+		HasPrev: hasPrev,
 	}, nil
+}
+
+func (repo *DBImageRepo) CountImages(filters *ListImagesFilters) (int, error) {
+	stmt := ImageTable.SELECT(COUNT(ImageTable.ID).AS("Count")).FROM(
+		ImageTable,
+	)
+	where := repo.filtersToWhere(filters)
+	if where != nil {
+		stmt = stmt.WHERE(where)
+	}
+	dest := []struct {
+		Count int
+	}{}
+	err := stmt.Query(repo.DB, &dest)
+	if err != nil {
+		return 0, err
+	}
+	return dest[0].Count, nil
 }

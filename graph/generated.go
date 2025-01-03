@@ -72,9 +72,11 @@ type ComplexityRoot struct {
 	}
 
 	ImagePageInfo struct {
+		CurrentCount    func(childComplexity int) int
 		EndCursor       func(childComplexity int) int
 		HasNextPage     func(childComplexity int) int
 		HasPreviousPage func(childComplexity int) int
+		TotalCount      func(childComplexity int) int
 	}
 
 	ImagesResult struct {
@@ -304,6 +306,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ImageEdge.Node(childComplexity), true
 
+	case "ImagePageInfo.currentCount":
+		if e.complexity.ImagePageInfo.CurrentCount == nil {
+			break
+		}
+
+		return e.complexity.ImagePageInfo.CurrentCount(childComplexity), true
+
 	case "ImagePageInfo.endCursor":
 		if e.complexity.ImagePageInfo.EndCursor == nil {
 			break
@@ -324,6 +333,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ImagePageInfo.HasPreviousPage(childComplexity), true
+
+	case "ImagePageInfo.totalCount":
+		if e.complexity.ImagePageInfo.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.ImagePageInfo.TotalCount(childComplexity), true
 
 	case "ImagesResult.edges":
 		if e.complexity.ImagesResult.Edges == nil {
@@ -1800,6 +1816,88 @@ func (ec *executionContext) fieldContext_ImagePageInfo_endCursor(_ context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _ImagePageInfo_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.ImagePageInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ImagePageInfo_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ImagePageInfo_totalCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ImagePageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ImagePageInfo_currentCount(ctx context.Context, field graphql.CollectedField, obj *model.ImagePageInfo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ImagePageInfo_currentCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CurrentCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ImagePageInfo_currentCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ImagePageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ImagesResult_edges(ctx context.Context, field graphql.CollectedField, obj *model.ImagesResult) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ImagesResult_edges(ctx, field)
 	if err != nil {
@@ -1895,6 +1993,10 @@ func (ec *executionContext) fieldContext_ImagesResult_pageInfo(_ context.Context
 				return ec.fieldContext_ImagePageInfo_hasPreviousPage(ctx, field)
 			case "endCursor":
 				return ec.fieldContext_ImagePageInfo_endCursor(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_ImagePageInfo_totalCount(ctx, field)
+			case "currentCount":
+				return ec.fieldContext_ImagePageInfo_currentCount(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ImagePageInfo", field.Name)
 		},
@@ -5977,7 +6079,7 @@ func (ec *executionContext) unmarshalInputImageFilterInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"nameContains", "createdAtLte", "createdAtGte", "createdBy"}
+	fieldsInOrder := [...]string{"nameContains", "createdAtLt", "createdAtGt", "createdBy"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5991,20 +6093,20 @@ func (ec *executionContext) unmarshalInputImageFilterInput(ctx context.Context, 
 				return it, err
 			}
 			it.NameContains = data
-		case "createdAtLte":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLte"))
+		case "createdAtLt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLt"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.CreatedAtLte = data
-		case "createdAtGte":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGte"))
+			it.CreatedAtLt = data
+		case "createdAtGt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGt"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.CreatedAtGte = data
+			it.CreatedAtGt = data
 		case "createdBy":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdBy"))
 			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
@@ -6497,6 +6599,10 @@ func (ec *executionContext) _ImagePageInfo(ctx context.Context, sel ast.Selectio
 			}
 		case "endCursor":
 			out.Values[i] = ec._ImagePageInfo_endCursor(ctx, field, obj)
+		case "totalCount":
+			out.Values[i] = ec._ImagePageInfo_totalCount(ctx, field, obj)
+		case "currentCount":
+			out.Values[i] = ec._ImagePageInfo_currentCount(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

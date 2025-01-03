@@ -26,8 +26,8 @@ input ImageOrderByInput {
 
 input ImageFilterInput {
     nameContains: String
-    createdAtLte: Time
-    createdAtGte: Time
+    createdAtLt: Time
+    createdAtGt: Time
     createdBy: ID
 }
 
@@ -35,6 +35,8 @@ type ImagePageInfo {
     hasNextPage: Boolean!
     hasPreviousPage: Boolean!
     endCursor: String
+    totalCount: Int
+    currentCount: Int
 }
 
 type ImageEdge {

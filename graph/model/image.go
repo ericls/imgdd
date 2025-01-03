@@ -2,6 +2,7 @@ package model
 
 import (
 	"imgdd/domainmodels"
+	"imgdd/utils/pagination"
 	"time"
 )
 
@@ -34,8 +35,8 @@ type ImageEdge struct {
 
 type ImageFilterInput struct {
 	NameContains *string    `json:"nameContains,omitempty"`
-	CreatedAtLte *time.Time `json:"createdAtLte,omitempty"`
-	CreatedAtGte *time.Time `json:"createdAtGte,omitempty"`
+	CreatedAtLt  *time.Time `json:"createdAtLte,omitempty"`
+	CreatedAtGt  *time.Time `json:"createdAtGte,omitempty"`
 	CreatedBy    *string    `json:"createdBy,omitempty"`
 }
 
@@ -49,6 +50,8 @@ type ImagePageInfo struct {
 	HasNextPage     bool    `json:"hasNextPage"`
 	HasPreviousPage bool    `json:"hasPreviousPage"`
 	EndCursor       *string `json:"endCursor,omitempty"`
+	TotalCount      *int    `json:"count,omitempty"`
+	CurrentCount    *int    `json:"currentCount,omitempty"`
 }
 
 type ImagesResult struct {
@@ -56,21 +59,65 @@ type ImagesResult struct {
 	PageInfo *ImagePageInfo `json:"pageInfo"`
 }
 
-type cursorEncoder func(i *domainmodels.Image) string
+type CursorEncoder func(i *domainmodels.Image) string
 
-func FromListImageResult(r *domainmodels.ListImageResult, genCursor cursorEncoder) *ImagesResult {
-	edges := make([]*ImageEdge, len(r.Images))
+func FromListImageResult(r *domainmodels.ListImageResult, totalCount int, genCursor CursorEncoder) *ImagesResult {
+	currentCount := len(r.Images)
+	edges := make([]*ImageEdge, currentCount)
+	var lastCursor string
 	for i, image := range r.Images {
+		cursor := genCursor(image)
 		edges[i] = &ImageEdge{
 			Node:   FromImage(image),
-			Cursor: genCursor(image),
+			Cursor: cursor,
 		}
+		lastCursor = cursor
 	}
 	return &ImagesResult{
 		Edges: edges,
 		PageInfo: &ImagePageInfo{
 			HasNextPage:     r.HasNext,
 			HasPreviousPage: r.HasPrev,
+			TotalCount:      &totalCount,
+			CurrentCount:    &currentCount,
+			EndCursor:       &lastCursor,
 		},
+	}
+}
+
+func MakeImagePaginator(orderInput *ImageOrderByInput, filterInput *ImageFilterInput) *pagination.Paginator {
+	order := pagination.Order{}
+	if orderInput != nil {
+		if orderInput.CreatedAt != nil {
+			order.AddField(domainmodels.NewImageOrderField("createdAt", *orderInput.CreatedAt == PaginationDirectionAsc))
+		}
+		if orderInput.ID != nil {
+			order.AddField(domainmodels.NewImageOrderField("id", *orderInput.ID == PaginationDirectionAsc))
+		}
+		if orderInput.Name != nil {
+			order.AddField(domainmodels.NewImageOrderField("name", *orderInput.Name == PaginationDirectionAsc))
+		}
+	}
+	if len(order.Fields) == 0 {
+		order.AddField(domainmodels.NewImageOrderField("createdAt", false))
+	}
+	filter := pagination.Filter{}
+	if filterInput != nil {
+		if filterInput.CreatedAtGt != nil {
+			filter.AddFilterField("createdAt", pagination.FilterOperatorGt, filterInput.CreatedAtGt.Format(time.RFC3339))
+		}
+		if filterInput.CreatedAtLt != nil {
+			filter.AddFilterField("createdAt", pagination.FilterOperatorLt, filterInput.CreatedAtLt.Format(time.RFC3339))
+		}
+		if filterInput.NameContains != nil {
+			filter.AddFilterField("name", pagination.FilterOperatorContains, *filterInput.NameContains)
+		}
+		if filterInput.CreatedBy != nil {
+			filter.AddFilterField("createdBy", pagination.FilterOperatorEq, *filterInput.CreatedBy)
+		}
+	}
+	return &pagination.Paginator{
+		Order:  &order,
+		Filter: &filter,
 	}
 }

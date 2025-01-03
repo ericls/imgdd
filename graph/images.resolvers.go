@@ -7,10 +7,10 @@ package graph
 import (
 	"context"
 	"fmt"
+	"imgdd/domainmodels"
 	"imgdd/graph/model"
 	"imgdd/identity"
 	"imgdd/image"
-	"imgdd/utils"
 )
 
 // URL is the resolver for the url field.
@@ -44,13 +44,6 @@ func (r *viewerResolver) Images(ctx context.Context, obj *model.Viewer, orderBy 
 	if after != nil && before != nil {
 		return nil, fmt.Errorf("only one of after or before can be specified")
 	}
-	// TODO: implement after and before
-	if after != nil {
-		return nil, fmt.Errorf("after is not supported yet")
-	}
-	if before != nil {
-		return nil, fmt.Errorf("before is not supported yet")
-	}
 	forUserId := currentUser.Id
 	if filters != nil && filters.CreatedBy != nil {
 		filterForUserId := *filters.CreatedBy
@@ -63,32 +56,42 @@ func (r *viewerResolver) Images(ctx context.Context, obj *model.Viewer, orderBy 
 			}
 		}
 	}
-	defaultCreatedAtOrdering := image.PaginationDirectionDesc
-	ordering := image.ListImagesOrdering{
-		CreatedAt: &defaultCreatedAtOrdering,
+	if filters == nil {
+		filters = &model.ImageFilterInput{}
 	}
-	if orderBy != nil {
-		if orderBy.CreatedAt != nil {
-			ordering.CreatedAt = (*image.PaginationDirection)(orderBy.CreatedAt)
-		}
-		if orderBy.ID != nil {
-			ordering.ID = (*image.PaginationDirection)(orderBy.ID)
-		}
-		if orderBy.Name != nil {
-			ordering.Name = (*image.PaginationDirection)(orderBy.Name)
-		}
-	}
-	listImageResult, err := r.ImageRepo.ListImages(image.ListImagesFilters{
-		NameContains: utils.SafeDeref(utils.SafeDeref(filters).NameContains),
-		CreatedAtLte: utils.SafeDeref(filters).CreatedAtLte,
-		CreatedAtGte: utils.SafeDeref(filters).CreatedAtGte,
-		CreatedBy:    &forUserId,
-		Limit:        24,
-	}, ordering)
+	filters.CreatedBy = &forUserId
+
+	paginator := model.MakeImagePaginator(orderBy, filters)
+	listImagesFilters := image.FromPaginationFilter(paginator.Filter)
+	count, err := r.ImageRepo.CountImages(listImagesFilters)
 	if err != nil {
 		return nil, err
 	}
-	result := model.FromListImageResult(&listImageResult, ordering.GetCursor)
+
+	if after != nil {
+		afterCursor := paginator.Order.DecodeCursor(*after)
+		if afterCursor != nil {
+			paginator.ContributeCursorToFilter(afterCursor, true)
+		}
+	}
+	if before != nil {
+		beforeCursor := paginator.Order.DecodeCursor(*before)
+		if beforeCursor != nil {
+			paginator.ContributeCursorToFilter(beforeCursor, false)
+		}
+	}
+
+	listImagesFiltersWithCursor := image.FromPaginationFilter(paginator.Filter)
+	listImagesOrdering := image.FromPaginationOrder(paginator.Order)
+
+	listImageResult, err := r.ImageRepo.ListImages(listImagesFiltersWithCursor, listImagesOrdering)
+	if err != nil {
+		return nil, err
+	}
+	cursorEncoder := model.CursorEncoder(func(i *domainmodels.Image) string {
+		return paginator.Order.EncodeCursor(i)
+	})
+	result := model.FromListImageResult(&listImageResult, count, cursorEncoder)
 	return result, nil
 }
 

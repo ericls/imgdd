@@ -1,6 +1,9 @@
 package domainmodels
 
-import "time"
+import (
+	"imgdd/utils/pagination"
+	"time"
+)
 
 type Image struct {
 	Id              string
@@ -29,4 +32,30 @@ type ListImageResult struct {
 	Images  []*Image
 	HasNext bool
 	HasPrev bool
+}
+
+type ImageOrderField struct {
+	pagination.BaseOrderField
+}
+
+func (f *ImageOrderField) GetValue(object interface{}) string {
+	image := object.(*Image)
+	switch f.Name() {
+	case "id":
+		return image.Id
+	case "name":
+		return image.Name
+	case "createdAt":
+		return image.CreatedAt.Format(time.RFC3339)
+	}
+	return ""
+}
+
+func NewImageOrderField(name string, asc bool) *ImageOrderField {
+	return &ImageOrderField{
+		pagination.BaseOrderField{
+			FieldName: name,
+			FieldAsc:  asc,
+		},
+	}
 }

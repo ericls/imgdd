@@ -10,7 +10,7 @@ import (
 type OrderField interface {
 	Name() string
 	Asc() bool
-	getValue(object interface{}) string
+	GetValue(object interface{}) string
 }
 
 type BaseOrderField struct {
@@ -28,6 +28,10 @@ func (b *BaseOrderField) Asc() bool {
 
 type Order struct {
 	Fields []OrderField
+}
+
+func (o *Order) AddField(field OrderField) {
+	o.Fields = append(o.Fields, field)
 }
 
 func (o *Order) checksum() string {
@@ -54,7 +58,7 @@ func (o *Order) EncodeCursor(i interface{}) string {
 	}
 	cursor := &Cursor{}
 	for _, field := range o.Fields {
-		cursor.AddField(field.Name(), field.getValue(i))
+		cursor.AddField(field.Name(), field.GetValue(i))
 	}
 	return o.checksum() + "|" + cursor.B64Encode()
 }
