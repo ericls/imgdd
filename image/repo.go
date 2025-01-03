@@ -278,7 +278,7 @@ func (repo *DBImageRepo) filtersToWhere(filters *ListImagesFilters) BoolExpressi
 		wheres = append(wheres, ImageTable.CreatedAt.LT(TimestampzT(*filters.CreatedAtLt)))
 	}
 	if filters.NameContains != "" {
-		wheres = append(wheres, ImageTable.Name.LIKE(String("%"+filters.NameContains+"%")))
+		wheres = append(wheres, db.ILIKE(ImageTable.Name, String("%"+filters.NameContains+"%")))
 	}
 	if filters.CreatedBy != nil {
 		wheres = append(wheres, ImageTable.CreatedByID.EQ(UUID(uuid.MustParse(*filters.CreatedBy))))
