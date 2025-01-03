@@ -6,53 +6,12 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-	"time"
 )
 
 type CreateUserWithOrganizationInput struct {
 	UserEmail        string `json:"userEmail"`
 	UserPassword     string `json:"userPassword"`
 	OrganizationName string `json:"organizationName"`
-}
-
-type Image struct {
-	ID              string    `json:"id"`
-	URL             string    `json:"url"`
-	Name            string    `json:"name"`
-	Identifier      string    `json:"identifier"`
-	NominalWidth    int       `json:"nominalWidth"`
-	NominalHeight   int       `json:"nominalHeight"`
-	NominalByteSize int       `json:"nominalByteSize"`
-	Root            *Image    `json:"root,omitempty"`
-	CreatedAt       time.Time `json:"createdAt"`
-}
-
-type ImageEdge struct {
-	Node   *Image `json:"node"`
-	Cursor string `json:"cursor"`
-}
-
-type ImageFilterInput struct {
-	NameContains *string    `json:"nameContains,omitempty"`
-	CreatedAtLte *time.Time `json:"createdAtLte,omitempty"`
-	CreatedAtGte *time.Time `json:"createdAtGte,omitempty"`
-}
-
-type ImageOrderByInput struct {
-	ID        *PaginationDirection `json:"id,omitempty"`
-	Name      *PaginationDirection `json:"name,omitempty"`
-	CreatedAt *PaginationDirection `json:"createdAt,omitempty"`
-}
-
-type ImagePageInfo struct {
-	HasNextPage     bool    `json:"hasNextPage"`
-	HasPreviousPage bool    `json:"hasPreviousPage"`
-	EndCursor       *string `json:"endCursor,omitempty"`
-}
-
-type ImagesResult struct {
-	Edges    []*ImageEdge   `json:"edges"`
-	PageInfo *ImagePageInfo `json:"pageInfo"`
 }
 
 type Mutation struct {

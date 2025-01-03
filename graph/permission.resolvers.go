@@ -17,17 +17,13 @@ func (r *viewerResolver) HasPermission(ctx context.Context, obj *model.Viewer, p
 		return false, nil
 	}
 	if permission == model.PermissionName_SiteOwnerAccess {
-		for _, role := range currentUser.Roles {
-			if role.Key == "site_owner" {
-				return true, nil
-			}
+		if currentUser.IsSiteOwner() {
+			return true, nil
 		}
 	}
 	if permission == model.PermissionName_AdminAccess {
-		for _, role := range currentUser.Roles {
-			if role.Key == "admin" || role.Key == "owner" || role.Key == "site_owner" {
-				return true, nil
-			}
+		if currentUser.HasAdminAccess() {
+			return true, nil
 		}
 	}
 	return false, nil

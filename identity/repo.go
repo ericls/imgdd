@@ -187,7 +187,7 @@ func (repo *DBIdentityRepo) GetOrganizationsByIds(ids []string) []*dm.Organizati
 
 func (repo *DBIdentityRepo) GetOrganizationUserById(id string) *dm.OrganizationUser {
 	dest := organizationUserSelectResult{}
-	stmt := organizationUserSelect.WHERE(OrganizationUserTable.ID.EQ(UUID(uuid.MustParse(id))))
+	stmt := organizationUserSelect.WHERE(OrganizationUserTable.ID.EQ(UUID(uuid.MustParse(id)))).DISTINCT()
 	err := stmt.Query(repo.DB, &dest)
 	if err != nil {
 		return nil

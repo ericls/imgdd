@@ -34,4 +34,6 @@ type StorageRepo interface {
 	UpdateStorageDefinition(identifier string, storage_type *string, config *string, isEnabled *bool, priority *int64) (*dm.StorageDefinition, error)
 
 	GetStoredImageByIdentifierAndMimeType(identifier, mime string) (*dm.StoredImage, error)
+	GetStoredImagesByIds(ids []string) ([]*dm.StoredImage, error)
+	GetStoredImageIdsByImageIds(imageIds []string) (map[string][]string, error)
 }

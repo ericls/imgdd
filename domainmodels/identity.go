@@ -7,6 +7,24 @@ type OrganizationUser struct {
 	Roles        []*Role
 }
 
+func (ou *OrganizationUser) IsSiteOwner() bool {
+	for _, role := range ou.Roles {
+		if role.Key == "site_owner" {
+			return true
+		}
+	}
+	return false
+}
+
+func (ou *OrganizationUser) HasAdminAccess() bool {
+	for _, role := range ou.Roles {
+		if role.Key == "admin" || role.Key == "owner" || role.Key == "site_owner" {
+			return true
+		}
+	}
+	return false
+}
+
 type User struct {
 	Id    string
 	Email string

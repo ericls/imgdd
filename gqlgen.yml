@@ -113,3 +113,7 @@ models:
     fields:
       connectivity:
         resolver: true
+  Image:
+    fields:
+      url:
+        resolver: true

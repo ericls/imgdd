@@ -3,11 +3,10 @@ import classNames from "classnames";
 import React from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import {
-  HiOutlineCog6Tooth as SettingsIcon,
   HiOutlineUsers as UsersIcon,
   HiOutlineServerStack as SotrageIcon,
 } from "react-icons/hi2";
-import { HiOutlineMail as EmailIcon } from "react-icons/hi";
+import { PiImages as ImagesIcon } from "react-icons/pi";
 import { TbDeviceAnalytics as AnalyticsIcon } from "react-icons/tb";
 import { Footer } from "~src/common/Footer";
 import { LazyRouteFallback } from "~src/common/LazyRouteFallback";
@@ -27,22 +26,16 @@ export function SiteAdminLayout() {
         title: "General",
         items: [
           {
-            title: "General settings",
-            to: "/site-admin",
-            icon: <SettingsIcon />,
-            active: location.pathname === "/site-admin",
-          },
-          {
-            title: "Email Settings",
-            to: "/site-admin/email",
-            icon: <EmailIcon />,
-            active: location.pathname.startsWith("/site-admin/email"),
-          },
-          {
             title: "Users",
             to: "/site-admin/users",
             icon: <UsersIcon />,
             active: location.pathname.startsWith("/site-admin/users"),
+          },
+          {
+            title: "Images",
+            to: "/site-admin/images",
+            icon: <ImagesIcon />,
+            active: location.pathname.startsWith("/site-admin/images"),
           },
         ],
       },

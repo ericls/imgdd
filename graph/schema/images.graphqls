@@ -1,4 +1,9 @@
 
+type StoredImage {
+    id: ID!
+    storageDefinition: StorageDefinition!
+}
+
 type Image {
     id: ID!
     url: String!
@@ -8,7 +13,9 @@ type Image {
     nominalHeight: Int!
     nominalByteSize: Int!
     root: Image
+    revisions: [Image!]!
     createdAt: Time!
+    storedImages: [StoredImage!]!
 }
 
 input ImageOrderByInput {
@@ -21,6 +28,7 @@ input ImageFilterInput {
     nameContains: String
     createdAtLte: Time
     createdAtGte: Time
+    createdBy: ID
 }
 
 type ImagePageInfo {
@@ -43,6 +51,7 @@ extend type Viewer {
     images(
         orderBy: ImageOrderByInput
         filters: ImageFilterInput
-        after: String
+        After: String
+        Before: String
     ): ImagesResult!
 }

@@ -24,3 +24,9 @@ type StoredImage struct {
 	FileIdentifier    string
 	CopiedFrom        *StoredImage
 }
+
+type ListImageResult struct {
+	Images  []*Image
+	HasNext bool
+	HasPrev bool
+}

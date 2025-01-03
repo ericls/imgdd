@@ -110,7 +110,7 @@ func MakeServer(conf *HttpServerConfigDef, dbConf *db.DBConfigDef) *http.Server 
 	identityRepo := identity.NewDBIdentityRepo(conn)
 	storageRepo := storage.NewDBStorageRepo(conn)
 	imageRepo := image.NewDBImageRepo(conn)
-	r.Use(graph.NewLoadersMiddleware(identityRepo))
+	r.Use(graph.NewLoadersMiddleware(identityRepo, storageRepo))
 	identityManager := NewIdentityManager(identityRepo, sessionPersister)
 	gqlResolver := NewGqlResolver(identityManager, storageRepo, imageRepo)
 

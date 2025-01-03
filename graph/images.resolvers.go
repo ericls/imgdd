@@ -8,9 +8,91 @@ import (
 	"context"
 	"fmt"
 	"imgdd/graph/model"
+	"imgdd/identity"
+	"imgdd/image"
+	"imgdd/utils"
 )
 
-// Images is the resolver for the images field.
-func (r *viewerResolver) Images(ctx context.Context, obj *model.Viewer, orderBy *model.ImageOrderByInput, filters *model.ImageFilterInput, after *string) (*model.ImagesResult, error) {
-	panic(fmt.Errorf("not implemented: Images - images"))
+// URL is the resolver for the url field.
+func (r *imageResolver) URL(ctx context.Context, obj *model.Image) (string, error) {
+	panic(fmt.Errorf("not implemented: URL - url"))
 }
+
+// Root is the resolver for the root field.
+func (r *imageResolver) Root(ctx context.Context, obj *model.Image) (*model.Image, error) {
+	panic(fmt.Errorf("not implemented: Root - root"))
+}
+
+// Revisions is the resolver for the revisions field.
+func (r *imageResolver) Revisions(ctx context.Context, obj *model.Image) ([]*model.Image, error) {
+	// TODO: Implement this method after we support revisions.
+	return []*model.Image{}, nil
+}
+
+// StoredImages is the resolver for the storedImages field.
+func (r *imageResolver) StoredImages(ctx context.Context, obj *model.Image) ([]*model.StoredImage, error) {
+	loader := LoadersFor(ctx).storedImagesByImageIdsLoader
+	return loader.Load(ctx, obj.ID)
+}
+
+// Images is the resolver for the images field.
+func (r *viewerResolver) Images(ctx context.Context, obj *model.Viewer, orderBy *model.ImageOrderByInput, filters *model.ImageFilterInput, after *string, before *string) (*model.ImagesResult, error) {
+	currentUser := identity.GetCurrentOrganizationUser(r.ContextUserManager, ctx)
+	if currentUser == nil {
+		return nil, fmt.Errorf("unauthorized")
+	}
+	if after != nil && before != nil {
+		return nil, fmt.Errorf("only one of after or before can be specified")
+	}
+	// TODO: implement after and before
+	if after != nil {
+		return nil, fmt.Errorf("after is not supported yet")
+	}
+	if before != nil {
+		return nil, fmt.Errorf("before is not supported yet")
+	}
+	forUserId := currentUser.Id
+	if filters != nil && filters.CreatedBy != nil {
+		filterForUserId := *filters.CreatedBy
+		if filterForUserId != currentUser.Id {
+			if currentUser.IsSiteOwner() {
+				forUserId = filterForUserId
+			} else {
+				// TODO: check organization admin privileges
+				return nil, fmt.Errorf("unauthorized")
+			}
+		}
+	}
+	defaultCreatedAtOrdering := image.PaginationDirectionDesc
+	ordering := image.ListImagesOrdering{
+		CreatedAt: &defaultCreatedAtOrdering,
+	}
+	if orderBy != nil {
+		if orderBy.CreatedAt != nil {
+			ordering.CreatedAt = (*image.PaginationDirection)(orderBy.CreatedAt)
+		}
+		if orderBy.ID != nil {
+			ordering.ID = (*image.PaginationDirection)(orderBy.ID)
+		}
+		if orderBy.Name != nil {
+			ordering.Name = (*image.PaginationDirection)(orderBy.Name)
+		}
+	}
+	listImageResult, err := r.ImageRepo.ListImages(image.ListImagesFilters{
+		NameContains: utils.SafeDeref(utils.SafeDeref(filters).NameContains),
+		CreatedAtLte: utils.SafeDeref(filters).CreatedAtLte,
+		CreatedAtGte: utils.SafeDeref(filters).CreatedAtGte,
+		CreatedBy:    &forUserId,
+		Limit:        24,
+	}, ordering)
+	if err != nil {
+		return nil, err
+	}
+	result := model.FromListImageResult(&listImageResult, ordering.GetCursor)
+	return result, nil
+}
+
+// Image returns ImageResolver implementation.
+func (r *Resolver) Image() ImageResolver { return &imageResolver{r} }
+
+type imageResolver struct{ *Resolver }

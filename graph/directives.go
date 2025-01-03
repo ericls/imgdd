@@ -14,10 +14,8 @@ func IsSiteOwner(r *Resolver) func(ctx context.Context, obj interface{}, next gr
 		if currentUser == nil {
 			return nil, fmt.Errorf("not authenticated")
 		}
-		for _, role := range currentUser.Roles {
-			if role.Key == "site_owner" {
-				return next(ctx)
-			}
+		if currentUser.IsSiteOwner() {
+			return next(ctx)
 		}
 		return nil, fmt.Errorf("not site owner")
 	}

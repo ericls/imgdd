@@ -141,7 +141,7 @@ func newTestContext(tObj *testing.T) *TestContext {
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(httpserver.NewGraphConfig(resolver)))
 	// NOTE: the order of code should be reversed compared to Mux.use
 	handler := identityManager.Middleware(srv)
-	handler = graph.NewLoadersMiddleware(identityRepo)(handler)
+	handler = graph.NewLoadersMiddleware(identityRepo, storageRepo)(handler)
 	handler = httpserver.RWContextMiddleware(handler)
 	handler = sessionPersister.Middleware(handler)
 	server := httptest.NewServer(handler)

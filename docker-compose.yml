@@ -1,5 +1,3 @@
-version: "3"
-
 # This docker compose file runs dependencies for
 # DEV or test environment
 services:

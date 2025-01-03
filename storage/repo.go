@@ -211,3 +211,72 @@ func (repo *DBStorageRepo) GetStoredImageByIdentifierAndMimeType(identifier, mim
 		},
 	}, nil
 }
+
+func (repo *DBStorageRepo) GetStoredImagesByIds(ids []string) ([]*dm.StoredImage, error) {
+	uuids := make([]Expression, len(ids))
+	for i, id := range ids {
+		uuids[i] = UUID(uuid.MustParse(id))
+	}
+	stmt := SELECT(
+		StoredImageTable.AllColumns,
+		StorageDefinitionTable.AllColumns,
+	).FROM(StoredImageTable.INNER_JOIN(
+		StorageDefinitionTable, StorageDefinitionTable.ID.EQ(StoredImageTable.StorageDefinitionID),
+	)).WHERE(
+		StoredImageTable.ID.IN(uuids...),
+	).ORDER_BY(
+		StorageDefinitionTable.Priority.ASC(),
+	)
+	dest := []struct {
+		StoredImageTable       model.StoredImageTable
+		StorageDefinitionTable model.StorageDefinitionTable
+	}{}
+	err := stmt.Query(repo.DB, &dest)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*dm.StoredImage, len(dest))
+	for i, d := range dest {
+		result[i] = &dm.StoredImage{
+			Id:             d.StoredImageTable.ID.String(),
+			FileIdentifier: d.StoredImageTable.FileIdentifier,
+			StorageDefinition: &dm.StorageDefinition{
+				Id:          d.StorageDefinitionTable.ID.String(),
+				Identifier:  d.StorageDefinitionTable.Identifier,
+				StorageType: d.StorageDefinitionTable.StorageType,
+				Config:      d.StorageDefinitionTable.Config,
+				IsEnabled:   d.StorageDefinitionTable.IsEnabled,
+				Priority:    d.StorageDefinitionTable.Priority,
+			},
+		}
+	}
+	return result, nil
+}
+
+func (repo *DBStorageRepo) GetStoredImageIdsByImageIds(imageIds []string) (map[string][]string, error) {
+	uuids := make([]Expression, len(imageIds))
+	for i, id := range imageIds {
+		uuids[i] = UUID(uuid.MustParse(id))
+	}
+	stmt := SELECT(
+		StoredImageTable.ID,
+		StoredImageTable.ImageID,
+	).FROM(StoredImageTable).WHERE(
+		StoredImageTable.ImageID.IN(uuids...),
+	)
+	dest := []struct {
+		model.StoredImageTable
+	}{}
+	err := stmt.Query(repo.DB, &dest)
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[string][]string)
+	for _, d := range dest {
+		if _, ok := result[d.ID.String()]; !ok {
+			result[d.ImageID.String()] = []string{}
+		}
+		result[d.ImageID.String()] = append(result[d.ImageID.String()], d.ID.String())
+	}
+	return result, nil
+}
