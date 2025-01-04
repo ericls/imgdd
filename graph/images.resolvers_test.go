@@ -175,7 +175,7 @@ func tBasicPagination(t *testing.T, tc *TestContext) {
 	var resp Resp
 	orgUser := tc.forceAuthenticate(asSiteOwner)
 	sd := createStorageDefinition(t, tc)
-	for i := 0; i < 30; i++ {
+	for i := 0; i < domainmodels.ImageResultPerPage+6; i++ {
 		createImage(t, tc, orgUser.Id, sd.Id)
 	}
 	err := tc.client.Post(`
@@ -198,8 +198,8 @@ func tBasicPagination(t *testing.T, tc *TestContext) {
 	require.NoError(t, err)
 	require.NotNil(t, resp.Viewer)
 	require.NotNil(t, resp.Viewer.Images)
-	require.Len(t, resp.Viewer.Images.Edges, 24)
-	require.Equal(t, *resp.Viewer.Images.PageInfo.CurrentCount, 24)
+	require.Len(t, resp.Viewer.Images.Edges, domainmodels.ImageResultPerPage)
+	require.Equal(t, *resp.Viewer.Images.PageInfo.CurrentCount, domainmodels.ImageResultPerPage)
 	require.True(t, resp.Viewer.Images.PageInfo.HasNextPage)
 	require.NotNil(t, resp.Viewer.Images.PageInfo.EndCursor)
 	require.False(t, resp.Viewer.Images.PageInfo.HasPreviousPage)
@@ -238,6 +238,78 @@ func tBasicPagination(t *testing.T, tc *TestContext) {
 	require.True(t, resp2.Viewer.Images.PageInfo.HasPreviousPage)
 }
 
+func tBasicPaginationByCreatedAt(t *testing.T, tc *TestContext) {
+	type Resp struct {
+		Viewer *struct {
+			Images *model.ImagesResult
+		}
+	}
+	var resp Resp
+	orgUser := tc.forceAuthenticate(asSiteOwner)
+	sd := createStorageDefinition(t, tc)
+	for i := 0; i < domainmodels.ImageResultPerPage+6; i++ {
+		createImage(t, tc, orgUser.Id, sd.Id)
+	}
+	err := tc.client.Post(`
+	query foo {
+		viewer {
+			images {
+				pageInfo {
+					hasNextPage
+					hasPreviousPage
+					startCursor
+					endCursor
+					currentCount
+				}
+				edges {
+					cursor
+				}
+			}
+		}
+	}`, &resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp.Viewer)
+	require.NotNil(t, resp.Viewer.Images)
+	require.Len(t, resp.Viewer.Images.Edges, domainmodels.ImageResultPerPage)
+	require.Equal(t, *resp.Viewer.Images.PageInfo.CurrentCount, domainmodels.ImageResultPerPage)
+	require.True(t, resp.Viewer.Images.PageInfo.HasNextPage)
+	require.NotNil(t, resp.Viewer.Images.PageInfo.EndCursor)
+	require.False(t, resp.Viewer.Images.PageInfo.HasPreviousPage)
+	endCursor := *resp.Viewer.Images.PageInfo.EndCursor
+	// Get the next page
+	var resp2 Resp
+	err = tc.client.Post(`
+	query foo($after: String) {
+		viewer {
+			images(orderBy: {createdAt: desc} after: $after) {
+				pageInfo {
+					hasNextPage
+					hasPreviousPage
+					startCursor
+					endCursor
+					totalCount
+					currentCount
+				}
+				edges {
+					cursor
+					node {
+						id
+						url
+						name
+					}
+				}
+			}
+		}
+	}`, &resp2, client.Var("after", endCursor))
+	require.NoError(t, err)
+	require.NotNil(t, resp2.Viewer)
+	require.NotNil(t, resp2.Viewer.Images)
+	require.Len(t, resp2.Viewer.Images.Edges, 6)
+	require.False(t, resp2.Viewer.Images.PageInfo.HasNextPage)
+	require.NotNil(t, resp2.Viewer.Images.PageInfo.EndCursor)
+	require.True(t, resp2.Viewer.Images.PageInfo.HasPreviousPage)
+}
+
 func TestImageResolvers(t *testing.T) {
 	tc := newTestContext(t)
 	tc.runTestCases(
@@ -245,5 +317,6 @@ func TestImageResolvers(t *testing.T) {
 		tSiteOwnerCanAccessAllImages,
 		tNormalUserCanOnlyAcessOwnImages,
 		tBasicPagination,
+		tBasicPaginationByCreatedAt,
 	)
 }

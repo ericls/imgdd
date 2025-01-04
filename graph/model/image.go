@@ -113,10 +113,10 @@ func MakeImagePaginator(orderInput *ImageOrderByInput, filterInput *ImageFilterI
 	filter := pagination.Filter{}
 	if filterInput != nil {
 		if filterInput.CreatedAtGt != nil {
-			filter.AddFilterField("createdAt", pagination.FilterOperatorGt, filterInput.CreatedAtGt.Format(time.RFC3339))
+			filter.AddFilterField("createdAt", pagination.FilterOperatorGt, filterInput.CreatedAtGt.Format(time.RFC3339Nano))
 		}
 		if filterInput.CreatedAtLt != nil {
-			filter.AddFilterField("createdAt", pagination.FilterOperatorLt, filterInput.CreatedAtLt.Format(time.RFC3339))
+			filter.AddFilterField("createdAt", pagination.FilterOperatorLt, filterInput.CreatedAtLt.Format(time.RFC3339Nano))
 		}
 		if filterInput.NameContains != nil {
 			filter.AddFilterField("name", pagination.FilterOperatorContains, *filterInput.NameContains)

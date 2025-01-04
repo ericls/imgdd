@@ -44,7 +44,7 @@ func FromPaginationFilter(pf *pagination.Filter) *ListImagesFilters {
 				panic("Invalid operator for name")
 			}
 		} else if ff.Name == "createdAt" {
-			t, err := time.Parse(time.RFC3339, ff.Value)
+			t, err := time.Parse(time.RFC3339Nano, ff.Value)
 			if err != nil {
 				panic(err)
 			}
@@ -67,7 +67,7 @@ func FromPaginationFilter(pf *pagination.Filter) *ListImagesFilters {
 			}
 		}
 	}
-	f.Limit = 24
+	f.Limit = dm.ImageResultPerPage
 	return f
 }
 

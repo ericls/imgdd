@@ -36,6 +36,8 @@ type ListImageResult struct {
 	HasPrev bool
 }
 
+const ImageResultPerPage = 24
+
 type ImageOrderField struct {
 	pagination.BaseOrderField
 }
@@ -48,7 +50,7 @@ func (f *ImageOrderField) GetValue(object interface{}) string {
 	case "name":
 		return image.Name
 	case "createdAt":
-		return image.CreatedAt.Format(time.RFC3339)
+		return image.CreatedAt.Format(time.RFC3339Nano)
 	}
 	return ""
 }
