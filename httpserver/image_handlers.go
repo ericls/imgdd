@@ -22,37 +22,6 @@ type UploadReturn struct {
 	Identifier string `json:"identifier"`
 }
 
-func getFileExtFromMIMEType(mimeType string) string {
-	if strings.HasPrefix(mimeType, "image/") {
-		exts, err := mime.ExtensionsByType(mimeType)
-		if err == nil && len(exts) > 0 {
-			return exts[0]
-		}
-	}
-	return ""
-}
-
-func getImageURL(maybeImageDomain string, identifier string, mimeType string, isSecure bool) string {
-	suffix := getFileExtFromMIMEType(mimeType)
-	if suffix == "" {
-		return ""
-	}
-	filename := identifier + suffix
-	if maybeImageDomain != "" {
-		if isSecure {
-			return "https://" + maybeImageDomain + "/image/" + filename
-		}
-		return "http://" + maybeImageDomain + "/image/" + filename
-	}
-	return "/image/" + filename
-}
-
-func isSecure(
-	r *http.Request,
-) bool {
-	return strings.HasPrefix(r.Proto, "HTTPS/")
-}
-
 func makeUploadHandler(
 	conf *HttpServerConfigDef,
 	identityManager *IdentityManager,
@@ -159,7 +128,7 @@ func makeUploadHandler(
 		}
 		ret := UploadReturn{
 			Filename:   storedImage.Image.Name,
-			URL:        getImageURL(conf.ImageDomain, storedImage.Image.Identifier, declaredMimeType, isSecure(r)),
+			URL:        image.GetURL(conf.ImageDomain, IsSecure(r)),
 			Identifier: storedImage.Image.Identifier,
 		}
 		serialized, err := json.Marshal(ret)

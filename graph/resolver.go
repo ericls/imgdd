@@ -19,4 +19,6 @@ type Resolver struct {
 	ContextUserManager identity.ContextUserManager
 	LoginFn            func(c context.Context, userId string, organizationUserId string)
 	LogoutFn           func(c context.Context)
+	ImageDomain        string
+	IsHttps            func(c context.Context) bool
 }

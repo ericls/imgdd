@@ -13,10 +13,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	gqlgenHandler "github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
 type appHandlerOptions struct {
@@ -95,6 +100,24 @@ func mountStatic(r *mux.Router, dir fs.FS) {
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fileServer))
 }
 
+func makeGqlServer(es graphql.ExecutableSchema) *gqlgenHandler.Server {
+	srv := gqlgenHandler.New(es)
+
+	srv.AddTransport(transport.Options{})
+	srv.AddTransport(transport.GET{})
+	srv.AddTransport(transport.POST{})
+	srv.AddTransport(transport.MultipartForm{})
+
+	srv.SetQueryCache(lru.New[*ast.QueryDocument](1000))
+
+	srv.Use(extension.Introspection{})
+	srv.Use(extension.AutomaticPersistedQuery{
+		Cache: lru.New[string](100),
+	})
+
+	return srv
+}
+
 func MakeServer(conf *HttpServerConfigDef, dbConf *db.DBConfigDef) *http.Server {
 
 	conn := db.GetConnection(dbConf)
@@ -112,9 +135,9 @@ func MakeServer(conf *HttpServerConfigDef, dbConf *db.DBConfigDef) *http.Server 
 	imageRepo := image.NewDBImageRepo(conn)
 	r.Use(graph.NewLoadersMiddleware(identityRepo, storageRepo))
 	identityManager := NewIdentityManager(identityRepo, sessionPersister)
-	gqlResolver := NewGqlResolver(identityManager, storageRepo, imageRepo)
+	gqlResolver := NewGqlResolver(identityManager, storageRepo, imageRepo, conf.ImageDomain)
 
-	graphqlServer := gqlgenHandler.NewDefaultServer(
+	graphqlServer := makeGqlServer(
 		graph.NewExecutableSchema(
 			NewGraphConfig(gqlResolver),
 		),

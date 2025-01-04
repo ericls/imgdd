@@ -16,6 +16,7 @@ type Image {
     revisions: [Image!]!
     createdAt: Time!
     storedImages: [StoredImage!]!
+    MIMEType: String!
 }
 
 input ImageOrderByInput {

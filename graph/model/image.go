@@ -14,6 +14,7 @@ type Image struct {
 	NominalHeight   int       `json:"nominalHeight"`
 	NominalByteSize int       `json:"nominalByteSize"`
 	CreatedAt       time.Time `json:"createdAt"`
+	MIMEType        string    `json:"MIMEType"`
 }
 
 func FromImage(i *domainmodels.Image) *Image {
@@ -25,6 +26,7 @@ func FromImage(i *domainmodels.Image) *Image {
 		NominalHeight:   int(i.NominalHeight),
 		NominalByteSize: int(i.NominalByteSize),
 		CreatedAt:       i.CreatedAt,
+		MIMEType:        i.MIMEType,
 	}
 }
 

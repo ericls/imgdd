@@ -15,12 +15,18 @@ import (
 
 // URL is the resolver for the url field.
 func (r *imageResolver) URL(ctx context.Context, obj *model.Image) (string, error) {
-	panic(fmt.Errorf("not implemented: URL - url"))
+	image := domainmodels.Image{
+		Id:         obj.ID,
+		Identifier: obj.Identifier,
+		MIMEType:   obj.MIMEType,
+	}
+	return image.GetURL(r.ImageDomain, r.IsHttps(ctx)), nil
 }
 
 // Root is the resolver for the root field.
 func (r *imageResolver) Root(ctx context.Context, obj *model.Image) (*model.Image, error) {
-	panic(fmt.Errorf("not implemented: Root - root"))
+	// TODO: Implement this
+	return nil, nil
 }
 
 // Revisions is the resolver for the revisions field.

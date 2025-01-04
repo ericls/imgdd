@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ory/dockertest/v3"
+	"github.com/ory/dockertest/v3/docker"
 )
 
 var TEST_DB_CONF = db.DBConfigDef{
@@ -65,8 +66,10 @@ func TestMain(m *testing.M) {
 			"MINIO_ROOT_USER=" + testS3Access,
 			"MINIO_ROOT_PASSWORD=" + testS3Secret,
 		},
-		ExposedPorts: []string{"9000"},
-		Cmd:          []string{"server", "/data"},
+		PortBindings: map[docker.Port][]docker.PortBinding{
+			"9000/tcp": {{HostIP: "0.0.0.0", HostPort: "0"}},
+		},
+		Cmd: []string{"server", "/data"},
 	})
 	if err != nil {
 		log.Fatalf("Could not start minio: %s", err)

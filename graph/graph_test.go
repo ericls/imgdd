@@ -23,6 +23,7 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/google/uuid"
 	"github.com/ory/dockertest/v3"
 	"github.com/redis/go-redis/v9"
@@ -135,12 +136,13 @@ func newTestContext(tObj *testing.T) *TestContext {
 	identityManager := httpserver.NewIdentityManager(identityRepo, sessionPersister)
 	storageRepo := storage.NewDBStorageRepo(conn)
 	imageRepo := image.NewDBImageRepo(conn)
-	resolver := httpserver.NewGqlResolver(identityManager, storageRepo, imageRepo)
+	resolver := httpserver.NewGqlResolver(identityManager, storageRepo, imageRepo, "")
 
 	// make server
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(httpserver.NewGraphConfig(resolver)))
+	gqlServer := handler.New(graph.NewExecutableSchema(httpserver.NewGraphConfig(resolver)))
+	gqlServer.AddTransport(transport.POST{})
 	// NOTE: the order of code should be reversed compared to Mux.use
-	handler := identityManager.Middleware(srv)
+	handler := identityManager.Middleware(gqlServer)
 	handler = graph.NewLoadersMiddleware(identityRepo, storageRepo)(handler)
 	handler = httpserver.RWContextMiddleware(handler)
 	handler = sessionPersister.Middleware(handler)

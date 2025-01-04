@@ -45,6 +45,25 @@ func GetRequest(c context.Context) *http.Request {
 	return v
 }
 
+func IsSecure(r *http.Request) bool {
+	if r == nil {
+		return false
+	}
+	if r.TLS != nil {
+		return true
+	}
+	if r.Header.Get("X-Forwarded-Proto") == "https" {
+		return true
+	}
+
+	return false
+}
+
+func IsHttps(c context.Context) bool {
+	r := GetRequest(c)
+	return IsSecure(r)
+}
+
 type loggingEntry struct {
 	Proto      string
 	Method     string

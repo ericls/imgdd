@@ -8,7 +8,7 @@ import (
 
 type ContextKey string
 
-func NewGqlResolver(identityManager *IdentityManager, storageRepo storage.StorageRepo, imageRepo image.ImageRepo) *graph.Resolver {
+func NewGqlResolver(identityManager *IdentityManager, storageRepo storage.StorageRepo, imageRepo image.ImageRepo, imageDomain string) *graph.Resolver {
 	return &graph.Resolver{
 		IdentityRepo:       identityManager.IdentityRepo,
 		StorageRepo:        storageRepo,
@@ -16,6 +16,8 @@ func NewGqlResolver(identityManager *IdentityManager, storageRepo storage.Storag
 		ContextUserManager: identityManager.ContextUserManager,
 		LoginFn:            identityManager.AuthenticateContext,
 		LogoutFn:           identityManager.LogoutContext,
+		ImageDomain:        imageDomain,
+		IsHttps:            IsHttps,
 	}
 }
 

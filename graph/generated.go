@@ -56,6 +56,7 @@ type ComplexityRoot struct {
 		CreatedAt       func(childComplexity int) int
 		ID              func(childComplexity int) int
 		Identifier      func(childComplexity int) int
+		MIMEType        func(childComplexity int) int
 		Name            func(childComplexity int) int
 		NominalByteSize func(childComplexity int) int
 		NominalHeight   func(childComplexity int) int
@@ -236,6 +237,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Image.Identifier(childComplexity), true
+
+	case "Image.MIMEType":
+		if e.complexity.Image.MIMEType == nil {
+			break
+		}
+
+		return e.complexity.Image.MIMEType(childComplexity), true
 
 	case "Image.name":
 		if e.complexity.Image.Name == nil {
@@ -1627,6 +1635,8 @@ func (ec *executionContext) fieldContext_Image_root(_ context.Context, field gra
 				return ec.fieldContext_Image_createdAt(ctx, field)
 			case "storedImages":
 				return ec.fieldContext_Image_storedImages(ctx, field)
+			case "MIMEType":
+				return ec.fieldContext_Image_MIMEType(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Image", field.Name)
 		},
@@ -1695,6 +1705,8 @@ func (ec *executionContext) fieldContext_Image_revisions(_ context.Context, fiel
 				return ec.fieldContext_Image_createdAt(ctx, field)
 			case "storedImages":
 				return ec.fieldContext_Image_storedImages(ctx, field)
+			case "MIMEType":
+				return ec.fieldContext_Image_MIMEType(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Image", field.Name)
 		},
@@ -1796,6 +1808,50 @@ func (ec *executionContext) fieldContext_Image_storedImages(_ context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Image_MIMEType(ctx context.Context, field graphql.CollectedField, obj *model.Image) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Image_MIMEType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MIMEType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Image_MIMEType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Image",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ImageEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.ImageEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ImageEdge_node(ctx, field)
 	if err != nil {
@@ -1857,6 +1913,8 @@ func (ec *executionContext) fieldContext_ImageEdge_node(_ context.Context, field
 				return ec.fieldContext_Image_createdAt(ctx, field)
 			case "storedImages":
 				return ec.fieldContext_Image_storedImages(ctx, field)
+			case "MIMEType":
+				return ec.fieldContext_Image_MIMEType(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Image", field.Name)
 		},
@@ -6783,6 +6841,11 @@ func (ec *executionContext) _Image(ctx context.Context, sel ast.SelectionSet, ob
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "MIMEType":
+			out.Values[i] = ec._Image_MIMEType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
