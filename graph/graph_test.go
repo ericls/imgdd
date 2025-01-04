@@ -99,6 +99,7 @@ func TestMain(m *testing.M) {
 type TestContext struct {
 	identityRepo       identity.IdentityRepo
 	storageRepo        storage.StorageRepo
+	imageRepo          image.ImageRepo
 	identityManager    *httpserver.IdentityManager
 	tObj               *testing.T
 	server             *httptest.Server
@@ -154,6 +155,7 @@ func newTestContext(tObj *testing.T) *TestContext {
 	tc := &TestContext{
 		identityRepo:       identityRepo,
 		storageRepo:        storageRepo,
+		imageRepo:          imageRepo,
 		identityManager:    identityManager,
 		tObj:               tObj,
 		server:             server,

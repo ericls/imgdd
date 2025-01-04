@@ -1,5 +1,7 @@
 package pagination
 
+import "fmt"
+
 type Paginator struct {
 	Order  *Order
 	Filter *Filter
@@ -42,4 +44,16 @@ func (p *Paginator) ContributeCursorToFilter(cursor *Cursor, isAfter bool) {
 			}
 		}
 	}
+}
+
+func (p *Paginator) ContributeCursorStringToFilter(cursorString *string, isAfter bool) error {
+	if cursorString == nil {
+		return nil
+	}
+	cursor := p.DecodeCursor(*cursorString)
+	if cursor == nil {
+		return fmt.Errorf("invalid cursor")
+	}
+	p.ContributeCursorToFilter(cursor, isAfter)
+	return nil
 }

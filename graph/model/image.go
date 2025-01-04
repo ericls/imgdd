@@ -15,6 +15,7 @@ type Image struct {
 	NominalByteSize int       `json:"nominalByteSize"`
 	CreatedAt       time.Time `json:"createdAt"`
 	MIMEType        string    `json:"MIMEType"`
+	URL             string    `json:"url"`
 }
 
 func FromImage(i *domainmodels.Image) *Image {
@@ -53,7 +54,7 @@ type ImagePageInfo struct {
 	HasPreviousPage bool    `json:"hasPreviousPage"`
 	StartCursor     *string `json:"startCursor,omitempty"`
 	EndCursor       *string `json:"endCursor,omitempty"`
-	TotalCount      *int    `json:"count,omitempty"`
+	TotalCount      *int    `json:"totalCount,omitempty"`
 	CurrentCount    *int    `json:"currentCount,omitempty"`
 }
 

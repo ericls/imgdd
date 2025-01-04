@@ -17,8 +17,12 @@ var (
 
 type ListImagesFilters struct {
 	NameContains string
+	NameLt       string
+	NameGt       string
 	CreatedAtLt  *time.Time
 	CreatedAtGt  *time.Time
+	IdGt         string
+	IdLt         string
 	CreatedBy    *string
 	Limit        int
 }
@@ -29,24 +33,38 @@ func FromPaginationFilter(pf *pagination.Filter) *ListImagesFilters {
 	}
 	f := &ListImagesFilters{}
 	for _, ff := range pf.Fields {
-		if ff.Name == "name" && ff.Operator == pagination.FilterOperatorContains {
-			f.NameContains = ff.Value
-		} else if ff.Name == "createdAt" && ff.Operator == pagination.FilterOperatorLt {
-			t, err := time.Parse(time.RFC3339, ff.Value)
-			if err == nil {
-				f.CreatedAtLt = &t
+		if ff.Name == "name" {
+			if ff.Operator == pagination.FilterOperatorContains {
+				f.NameContains = ff.Value
+			} else if ff.Operator == pagination.FilterOperatorLt {
+				f.NameLt = ff.Value
+			} else if ff.Operator == pagination.FilterOperatorGt {
+				f.NameGt = ff.Value
 			} else {
+				panic("Invalid operator for name")
+			}
+		} else if ff.Name == "createdAt" {
+			t, err := time.Parse(time.RFC3339, ff.Value)
+			if err != nil {
 				panic(err)
 			}
-		} else if ff.Name == "createdAt" && ff.Operator == pagination.FilterOperatorGt {
-			t, err := time.Parse(time.RFC3339, ff.Value)
-			if err == nil {
+			if ff.Operator == pagination.FilterOperatorLt {
+				f.CreatedAtLt = &t
+			} else if ff.Operator == pagination.FilterOperatorGt {
 				f.CreatedAtGt = &t
 			} else {
-				panic(err)
+				panic("Invalid operator for createdAt")
 			}
 		} else if ff.Name == "createdBy" && ff.Operator == pagination.FilterOperatorEq {
 			f.CreatedBy = &ff.Value
+		} else if ff.Name == "id" {
+			if ff.Operator == pagination.FilterOperatorLt {
+				f.IdLt = ff.Value
+			} else if ff.Operator == pagination.FilterOperatorGt {
+				f.IdGt = ff.Value
+			} else {
+				panic("Invalid operator for id")
+			}
 		}
 	}
 	f.Limit = 24

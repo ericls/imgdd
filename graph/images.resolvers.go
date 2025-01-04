@@ -50,22 +50,13 @@ func (r *viewerResolver) Images(ctx context.Context, obj *model.Viewer, orderBy 
 	if after != nil && before != nil {
 		return nil, fmt.Errorf("only one of after or before can be specified")
 	}
-	forUserId := currentUser.Id
-	if filters != nil && filters.CreatedBy != nil {
-		filterForUserId := *filters.CreatedBy
-		if filterForUserId != currentUser.Id {
-			if currentUser.IsSiteOwner() {
-				forUserId = filterForUserId
-			} else {
-				// TODO: check organization admin privileges
-				return nil, fmt.Errorf("unauthorized")
-			}
-		}
-	}
 	if filters == nil {
 		filters = &model.ImageFilterInput{}
 	}
-	filters.CreatedBy = &forUserId
+	if !currentUser.IsSiteOwner() {
+		// TODO: organizational level permissions
+		filters.CreatedBy = &currentUser.Id
+	}
 
 	paginator := model.MakeImagePaginator(orderBy, filters)
 	listImagesFilters := image.FromPaginationFilter(paginator.Filter)
@@ -74,17 +65,11 @@ func (r *viewerResolver) Images(ctx context.Context, obj *model.Viewer, orderBy 
 		return nil, err
 	}
 
-	if after != nil {
-		afterCursor := paginator.Order.DecodeCursor(*after)
-		if afterCursor != nil {
-			paginator.ContributeCursorToFilter(afterCursor, true)
-		}
+	if err = paginator.ContributeCursorStringToFilter(after, true); err != nil {
+		return nil, err
 	}
-	if before != nil {
-		beforeCursor := paginator.Order.DecodeCursor(*before)
-		if beforeCursor != nil {
-			paginator.ContributeCursorToFilter(beforeCursor, false)
-		}
+	if err = paginator.ContributeCursorStringToFilter(before, false); err != nil {
+		return nil, err
 	}
 
 	listImagesFiltersWithCursor := image.FromPaginationFilter(paginator.Filter)

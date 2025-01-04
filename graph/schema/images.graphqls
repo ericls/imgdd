@@ -55,7 +55,7 @@ extend type Viewer {
     images(
         orderBy: ImageOrderByInput
         filters: ImageFilterInput
-        After: String
-        Before: String
+        after: String
+        before: String
     ): ImagesResult!
 }

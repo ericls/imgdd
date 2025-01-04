@@ -675,7 +675,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Viewer.Images(childComplexity, args["orderBy"].(*model.ImageOrderByInput), args["filters"].(*model.ImageFilterInput), args["After"].(*string), args["Before"].(*string)), true
+		return e.complexity.Viewer.Images(childComplexity, args["orderBy"].(*model.ImageOrderByInput), args["filters"].(*model.ImageFilterInput), args["after"].(*string), args["before"].(*string)), true
 
 	case "Viewer.organizationUser":
 		if e.complexity.Viewer.OrganizationUser == nil {
@@ -1125,12 +1125,12 @@ func (ec *executionContext) field_Viewer_images_args(ctx context.Context, rawArg
 	if err != nil {
 		return nil, err
 	}
-	args["After"] = arg2
+	args["after"] = arg2
 	arg3, err := ec.field_Viewer_images_argsBefore(ctx, rawArgs)
 	if err != nil {
 		return nil, err
 	}
-	args["Before"] = arg3
+	args["before"] = arg3
 	return args, nil
 }
 func (ec *executionContext) field_Viewer_images_argsOrderBy(
@@ -1173,13 +1173,13 @@ func (ec *executionContext) field_Viewer_images_argsAfter(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*string, error) {
-	if _, ok := rawArgs["After"]; !ok {
+	if _, ok := rawArgs["after"]; !ok {
 		var zeroVal *string
 		return zeroVal, nil
 	}
 
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("After"))
-	if tmp, ok := rawArgs["After"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+	if tmp, ok := rawArgs["after"]; ok {
 		return ec.unmarshalOString2ᚖstring(ctx, tmp)
 	}
 
@@ -1191,13 +1191,13 @@ func (ec *executionContext) field_Viewer_images_argsBefore(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*string, error) {
-	if _, ok := rawArgs["Before"]; !ok {
+	if _, ok := rawArgs["before"]; !ok {
 		var zeroVal *string
 		return zeroVal, nil
 	}
 
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("Before"))
-	if tmp, ok := rawArgs["Before"]; ok {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+	if tmp, ok := rawArgs["before"]; ok {
 		return ec.unmarshalOString2ᚖstring(ctx, tmp)
 	}
 
@@ -4262,7 +4262,7 @@ func (ec *executionContext) _Viewer_images(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Viewer().Images(rctx, obj, fc.Args["orderBy"].(*model.ImageOrderByInput), fc.Args["filters"].(*model.ImageFilterInput), fc.Args["After"].(*string), fc.Args["Before"].(*string))
+		return ec.resolvers.Viewer().Images(rctx, obj, fc.Args["orderBy"].(*model.ImageOrderByInput), fc.Args["filters"].(*model.ImageFilterInput), fc.Args["after"].(*string), fc.Args["before"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

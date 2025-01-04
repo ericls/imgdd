@@ -25,6 +25,19 @@ func (ou *OrganizationUser) HasAdminAccess() bool {
 	return false
 }
 
+func (ou *OrganizationUser) CanManage(other *OrganizationUser) bool {
+	if ou.Id == other.Id {
+		return true
+	}
+	if ou.IsSiteOwner() {
+		return true
+	}
+	if ou.HasAdminAccess() && other.Organization.Id == ou.Organization.Id {
+		return true
+	}
+	return false
+}
+
 type User struct {
 	Id    string
 	Email string
