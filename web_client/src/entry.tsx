@@ -39,7 +39,7 @@ const router = createBrowserRouter([
   {
     path: "site-admin",
     lazy: async () => {
-      const { SiteAdminLayout } = await import("./site-admin/layout");
+      const { SiteAdminLayout } = await import("~src/site-admin/layout");
       return {
         element: <SiteAdminLayout />,
       };
@@ -51,11 +51,22 @@ const router = createBrowserRouter([
         element: <Navigate to="/site-admin/storage" replace />,
       },
       {
+        path: "images/*",
+        lazy: async () => {
+          const { Images } = await import(
+            "~src/site-admin/pages/images/imagesIndex"
+          );
+          return {
+            element: <Images />,
+          };
+        },
+      },
+      {
         path: "storage/*",
         index: true,
         lazy: async () => {
           const { StorageConfig } = await import(
-            "./site-admin/pages/storageConfig/storageConfigIndex"
+            "~src/site-admin/pages/storageConfig/storageConfigIndex"
           );
           return {
             element: <StorageConfig />,

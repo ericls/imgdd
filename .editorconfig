@@ -1,0 +1,25 @@
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+indent_style = space
+indent_size = 2
+
+[*.py]
+indent_size = 4
+
+[*.{js,jsx,ts,tsx,html,scss,css}]
+indent_size = 2
+
+[*.{yaml,yml}]
+indent_size = 2
+indent_style = space
+
+[*.{json}]
+indent_size = 2
+
+[*.{go}]
+indent_size = 4
+indent_style = tab

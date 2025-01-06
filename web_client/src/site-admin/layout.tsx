@@ -131,3 +131,5 @@ export function SiteAdminLayout() {
     </div>
   );
 }
+
+export default SiteAdminLayout;

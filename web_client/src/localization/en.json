@@ -59,5 +59,12 @@
             "error": "Connection failed",
             "unknown": "Connectivity Unknown"
         }
+    },
+    "siteadmin": {
+      "images": {
+        "list": {
+          "title": "Manage images"
+        }
+      }
     }
 }
