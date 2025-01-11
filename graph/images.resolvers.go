@@ -54,8 +54,19 @@ func (r *viewerResolver) Images(ctx context.Context, obj *model.Viewer, orderBy 
 		filters = &model.ImageFilterInput{}
 	}
 	if !currentUser.IsSiteOwner() {
-		// TODO: organizational level permissions
-		filters.CreatedBy = &currentUser.Id
+		if filters.CreatedBy == nil {
+			filters.CreatedBy = &currentUser.Id
+		}
+	}
+
+	if filters.CreatedBy != nil {
+		filterByUser := r.IdentityRepo.GetOrganizationUserById(*filters.CreatedBy)
+		if filterByUser == nil {
+			return nil, fmt.Errorf("unathorized")
+		}
+		if !currentUser.CanManage(filterByUser) {
+			return nil, fmt.Errorf("unauthorized")
+		}
 	}
 
 	paginator := model.MakeImagePaginator(orderBy, filters)
