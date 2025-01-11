@@ -44,7 +44,7 @@ func (repo *DBImageRepo) GetImageById(id string) (*dm.Image, error) {
 			ImageTable,
 		).
 		WHERE(
-			ImageTable.ID.EQ(UUID(uuid.MustParse(id))),
+			ImageTable.ID.EQ(UUID(uuid.MustParse(id))).AND(ImageTable.DeletedAt.IS_NULL()),
 		)
 
 	dest := model.ImageTable{}
@@ -245,13 +245,11 @@ func (repo *DBImageRepo) imageExists(conditions []BoolExpression) bool {
 	).FROM(
 		ImageTable,
 	)
-	if len(conditions) > 0 {
-		acc := conditions[0]
-		for _, condition := range conditions[1:] {
-			acc = acc.AND(condition)
-		}
-		statement = statement.WHERE(acc)
+	where := ImageTable.DeletedAt.IS_NULL()
+	for _, condition := range conditions {
+		where = where.AND(condition)
 	}
+	statement = statement.WHERE(where)
 	statement = statement.LIMIT(1)
 	dest := []model.ImageTable{}
 	err := statement.Query(repo.DB, &dest)
@@ -273,39 +271,39 @@ func (repo *DBImageRepo) imageHasNext(ordering *ListImagesOrdering, image *dm.Im
 }
 
 func (repo *DBImageRepo) filtersToWhere(filters *ListImagesFilters) BoolExpression {
-	wheres := []BoolExpression{}
+	condition_exprs := []BoolExpression{}
 	if filters.CreatedAtGt != nil {
-		wheres = append(wheres, ImageTable.CreatedAt.GT(TimestampzT(*filters.CreatedAtGt)))
+		condition_exprs = append(condition_exprs, ImageTable.CreatedAt.GT(TimestampzT(*filters.CreatedAtGt)))
 	}
 	if filters.CreatedAtLt != nil {
-		wheres = append(wheres, ImageTable.CreatedAt.LT(TimestampzT(*filters.CreatedAtLt)))
+		condition_exprs = append(condition_exprs, ImageTable.CreatedAt.LT(TimestampzT(*filters.CreatedAtLt)))
 	}
 	if filters.NameContains != "" {
-		wheres = append(wheres, db.ILIKE(ImageTable.Name, String("%"+filters.NameContains+"%")))
+		condition_exprs = append(condition_exprs, db.ILIKE(ImageTable.Name, String("%"+filters.NameContains+"%")))
 	}
 	if filters.NameGt != "" {
-		wheres = append(wheres, ImageTable.Name.GT(String(filters.NameGt)))
+		condition_exprs = append(condition_exprs, ImageTable.Name.GT(String(filters.NameGt)))
 	}
 	if filters.NameLt != "" {
-		wheres = append(wheres, ImageTable.Name.LT(String(filters.NameLt)))
+		condition_exprs = append(condition_exprs, ImageTable.Name.LT(String(filters.NameLt)))
 	}
 	if filters.IdGt != "" {
-		wheres = append(wheres, ImageTable.ID.GT(UUID(uuid.MustParse(filters.IdGt))))
+		condition_exprs = append(condition_exprs, ImageTable.ID.GT(UUID(uuid.MustParse(filters.IdGt))))
 	}
 	if filters.IdLt != "" {
-		wheres = append(wheres, ImageTable.ID.LT(UUID(uuid.MustParse(filters.IdLt))))
+		condition_exprs = append(condition_exprs, ImageTable.ID.LT(UUID(uuid.MustParse(filters.IdLt))))
 	}
 	if filters.CreatedBy != nil {
-		wheres = append(wheres, ImageTable.CreatedByID.EQ(UUID(uuid.MustParse(*filters.CreatedBy))))
+		condition_exprs = append(condition_exprs, ImageTable.CreatedByID.EQ(UUID(uuid.MustParse(*filters.CreatedBy))))
 	}
-	if len(wheres) == 0 {
+	if len(condition_exprs) == 0 {
 		return nil
 	}
-	acc := wheres[0]
-	for _, where := range wheres[1:] {
-		acc = acc.AND(where)
+	where := ImageTable.DeletedAt.IS_NULL()
+	for _, cond := range condition_exprs {
+		where = where.AND(cond)
 	}
-	return acc
+	return where
 }
 
 func (repo *DBImageRepo) ListImages(filters *ListImagesFilters, ordering *ListImagesOrdering) (dm.ListImageResult, error) {
@@ -402,7 +400,9 @@ func (repo *DBImageRepo) CountImages(filters *ListImagesFilters) (int, error) {
 }
 
 func (repo *DBImageRepo) DeleteImageById(id string) error {
-	stmt := ImageTable.DELETE().WHERE(
+	stmt := ImageTable.UPDATE().SET(
+		ImageTable.DeletedAt.SET(TimestampzExp(Func("NOW"))),
+	).WHERE(
 		ImageTable.ID.EQ(UUID(uuid.MustParse(id))),
 	)
 	_, err := stmt.Exec(repo.DB)

@@ -69,10 +69,10 @@ export function ImageItemRenderer({ image }: { image: ImageItem }) {
   return (
     <div className="flex flex-col overflow-hidden ">
       {/* Image container with fixed aspect ratio (square) */}
-      <div className="relative w-full pb-[80%] overflow-hidden bg-gray-100 rounded-md">
+      <div className="relative w-full pb-[80%] overflow-hidden bg-transparent rounded-md">
         <img
           src={url}
-          alt={name}
+          alt={`preview of image file: ${name}`}
           className="absolute top-0 left-0 w-full h-full object-cover"
         />
       </div>

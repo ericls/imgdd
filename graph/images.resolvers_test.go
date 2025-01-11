@@ -354,6 +354,12 @@ func tDeletingImage(t *testing.T, tc *TestContext) {
 	require.NotNil(t, resp3.DeleteImage)
 	require.Equal(t, orgUser2Image.Id, *resp3.DeleteImage.ID)
 
+	// Test images cannot be retrieved after deletion
+	i, _ := tc.imageRepo.GetImageById(orgUser1Image.Id)
+	require.Nil(t, i)
+	i, _ = tc.imageRepo.GetImageById(orgUser2Image.Id)
+	require.Nil(t, i)
+
 	// Test unauthorized user can not delete any image
 	image3 := createImage(t, tc, "", sd.Id)
 	tc.clearAuthenticationInfo()
