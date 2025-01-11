@@ -310,6 +310,60 @@ func tBasicPaginationByCreatedAt(t *testing.T, tc *TestContext) {
 	require.True(t, resp2.Viewer.Images.PageInfo.HasPreviousPage)
 }
 
+func tDeletingImage(t *testing.T, tc *TestContext) {
+	graphqlDoc := `
+  mutation foo($input: DeleteImageInput!) {
+    deleteImage(input: $input) {
+      id
+    }
+  }`
+
+	orgUser1 := tc.forceAuthenticate()
+	orgUser2 := tc.forceAuthenticate()
+	sd := createStorageDefinition(t, tc)
+	orgUser1Image := createImage(t, tc, orgUser1.Id, sd.Id)
+	orgUser2Image := createImage(t, tc, orgUser2.Id, sd.Id)
+
+	// Test that normal user can not delete other user's images
+	var resp1 struct {
+		DeleteImage *model.DeleteImageResult
+	}
+	tc.setAuthenticatedUser(orgUser1)
+	err := tc.client.Post(graphqlDoc, &resp1, client.Var("input", model.DeleteImageInput{ID: orgUser2Image.Id}))
+	require.Error(t, err)
+	require.Nil(t, resp1.DeleteImage)
+	var resp2 struct {
+		DeleteImage *model.DeleteImageResult
+	}
+
+	// Test that normal user can delete their own images
+	tc.setAuthenticatedUser(orgUser1)
+	err = tc.client.Post(graphqlDoc, &resp2, client.Var("input", model.DeleteImageInput{ID: orgUser1Image.Id}))
+	require.NoError(t, err)
+	require.NotNil(t, resp2.DeleteImage)
+	require.Equal(t, orgUser1Image.Id, *resp2.DeleteImage.ID)
+
+	// Test that site owner can delete any image
+	orgUser3 := tc.forceAuthenticate(asSiteOwner)
+	tc.setAuthenticatedUser(orgUser3)
+	var resp3 struct {
+		DeleteImage *model.DeleteImageResult
+	}
+	err = tc.client.Post(graphqlDoc, &resp3, client.Var("input", model.DeleteImageInput{ID: orgUser2Image.Id}))
+	require.NoError(t, err)
+	require.NotNil(t, resp3.DeleteImage)
+	require.Equal(t, orgUser2Image.Id, *resp3.DeleteImage.ID)
+
+	// Test unauthorized user can not delete any image
+	image3 := createImage(t, tc, "", sd.Id)
+	tc.clearAuthenticationInfo()
+	var resp4 struct {
+		DeleteImage *model.DeleteImageResult
+	}
+	err = tc.client.Post(graphqlDoc, &resp4, client.Var("input", model.DeleteImageInput{ID: image3.Id}))
+	require.Error(t, err)
+}
+
 func TestImageResolvers(t *testing.T) {
 	tc := newTestContext(t)
 	tc.runTestCases(
@@ -318,5 +372,6 @@ func TestImageResolvers(t *testing.T) {
 		tNormalUserCanOnlyAcessOwnImages,
 		tBasicPagination,
 		tBasicPaginationByCreatedAt,
+		tDeletingImage,
 	)
 }

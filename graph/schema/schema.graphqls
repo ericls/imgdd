@@ -1,1 +1,2 @@
 directive @isSiteOwner on FIELD_DEFINITION
+directive @isAuthenticated on FIELD_DEFINITION

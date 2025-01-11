@@ -48,10 +48,15 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
-	IsSiteOwner func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error)
+	IsAuthenticated func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error)
+	IsSiteOwner     func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error)
 }
 
 type ComplexityRoot struct {
+	DeleteImageResult struct {
+		ID func(childComplexity int) int
+	}
+
 	Image struct {
 		CreatedAt       func(childComplexity int) int
 		ID              func(childComplexity int) int
@@ -91,6 +96,7 @@ type ComplexityRoot struct {
 		CheckStorageDefinitionConnectivity func(childComplexity int, input model.CheckStorageDefinitionConnectivityInput) int
 		CreateStorageDefinition            func(childComplexity int, input model.CreateStorageDefinitionInput) int
 		CreateUserWithOrganization         func(childComplexity int, input model.CreateUserWithOrganizationInput) int
+		DeleteImage                        func(childComplexity int, input model.DeleteImageInput) int
 		Logout                             func(childComplexity int) int
 		UpdateStorageDefinition            func(childComplexity int, input model.UpdateStorageDefinitionInput) int
 	}
@@ -179,6 +185,7 @@ type MutationResolver interface {
 	Authenticate(ctx context.Context, email string, password string, organizationID *string) (*model.ViewerResult, error)
 	Logout(ctx context.Context) (*model.ViewerResult, error)
 	CreateUserWithOrganization(ctx context.Context, input model.CreateUserWithOrganizationInput) (*model.ViewerResult, error)
+	DeleteImage(ctx context.Context, input model.DeleteImageInput) (*model.DeleteImageResult, error)
 	CreateStorageDefinition(ctx context.Context, input model.CreateStorageDefinitionInput) (*model.StorageDefinition, error)
 	UpdateStorageDefinition(ctx context.Context, input model.UpdateStorageDefinitionInput) (*model.StorageDefinition, error)
 	CheckStorageDefinitionConnectivity(ctx context.Context, input model.CheckStorageDefinitionConnectivityInput) (*model.StorageDefinitionConnectivityResult, error)
@@ -216,6 +223,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "DeleteImageResult.id":
+		if e.complexity.DeleteImageResult.ID == nil {
+			break
+		}
+
+		return e.complexity.DeleteImageResult.ID(childComplexity), true
 
 	case "Image.createdAt":
 		if e.complexity.Image.CreatedAt == nil {
@@ -418,6 +432,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateUserWithOrganization(childComplexity, args["input"].(model.CreateUserWithOrganizationInput)), true
+
+	case "Mutation.deleteImage":
+		if e.complexity.Mutation.DeleteImage == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteImage_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteImage(childComplexity, args["input"].(model.DeleteImageInput)), true
 
 	case "Mutation.logout":
 		if e.complexity.Mutation.Logout == nil {
@@ -707,6 +733,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCreateUserWithOrganizationInput,
+		ec.unmarshalInputDeleteImageInput,
 		ec.unmarshalInputImageFilterInput,
 		ec.unmarshalInputImageOrderByInput,
 		ec.unmarshalInputcheckStorageDefinitionConnectivityInput,
@@ -996,6 +1023,34 @@ func (ec *executionContext) field_Mutation_createUserWithOrganization_argsInput(
 	return zeroVal, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteImage_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_deleteImage_argsInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_deleteImage_argsInput(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (model.DeleteImageInput, error) {
+	if _, ok := rawArgs["input"]; !ok {
+		var zeroVal model.DeleteImageInput
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+	if tmp, ok := rawArgs["input"]; ok {
+		return ec.unmarshalNDeleteImageInput2imgddᚋgraphᚋmodelᚐDeleteImageInput(ctx, tmp)
+	}
+
+	var zeroVal model.DeleteImageInput
+	return zeroVal, nil
+}
+
 func (ec *executionContext) field_Mutation_updateStorageDefinition_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1268,6 +1323,47 @@ func (ec *executionContext) field___Type_fields_argsIncludeDeprecated(
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _DeleteImageResult_id(ctx context.Context, field graphql.CollectedField, obj *model.DeleteImageResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeleteImageResult_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeleteImageResult_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeleteImageResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Image_id(ctx context.Context, field graphql.CollectedField, obj *model.Image) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Image_id(ctx, field)
@@ -2486,6 +2582,87 @@ func (ec *executionContext) fieldContext_Mutation_createUserWithOrganization(ctx
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createUserWithOrganization_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteImage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteImage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteImage(rctx, fc.Args["input"].(model.DeleteImageInput))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.IsAuthenticated == nil {
+				var zeroVal *model.DeleteImageResult
+				return zeroVal, errors.New("directive isAuthenticated is not implemented")
+			}
+			return ec.directives.IsAuthenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.DeleteImageResult); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *imgdd/graph/model.DeleteImageResult`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.DeleteImageResult)
+	fc.Result = res
+	return ec.marshalNDeleteImageResult2ᚖimgddᚋgraphᚋmodelᚐDeleteImageResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteImage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_DeleteImageResult_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DeleteImageResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteImage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -6404,6 +6581,33 @@ func (ec *executionContext) unmarshalInputCreateUserWithOrganizationInput(ctx co
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputDeleteImageInput(ctx context.Context, obj any) (model.DeleteImageInput, error) {
+	var it model.DeleteImageInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputImageFilterInput(ctx context.Context, obj any) (model.ImageFilterInput, error) {
 	var it model.ImageFilterInput
 	asMap := map[string]any{}
@@ -6653,6 +6857,42 @@ func (ec *executionContext) _StorageConfig(ctx context.Context, sel ast.Selectio
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var deleteImageResultImplementors = []string{"DeleteImageResult"}
+
+func (ec *executionContext) _DeleteImageResult(ctx context.Context, sel ast.SelectionSet, obj *model.DeleteImageResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deleteImageResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeleteImageResult")
+		case "id":
+			out.Values[i] = ec._DeleteImageResult_id(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
 
 var imageImplementors = []string{"Image"}
 
@@ -7045,6 +7285,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createUserWithOrganization":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createUserWithOrganization(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleteImage":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteImage(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -8249,6 +8496,25 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 func (ec *executionContext) unmarshalNCreateUserWithOrganizationInput2imgddᚋgraphᚋmodelᚐCreateUserWithOrganizationInput(ctx context.Context, v any) (model.CreateUserWithOrganizationInput, error) {
 	res, err := ec.unmarshalInputCreateUserWithOrganizationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNDeleteImageInput2imgddᚋgraphᚋmodelᚐDeleteImageInput(ctx context.Context, v any) (model.DeleteImageInput, error) {
+	res, err := ec.unmarshalInputDeleteImageInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNDeleteImageResult2imgddᚋgraphᚋmodelᚐDeleteImageResult(ctx context.Context, sel ast.SelectionSet, v model.DeleteImageResult) graphql.Marshaler {
+	return ec._DeleteImageResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDeleteImageResult2ᚖimgddᚋgraphᚋmodelᚐDeleteImageResult(ctx context.Context, sel ast.SelectionSet, v *model.DeleteImageResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._DeleteImageResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v any) (string, error) {

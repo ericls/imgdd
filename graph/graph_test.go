@@ -130,6 +130,15 @@ func (m *TestContextUserManager) SetAuthenticationInfo(c context.Context, authen
 	m.testContext.authenticationInfo.AuthorizedUser = authenticationInfo.AuthorizedUser
 }
 
+func (m *TestContextUserManager) setAuthenticatedUser(orgUser *domainmodels.OrganizationUser) {
+	m.testContext.authenticationInfo.AuthenticatedUser = &identity.AuthenticatedUser{
+		User: orgUser.User,
+	}
+	m.testContext.authenticationInfo.AuthorizedUser = &identity.AuthorizedUser{
+		OrganizationUser: orgUser,
+	}
+}
+
 func newTestContext(tObj *testing.T) *TestContext {
 	conn := db.GetConnection(&TEST_DB_CONF)
 	identityRepo := identity.NewDBIdentityRepo(conn)
@@ -168,6 +177,14 @@ func newTestContext(tObj *testing.T) *TestContext {
 	identityManager.ContextUserManager = tc.contextUserManager
 	resolver.ContextUserManager = tc.contextUserManager
 	return tc
+}
+
+func (tc *TestContext) setAuthenticatedUser(orgUser *domainmodels.OrganizationUser) {
+	tc.contextUserManager.setAuthenticatedUser(orgUser)
+}
+
+func (tc *TestContext) clearAuthenticationInfo() {
+	tc.authenticationInfo = &identity.AuthenticationInfo{}
 }
 
 func (tc *TestContext) reset() {
@@ -209,10 +226,10 @@ func (tc *TestContext) forceAuthenticate(
 	for _, opt := range options {
 		opt(opts)
 	}
-	email := uuid.New().String() + "@home.arpa"
+	email := uuid.NewString() + "@home.arpa"
 	orgUser, err := tc.identityRepo.CreateUserWithOrganization(
 		email,
-		"test_org",
+		uuid.NewString(),
 		"password",
 	)
 	if err != nil {
@@ -220,6 +237,7 @@ func (tc *TestContext) forceAuthenticate(
 	}
 	if opts.IsSiteOwner {
 		tc.identityRepo.AddRoleToOrganizationUser(orgUser.Id, "site_owner")
+		orgUser = tc.identityRepo.GetOrganizationUserById(orgUser.Id)
 	}
 	var resp struct {
 		Authenticate *model.ViewerResult

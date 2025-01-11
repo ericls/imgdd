@@ -20,3 +20,13 @@ func IsSiteOwner(r *Resolver) func(ctx context.Context, obj interface{}, next gr
 		return nil, fmt.Errorf("not site owner")
 	}
 }
+
+func IsAuthenticated(r *Resolver) func(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
+	return func(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
+		currentUser := identity.GetCurrentOrganizationUser(r.ContextUserManager, ctx)
+		if currentUser == nil {
+			return nil, fmt.Errorf("not authenticated")
+		}
+		return next(ctx)
+	}
+}

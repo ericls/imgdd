@@ -26,5 +26,6 @@ func NewGraphConfig(resolver *graph.Resolver) graph.Config {
 		Resolvers: resolver,
 	}
 	config.Directives.IsSiteOwner = graph.IsSiteOwner(resolver)
+	config.Directives.IsAuthenticated = graph.IsAuthenticated(resolver)
 	return config
 }

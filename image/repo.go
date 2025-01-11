@@ -17,6 +17,8 @@ import (
 
 var logger = logging.GetLogger("image-repo")
 
+var ZeroUUID = uuid.UUID{}
+
 type DBImageRepo struct {
 	db.RepoConn
 }
@@ -72,6 +74,7 @@ func (repo *DBImageRepo) GetImageById(id string) (*dm.Image, error) {
 		NominalWidth:    dest.NominalWidth,
 		NominalHeight:   dest.NominalHeight,
 		NominalByteSize: dest.NominalByteSize,
+		CreatedById:     utils.SafeDerefWithDefault(dest.CreatedByID, ZeroUUID).String(),
 	}, nil
 }
 
@@ -396,4 +399,12 @@ func (repo *DBImageRepo) CountImages(filters *ListImagesFilters) (int, error) {
 		return 0, err
 	}
 	return dest[0].Count, nil
+}
+
+func (repo *DBImageRepo) DeleteImageById(id string) error {
+	stmt := ImageTable.DELETE().WHERE(
+		ImageTable.ID.EQ(UUID(uuid.MustParse(id))),
+	)
+	_, err := stmt.Exec(repo.DB)
+	return err
 }

@@ -1,61 +1,72 @@
-
 type StoredImage {
-    id: ID!
-    storageDefinition: StorageDefinition!
+  id: ID!
+  storageDefinition: StorageDefinition!
 }
 
 type Image {
-    id: ID!
-    url: String!
-    name: String!
-    identifier: String!
-    nominalWidth: Int!
-    nominalHeight: Int!
-    nominalByteSize: Int!
-    root: Image
-    revisions: [Image!]!
-    createdAt: Time!
-    storedImages: [StoredImage!]!
-    MIMEType: String!
+  id: ID!
+  url: String!
+  name: String!
+  identifier: String!
+  nominalWidth: Int!
+  nominalHeight: Int!
+  nominalByteSize: Int!
+  root: Image
+  revisions: [Image!]!
+  createdAt: Time!
+  storedImages: [StoredImage!]!
+  MIMEType: String!
 }
 
 input ImageOrderByInput {
-    id: PaginationDirection
-    name: PaginationDirection
-    createdAt: PaginationDirection
+  id: PaginationDirection
+  name: PaginationDirection
+  createdAt: PaginationDirection
 }
 
 input ImageFilterInput {
-    nameContains: String
-    createdAtLt: Time
-    createdAtGt: Time
-    createdBy: ID
+  nameContains: String
+  createdAtLt: Time
+  createdAtGt: Time
+  createdBy: ID
 }
 
 type ImagePageInfo {
-    hasNextPage: Boolean!
-    hasPreviousPage: Boolean!
-    startCursor: String
-    endCursor: String
-    totalCount: Int
-    currentCount: Int
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+  totalCount: Int
+  currentCount: Int
 }
 
 type ImageEdge {
-    node: Image!
-    cursor: String!
+  node: Image!
+  cursor: String!
 }
 
 type ImagesResult {
-    edges: [ImageEdge!]!
-    pageInfo: ImagePageInfo!
+  edges: [ImageEdge!]!
+  pageInfo: ImagePageInfo!
 }
 
 extend type Viewer {
-    images(
-        orderBy: ImageOrderByInput
-        filters: ImageFilterInput
-        after: String
-        before: String
-    ): ImagesResult!
+  images(
+    orderBy: ImageOrderByInput
+    filters: ImageFilterInput
+    after: String
+    before: String
+  ): ImagesResult!
+}
+
+input DeleteImageInput {
+  id: ID!
+}
+
+type DeleteImageResult {
+  id: ID
+}
+
+extend type Mutation {
+  deleteImage(input: DeleteImageInput!): DeleteImageResult! @isAuthenticated
 }

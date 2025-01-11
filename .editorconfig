@@ -23,3 +23,6 @@ indent_size = 2
 [*.{go}]
 indent_size = 4
 indent_style = tab
+
+[*.{graphql,graphqls}]
+indent_size = 2

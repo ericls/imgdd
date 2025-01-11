@@ -41,6 +41,26 @@ func (r *imageResolver) StoredImages(ctx context.Context, obj *model.Image) ([]*
 	return loader.Load(ctx, obj.ID)
 }
 
+// DeleteImage is the resolver for the deleteImage field.
+func (r *mutationResolver) DeleteImage(ctx context.Context, input model.DeleteImageInput) (*model.DeleteImageResult, error) {
+	currentUser := identity.GetCurrentOrganizationUser(r.ContextUserManager, ctx)
+	if img, err := r.ImageRepo.GetImageById(input.ID); err != nil {
+		return nil, err
+	} else if img == nil {
+		return nil, fmt.Errorf("image not found")
+	} else {
+		createdBy := r.IdentityRepo.GetOrganizationUserById(img.CreatedById)
+		if !currentUser.CanManage(createdBy) {
+			return nil, fmt.Errorf("unauthorized")
+		}
+		if err := r.ImageRepo.DeleteImageById(input.ID); err != nil {
+			return nil, err
+		} else {
+			return &model.DeleteImageResult{ID: &input.ID}, nil
+		}
+	}
+}
+
 // Images is the resolver for the images field.
 func (r *viewerResolver) Images(ctx context.Context, obj *model.Viewer, orderBy *model.ImageOrderByInput, filters *model.ImageFilterInput, after *string, before *string) (*model.ImagesResult, error) {
 	currentUser := identity.GetCurrentOrganizationUser(r.ContextUserManager, ctx)
