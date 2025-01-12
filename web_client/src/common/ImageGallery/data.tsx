@@ -52,10 +52,14 @@ const ImagesQueryDoc = gql(`
 `);
 
 export type UseImagesQueryOptions = {
+  createdById?: string;
   nameContains?: string;
 };
 
-export function useImagesQuery({ nameContains }: UseImagesQueryOptions) {
+export function useImagesQuery({
+  nameContains,
+  createdById,
+}: UseImagesQueryOptions) {
   const [orderBy, setOrderBy] = React.useState<ImageOrderByInput>({
     createdAt: PaginationDirection.Desc,
   });
@@ -66,11 +70,12 @@ export function useImagesQuery({ nameContains }: UseImagesQueryOptions) {
       orderBy,
       filters: {
         nameContains,
+        createdBy: createdById,
       },
       after,
       before,
     };
-  }, [after, before, nameContains, orderBy]);
+  }, [after, before, createdById, nameContains, orderBy]);
   const [
     execute,
     { data, loading, previousData, error, refetch, variables: dataVariables },

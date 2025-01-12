@@ -1,5 +1,5 @@
 import React from "react";
-import { ImageItem, ImageItemRenderer } from "./types";
+import { RenderingImageItem, ImageItemRenderer } from "./types";
 import { useImagesQuery } from "./data";
 import { humanFileSize } from "~src/lib/humanizeFileSize";
 import { useHumanizeDateTime } from "~src/lib/humanizeDateTime";
@@ -10,10 +10,9 @@ import {
   GrFormNext as NextPageIcon,
   GrFormPrevious as PrevPageIcon,
 } from "react-icons/gr";
-import { Loader } from "~src/ui/loader";
 
 type DumbImageGalleryProps = {
-  images: ImageItem[];
+  images: RenderingImageItem[];
   itemRenderer: ImageItemRenderer;
   hasNext: boolean;
   hasPrev: boolean;
@@ -60,7 +59,7 @@ export function DumbImageGallery({
   );
 }
 
-export function ImageItemRenderer({ image }: { image: ImageItem }) {
+export function ImageItemRenderer({ image }: { image: RenderingImageItem }) {
   const { url, name, nominalWidth, nominalHeight, nominalByteSize, createdAt } =
     image;
 
@@ -68,7 +67,6 @@ export function ImageItemRenderer({ image }: { image: ImageItem }) {
 
   return (
     <div className="flex flex-col overflow-hidden ">
-      {/* Image container with fixed aspect ratio (square) */}
       <div className="relative w-full pb-[80%] overflow-hidden bg-transparent rounded-md">
         <img
           src={url}
@@ -113,21 +111,24 @@ export function ImageItemRenderer({ image }: { image: ImageItem }) {
 
 type ImageGalleryProps = {
   nameContains?: string;
+  createdById?: string;
   itemRenderer?: ImageItemRenderer;
 };
 export function ImageGallery({
   nameContains,
+  createdById,
   itemRenderer,
 }: ImageGalleryProps) {
   const { data, execute, hasNext, hasPrev, goNext, goPrev, loading } =
     useImagesQuery({
       nameContains,
+      createdById,
     });
   React.useEffect(() => {
     execute();
   }, [execute]);
   const renderImage = React.useCallback(
-    (image: ImageItem) => {
+    (image: RenderingImageItem) => {
       if (itemRenderer) {
         return itemRenderer(image);
       }

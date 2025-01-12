@@ -1,4 +1,4 @@
-export type ImageItem = {
+export type RenderingImageItem = {
   id: string;
   url: string;
   name: string;
@@ -8,4 +8,4 @@ export type ImageItem = {
   createdAt: string;
 };
 
-export type ImageItemRenderer = (image: ImageItem) => React.ReactNode;
+export type ImageItemRenderer = (image: RenderingImageItem) => React.ReactNode;
