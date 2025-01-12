@@ -10,6 +10,9 @@ import {
   GrFormNext as NextPageIcon,
   GrFormPrevious as PrevPageIcon,
 } from "react-icons/gr";
+import { ImageItemMenuConfig, useImageItemMenu } from "./menu";
+import { MenuWithTrigger } from "~src/ui/menuWithTrigger";
+import { DefaultMenuIcon } from "~src/ui/menu";
 
 type DumbImageGalleryProps = {
   images: RenderingImageItem[];
@@ -60,14 +63,35 @@ export function DumbImageGallery({
 }
 
 export function ImageItemRenderer({ image }: { image: RenderingImageItem }) {
+  const menuSections = useImageItemMenu(image, image.menuConfig);
   const { url, name, nominalWidth, nominalHeight, nominalByteSize, createdAt } =
     image;
 
   const humanizedDateTime = useHumanizeDateTime({ datetimeStr: createdAt });
 
   return (
-    <div className="flex flex-col overflow-hidden ">
-      <div className="relative w-full pb-[80%] overflow-hidden bg-transparent rounded-md">
+    <div className="group flex flex-col overflow-hidden " tabIndex={0}>
+      <div className="relative w-full pb-[80%] overflow-hidden bg-transparent rounded-md focus-within:[&_.menu-trigger]:opacity-100">
+        {menuSections && (
+          <div className="absolute menu-trigger top-2 right-2 z-10 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+            <MenuWithTrigger
+              menuSections={menuSections}
+              trigger={
+                <Button
+                  tabIndex={0}
+                  roundLevel="md"
+                  variant="secondary"
+                  className={classNames(
+                    SECONDARY_TEXT_COLOR_DIM,
+                    "block py-0 px-1"
+                  )}
+                >
+                  <DefaultMenuIcon size={16} />
+                </Button>
+              }
+            />
+          </div>
+        )}
         <img
           src={url}
           alt={`preview of image file: ${name}`}
@@ -113,11 +137,13 @@ type ImageGalleryProps = {
   nameContains?: string;
   createdById?: string;
   itemRenderer?: ImageItemRenderer;
+  menuConfig?: ImageItemMenuConfig;
 };
 export function ImageGallery({
   nameContains,
   createdById,
   itemRenderer,
+  menuConfig,
 }: ImageGalleryProps) {
   const { data, execute, hasNext, hasPrev, goNext, goPrev, loading } =
     useImagesQuery({
@@ -136,7 +162,13 @@ export function ImageGallery({
     },
     [itemRenderer]
   );
-  const images = data?.viewer.images.edges.map((edge) => edge.node) ?? [];
+  const images = React.useMemo<RenderingImageItem[]>(() => {
+    const images = data?.viewer.images.edges.map((edge) => edge.node) ?? [];
+    return images.map((image) => ({
+      ...image,
+      menuConfig,
+    }));
+  }, [data, menuConfig]);
   return (
     <DumbImageGallery
       images={images}

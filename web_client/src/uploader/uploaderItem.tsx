@@ -11,12 +11,7 @@ import { Loader } from "~src/ui/loader";
 import { MenuSections } from "~src/ui/menu";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
-
-function copyText(text: string, cb?: () => void) {
-  if (!text) return;
-  copy(text);
-  cb?.();
-}
+import { copyText } from "~src/lib/copyText";
 
 export type UploaderItem = {
   id: string;

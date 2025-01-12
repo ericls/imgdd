@@ -296,9 +296,6 @@ func (repo *DBImageRepo) filtersToWhere(filters *ListImagesFilters) BoolExpressi
 	if filters.CreatedBy != nil {
 		condition_exprs = append(condition_exprs, ImageTable.CreatedByID.EQ(UUID(uuid.MustParse(*filters.CreatedBy))))
 	}
-	if len(condition_exprs) == 0 {
-		return nil
-	}
 	where := ImageTable.DeletedAt.IS_NULL()
 	for _, cond := range condition_exprs {
 		where = where.AND(cond)

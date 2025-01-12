@@ -1,5 +1,5 @@
 import React from "react";
-import { useLazyQuery } from "~node_modules/@apollo/client";
+import { useLazyQuery, useMutation } from "~node_modules/@apollo/client";
 import { gql } from "~src/__generated__";
 import {
   ImageOrderByInput,
@@ -111,6 +111,16 @@ export function useImagesQuery({
   }, [currentPageInfo]);
   const hasPrev = currentPageInfo.hasPreviousPage;
   const hasNext = currentPageInfo.hasNextPage;
+  if (
+    !hasPrev &&
+    !hasNext &&
+    data?.viewer.images.edges.length === 0 &&
+    !loading
+  ) {
+    if (variables.after || variables.before) {
+      refetch({ ...variables, after: null, before: null });
+    }
+  }
   return {
     execute,
     data: data || previousData,
@@ -123,5 +133,31 @@ export function useImagesQuery({
     hasNext,
     setOrderBy,
     dataVariables,
+  };
+}
+
+const DeleteImageDoc = gql(`
+  mutation DeleteImage($input: DeleteImageInput!) {
+    deleteImage(input: $input) {
+      id
+    }
+  }
+`);
+
+export function useDeleteImage(imageId: string) {
+  const [execute, { loading, error, data }] = useMutation(DeleteImageDoc, {
+    variables: {
+      input: {
+        id: imageId,
+      },
+    },
+    refetchQueries: [ImagesQueryDoc],
+    errorPolicy: "all",
+  });
+  return {
+    execute,
+    loading,
+    error,
+    data,
   };
 }

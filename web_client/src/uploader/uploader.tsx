@@ -13,6 +13,7 @@ import { Button } from "~src/ui/button";
 import { UploaderItem } from "./uploaderItem";
 import { useTranslation } from "react-i18next";
 import { addSessionHeaderToXMLHttpRequest } from "~src/lib/sessionToken";
+import { absoluteURL } from "~src/lib/url";
 
 const FILE_SIZE_LIMIT = 5e6;
 
@@ -80,10 +81,7 @@ export function Uplodaer() {
         if (filename && url) {
           // if URL is full URL, use that URL
           // otherwise build one based on current URL
-          if (!url.startsWith("http")) {
-            url = `${window.location.origin}${url}`;
-            console.log(url);
-          }
+          url = absoluteURL(url);
           setCurrentFile({
             loaded: true,
             uploadedFileName: filename,

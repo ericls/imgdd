@@ -1,3 +1,5 @@
+import { ImageItemMenuConfig } from "./menu";
+
 export type RenderingImageItem = {
   id: string;
   url: string;
@@ -6,6 +8,8 @@ export type RenderingImageItem = {
   nominalHeight: number;
   nominalByteSize: number;
   createdAt: string;
+} & {
+  menuConfig?: ImageItemMenuConfig;
 };
 
 export type ImageItemRenderer = (image: RenderingImageItem) => React.ReactNode;

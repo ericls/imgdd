@@ -1,6 +1,8 @@
 import React from "react";
 import cx from "classnames";
 
+export { TbDots as DefaultMenuIcon } from "react-icons/tb";
+
 export type MenuItemVariant = "danger" | "normal";
 export type MenuItemActionArgs = {
   event: React.MouseEvent<HTMLElement>;

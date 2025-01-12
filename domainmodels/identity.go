@@ -26,10 +26,13 @@ func (ou *OrganizationUser) HasAdminAccess() bool {
 }
 
 func (ou *OrganizationUser) CanManage(other *OrganizationUser) bool {
-	if ou.Id == other.Id {
+	if ou.IsSiteOwner() {
 		return true
 	}
-	if ou.IsSiteOwner() {
+	if other == nil {
+		return false
+	}
+	if ou.Id == other.Id {
 		return true
 	}
 	if ou.HasAdminAccess() && other.Organization.Id == ou.Organization.Id {

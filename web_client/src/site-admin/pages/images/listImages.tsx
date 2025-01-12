@@ -1,6 +1,7 @@
 import { t } from "i18next";
 import React from "react";
 import classNames from "~node_modules/classnames";
+import { DEFAULT_MENU_CONFIG } from "~src/common/ImageGallery/menu";
 import { ImageGallery } from "~src/common/ImageGallery/render";
 import { HEADING_2 } from "~src/ui/classNames";
 
@@ -11,7 +12,7 @@ export function ListImages() {
         {t("siteadmin.images.list.title")}
       </h1>
       <div className="mt-6">
-        <ImageGallery />
+        <ImageGallery menuConfig={DEFAULT_MENU_CONFIG} />
       </div>
     </div>
   );
