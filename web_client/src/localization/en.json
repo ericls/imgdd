@@ -2,7 +2,13 @@
     "common": {
         "buttonLabel": {
             "edit": "Edit",
-            "save": "Save"
+            "save": "Save",
+            "cancel": "Cancel",
+            "delete": "Delete"
+        },
+        "toast": {
+          "copied": "Copied",
+          "deleted": "Deleted"
         }
     },
     "home": {
@@ -66,5 +72,10 @@
           "title": "Manage images"
         }
       }
+    },
+    "imageItem": {
+      "copyURL": "Copy URL",
+      "download": "Download",
+      "confirmDelete": "Are you sure you want to delete this image?<br/><b>{{name}}</b>"
     }
 }

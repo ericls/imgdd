@@ -82,7 +82,7 @@ function Prompt({
   onClose: _onClose,
   onYes,
   onNo,
-  showCancel,
+  showCancel = true,
 }: PromptProps) {
   return (
     <Transition.Root show as={Fragment}>

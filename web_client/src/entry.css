@@ -7,4 +7,10 @@
   --toastify-color-progress-light: theme(colors.indigo.600) !important;
 }
 
+@layer base {
+  :focus-visible {
+    outline: none;
+    @apply ring-2;
+  }
+}
 /* Are you sure you are qualified to write CSS?????????? */

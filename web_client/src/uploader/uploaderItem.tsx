@@ -71,7 +71,7 @@ export function UploaderItem({
       return { children: [] };
     }
     const fileName = file.name || "image";
-    const copiedCb = () => toast("Copied");
+    const copiedCb = () => toast(t("common.toast.copied"));
     const copyURL = () => copyText(url, copiedCb);
     const copyHTML = () =>
       copyText(`<img src="${url}" alt="${fileName}">`, copiedCb);

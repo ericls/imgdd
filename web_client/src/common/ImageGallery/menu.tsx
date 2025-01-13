@@ -5,6 +5,9 @@ import { useDeleteImage } from "./data";
 import { copyText } from "~src/lib/copyText";
 import { toast } from "react-toastify";
 import { absoluteURL } from "~src/lib/url";
+import { prompt } from "~src/ui/prompt";
+import i18n from "~src/i18n";
+import { Trans } from "~node_modules/react-i18next";
 
 enum ImageMenuItemName {
   DOWNLOAD = "download",
@@ -54,7 +57,7 @@ function getDownloadMenuItem({
 }: MenuItemGetterProps): MenuItem {
   return {
     id: ImageMenuItemName.DOWNLOAD,
-    children: "Download",
+    children: i18n.t("imageItem.download"),
     action: () => {
       window.open(absoluteURL(url), "_blank");
     },
@@ -64,20 +67,33 @@ function getDownloadMenuItem({
 function getCopyURLMenuItem({ image: { url } }: MenuItemGetterProps): MenuItem {
   return {
     id: ImageMenuItemName.COPY_URL,
-    children: "Copy URL",
+    children: i18n.t("imageItem.copyURL"),
     action: () => {
-      copyText(absoluteURL(url), () => toast("Copied"));
+      copyText(absoluteURL(url), () => toast(i18n.t("common.toast.copied")));
     },
   };
 }
 
-function getDeleteMenuItem({ onDelete }: MenuItemGetterProps): MenuItem {
+function getDeleteMenuItem({
+  onDelete,
+  image: { name },
+}: MenuItemGetterProps): MenuItem {
   return {
     id: ImageMenuItemName.DELETE,
-    children: "Delete",
+    children: i18n.t("common.buttonLabel.delete"),
     action: () => {
-      onDelete?.().then(() => {
-        toast("Deleted");
+      prompt({
+        content: (
+          <Trans i18nKey={"imageItem.confirmDelete"} values={{ name }}></Trans>
+        ),
+        title: "Delete",
+        yesDestructive: true,
+        showCancel: true,
+      }).then((confirmed) => {
+        if (!confirmed) return;
+        onDelete?.().then(() => {
+          toast(i18n.t("common.toast.deleted"));
+        });
       });
     },
   };
