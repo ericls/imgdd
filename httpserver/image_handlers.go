@@ -168,6 +168,11 @@ func makeImageHandler(
 			httpLogger.Info().Msg("No MIME type")
 			return
 		}
+		providedEtag := r.Header.Get("If-None-Match")
+		if providedEtag == filename {
+			w.WriteHeader(http.StatusNotModified)
+			return
+		}
 		storedImage, err := storeRepo.GetStoredImageByIdentifierAndMimeType(
 			identifier,
 			mimeType,
@@ -199,10 +204,9 @@ func makeImageHandler(
 		defer reader.Close()
 		w.Header().Set("Content-Type", mimeType)
 		w.Header().Set("Content-Length", strconv.FormatInt(meta.ByteSize, 10))
-		if meta.ETag != "" {
-			w.Header().Set("ETag", "W/"+meta.ETag)
-		}
-		w.Header().Set("X-IMGDD-SI", storedImage.StorageDefinition.Identifier)
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		w.Header().Set("ETag", filename)
+		w.Header().Set("X-imgdd-si", storedImage.StorageDefinition.Identifier)
 		w.WriteHeader(http.StatusOK)
 		if r.Method == http.MethodHead {
 			return
