@@ -2,7 +2,7 @@
 package db
 
 import (
-	. "imgdd/db/.gen/imgdd/public/table"
+	. "github.com/ericls/imgdd/db/.gen/imgdd/public/table"
 )
 
 func PopulateBuiltInRoles(dbConfig *DBConfigDef) {

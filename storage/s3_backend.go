@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"hash/fnv"
-	"imgdd/utils"
 	"io"
+
+	"github.com/ericls/imgdd/utils"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"

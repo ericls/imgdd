@@ -2,9 +2,10 @@ package main
 
 import (
 	"embed"
-	"imgdd/buildflag"
 	"io/fs"
 	"os"
+
+	"github.com/ericls/imgdd/buildflag"
 )
 
 //go:embed httpserver/templates/*.gotmpl

@@ -8,7 +8,6 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"imgdd/graph/model"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/ericls/imgdd/graph/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -960,7 +960,7 @@ func (ec *executionContext) field_Mutation_checkStorageDefinitionConnectivity_ar
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNcheckStorageDefinitionConnectivityInput2imgddᚋgraphᚋmodelᚐCheckStorageDefinitionConnectivityInput(ctx, tmp)
+		return ec.unmarshalNcheckStorageDefinitionConnectivityInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐCheckStorageDefinitionConnectivityInput(ctx, tmp)
 	}
 
 	var zeroVal model.CheckStorageDefinitionConnectivityInput
@@ -988,7 +988,7 @@ func (ec *executionContext) field_Mutation_createStorageDefinition_argsInput(
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNcreateStorageDefinitionInput2imgddᚋgraphᚋmodelᚐCreateStorageDefinitionInput(ctx, tmp)
+		return ec.unmarshalNcreateStorageDefinitionInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐCreateStorageDefinitionInput(ctx, tmp)
 	}
 
 	var zeroVal model.CreateStorageDefinitionInput
@@ -1016,7 +1016,7 @@ func (ec *executionContext) field_Mutation_createUserWithOrganization_argsInput(
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNCreateUserWithOrganizationInput2imgddᚋgraphᚋmodelᚐCreateUserWithOrganizationInput(ctx, tmp)
+		return ec.unmarshalNCreateUserWithOrganizationInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐCreateUserWithOrganizationInput(ctx, tmp)
 	}
 
 	var zeroVal model.CreateUserWithOrganizationInput
@@ -1044,7 +1044,7 @@ func (ec *executionContext) field_Mutation_deleteImage_argsInput(
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNDeleteImageInput2imgddᚋgraphᚋmodelᚐDeleteImageInput(ctx, tmp)
+		return ec.unmarshalNDeleteImageInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐDeleteImageInput(ctx, tmp)
 	}
 
 	var zeroVal model.DeleteImageInput
@@ -1072,7 +1072,7 @@ func (ec *executionContext) field_Mutation_updateStorageDefinition_argsInput(
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNupdateStorageDefinitionInput2imgddᚋgraphᚋmodelᚐUpdateStorageDefinitionInput(ctx, tmp)
+		return ec.unmarshalNupdateStorageDefinitionInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐUpdateStorageDefinitionInput(ctx, tmp)
 	}
 
 	var zeroVal model.UpdateStorageDefinitionInput
@@ -1156,7 +1156,7 @@ func (ec *executionContext) field_Viewer_hasPermission_argsPermission(
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
 	if tmp, ok := rawArgs["permission"]; ok {
-		return ec.unmarshalNPermissionNameEnum2imgddᚋgraphᚋmodelᚐPermissionNameEnum(ctx, tmp)
+		return ec.unmarshalNPermissionNameEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPermissionNameEnum(ctx, tmp)
 	}
 
 	var zeroVal model.PermissionNameEnum
@@ -1199,7 +1199,7 @@ func (ec *executionContext) field_Viewer_images_argsOrderBy(
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
 	if tmp, ok := rawArgs["orderBy"]; ok {
-		return ec.unmarshalOImageOrderByInput2ᚖimgddᚋgraphᚋmodelᚐImageOrderByInput(ctx, tmp)
+		return ec.unmarshalOImageOrderByInput2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImageOrderByInput(ctx, tmp)
 	}
 
 	var zeroVal *model.ImageOrderByInput
@@ -1217,7 +1217,7 @@ func (ec *executionContext) field_Viewer_images_argsFilters(
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
 	if tmp, ok := rawArgs["filters"]; ok {
-		return ec.unmarshalOImageFilterInput2ᚖimgddᚋgraphᚋmodelᚐImageFilterInput(ctx, tmp)
+		return ec.unmarshalOImageFilterInput2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImageFilterInput(ctx, tmp)
 	}
 
 	var zeroVal *model.ImageFilterInput
@@ -1698,7 +1698,7 @@ func (ec *executionContext) _Image_root(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(*model.Image)
 	fc.Result = res
-	return ec.marshalOImage2ᚖimgddᚋgraphᚋmodelᚐImage(ctx, field.Selections, res)
+	return ec.marshalOImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Image_root(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1768,7 +1768,7 @@ func (ec *executionContext) _Image_revisions(ctx context.Context, field graphql.
 	}
 	res := resTmp.([]*model.Image)
 	fc.Result = res
-	return ec.marshalNImage2ᚕᚖimgddᚋgraphᚋmodelᚐImageᚄ(ctx, field.Selections, res)
+	return ec.marshalNImage2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImageᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Image_revisions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1882,7 +1882,7 @@ func (ec *executionContext) _Image_storedImages(ctx context.Context, field graph
 	}
 	res := resTmp.([]*model.StoredImage)
 	fc.Result = res
-	return ec.marshalNStoredImage2ᚕᚖimgddᚋgraphᚋmodelᚐStoredImageᚄ(ctx, field.Selections, res)
+	return ec.marshalNStoredImage2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStoredImageᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Image_storedImages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1976,7 +1976,7 @@ func (ec *executionContext) _ImageEdge_node(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model.Image)
 	fc.Result = res
-	return ec.marshalNImage2ᚖimgddᚋgraphᚋmodelᚐImage(ctx, field.Selections, res)
+	return ec.marshalNImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ImageEdge_node(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2342,7 +2342,7 @@ func (ec *executionContext) _ImagesResult_edges(ctx context.Context, field graph
 	}
 	res := resTmp.([]*model.ImageEdge)
 	fc.Result = res
-	return ec.marshalNImageEdge2ᚕᚖimgddᚋgraphᚋmodelᚐImageEdgeᚄ(ctx, field.Selections, res)
+	return ec.marshalNImageEdge2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImageEdgeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ImagesResult_edges(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2392,7 +2392,7 @@ func (ec *executionContext) _ImagesResult_pageInfo(ctx context.Context, field gr
 	}
 	res := resTmp.(*model.ImagePageInfo)
 	fc.Result = res
-	return ec.marshalNImagePageInfo2ᚖimgddᚋgraphᚋmodelᚐImagePageInfo(ctx, field.Selections, res)
+	return ec.marshalNImagePageInfo2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImagePageInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ImagesResult_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2450,7 +2450,7 @@ func (ec *executionContext) _Mutation_authenticate(ctx context.Context, field gr
 	}
 	res := resTmp.(*model.ViewerResult)
 	fc.Result = res
-	return ec.marshalNViewerResult2ᚖimgddᚋgraphᚋmodelᚐViewerResult(ctx, field.Selections, res)
+	return ec.marshalNViewerResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐViewerResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_authenticate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2509,7 +2509,7 @@ func (ec *executionContext) _Mutation_logout(ctx context.Context, field graphql.
 	}
 	res := resTmp.(*model.ViewerResult)
 	fc.Result = res
-	return ec.marshalNViewerResult2ᚖimgddᚋgraphᚋmodelᚐViewerResult(ctx, field.Selections, res)
+	return ec.marshalNViewerResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐViewerResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_logout(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2557,7 +2557,7 @@ func (ec *executionContext) _Mutation_createUserWithOrganization(ctx context.Con
 	}
 	res := resTmp.(*model.ViewerResult)
 	fc.Result = res
-	return ec.marshalNViewerResult2ᚖimgddᚋgraphᚋmodelᚐViewerResult(ctx, field.Selections, res)
+	return ec.marshalNViewerResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐViewerResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createUserWithOrganization(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2624,7 +2624,7 @@ func (ec *executionContext) _Mutation_deleteImage(ctx context.Context, field gra
 		if data, ok := tmp.(*model.DeleteImageResult); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *imgdd/graph/model.DeleteImageResult`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/ericls/imgdd/graph/model.DeleteImageResult`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2638,7 +2638,7 @@ func (ec *executionContext) _Mutation_deleteImage(ctx context.Context, field gra
 	}
 	res := resTmp.(*model.DeleteImageResult)
 	fc.Result = res
-	return ec.marshalNDeleteImageResult2ᚖimgddᚋgraphᚋmodelᚐDeleteImageResult(ctx, field.Selections, res)
+	return ec.marshalNDeleteImageResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐDeleteImageResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deleteImage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2705,7 +2705,7 @@ func (ec *executionContext) _Mutation_createStorageDefinition(ctx context.Contex
 		if data, ok := tmp.(*model.StorageDefinition); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *imgdd/graph/model.StorageDefinition`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/ericls/imgdd/graph/model.StorageDefinition`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2716,7 +2716,7 @@ func (ec *executionContext) _Mutation_createStorageDefinition(ctx context.Contex
 	}
 	res := resTmp.(*model.StorageDefinition)
 	fc.Result = res
-	return ec.marshalOStorageDefinition2ᚖimgddᚋgraphᚋmodelᚐStorageDefinition(ctx, field.Selections, res)
+	return ec.marshalOStorageDefinition2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageDefinition(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createStorageDefinition(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2793,7 +2793,7 @@ func (ec *executionContext) _Mutation_updateStorageDefinition(ctx context.Contex
 		if data, ok := tmp.(*model.StorageDefinition); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *imgdd/graph/model.StorageDefinition`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/ericls/imgdd/graph/model.StorageDefinition`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2804,7 +2804,7 @@ func (ec *executionContext) _Mutation_updateStorageDefinition(ctx context.Contex
 	}
 	res := resTmp.(*model.StorageDefinition)
 	fc.Result = res
-	return ec.marshalOStorageDefinition2ᚖimgddᚋgraphᚋmodelᚐStorageDefinition(ctx, field.Selections, res)
+	return ec.marshalOStorageDefinition2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageDefinition(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateStorageDefinition(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2881,7 +2881,7 @@ func (ec *executionContext) _Mutation_checkStorageDefinitionConnectivity(ctx con
 		if data, ok := tmp.(*model.StorageDefinitionConnectivityResult); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *imgdd/graph/model.StorageDefinitionConnectivityResult`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/ericls/imgdd/graph/model.StorageDefinitionConnectivityResult`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2892,7 +2892,7 @@ func (ec *executionContext) _Mutation_checkStorageDefinitionConnectivity(ctx con
 	}
 	res := resTmp.(*model.StorageDefinitionConnectivityResult)
 	fc.Result = res
-	return ec.marshalOStorageDefinitionConnectivityResult2ᚖimgddᚋgraphᚋmodelᚐStorageDefinitionConnectivityResult(ctx, field.Selections, res)
+	return ec.marshalOStorageDefinitionConnectivityResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageDefinitionConnectivityResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_checkStorageDefinitionConnectivity(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3129,7 +3129,7 @@ func (ec *executionContext) _OrganizationUser_organization(ctx context.Context, 
 	}
 	res := resTmp.(*model.Organization)
 	fc.Result = res
-	return ec.marshalNOrganization2ᚖimgddᚋgraphᚋmodelᚐOrganization(ctx, field.Selections, res)
+	return ec.marshalNOrganization2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐOrganization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_OrganizationUser_organization(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3181,7 +3181,7 @@ func (ec *executionContext) _OrganizationUser_user(ctx context.Context, field gr
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖimgddᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_OrganizationUser_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3233,7 +3233,7 @@ func (ec *executionContext) _OrganizationUser_roles(ctx context.Context, field g
 	}
 	res := resTmp.([]*model.Role)
 	fc.Result = res
-	return ec.marshalNRole2ᚕᚖimgddᚋgraphᚋmodelᚐRoleᚄ(ctx, field.Selections, res)
+	return ec.marshalNRole2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐRoleᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_OrganizationUser_roles(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3324,7 +3324,7 @@ func (ec *executionContext) _Query_viewer(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*model.Viewer)
 	fc.Result = res
-	return ec.marshalNViewer2ᚖimgddᚋgraphᚋmodelᚐViewer(ctx, field.Selections, res)
+	return ec.marshalNViewer2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐViewer(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_viewer(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3863,7 +3863,7 @@ func (ec *executionContext) _StorageDefinition_config(ctx context.Context, field
 	}
 	res := resTmp.(model.StorageConfig)
 	fc.Result = res
-	return ec.marshalNStorageConfig2imgddᚋgraphᚋmodelᚐStorageConfig(ctx, field.Selections, res)
+	return ec.marshalNStorageConfig2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageConfig(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StorageDefinition_config(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4168,7 +4168,7 @@ func (ec *executionContext) _StoredImage_storageDefinition(ctx context.Context, 
 	}
 	res := resTmp.(*model.StorageDefinition)
 	fc.Result = res
-	return ec.marshalNStorageDefinition2ᚖimgddᚋgraphᚋmodelᚐStorageDefinition(ctx, field.Selections, res)
+	return ec.marshalNStorageDefinition2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageDefinition(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_StoredImage_storageDefinition(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4399,7 +4399,7 @@ func (ec *executionContext) _Viewer_organizationUser(ctx context.Context, field 
 	}
 	res := resTmp.(*model.OrganizationUser)
 	fc.Result = res
-	return ec.marshalOOrganizationUser2ᚖimgddᚋgraphᚋmodelᚐOrganizationUser(ctx, field.Selections, res)
+	return ec.marshalOOrganizationUser2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐOrganizationUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Viewer_organizationUser(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4453,7 +4453,7 @@ func (ec *executionContext) _Viewer_images(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.(*model.ImagesResult)
 	fc.Result = res
-	return ec.marshalNImagesResult2ᚖimgddᚋgraphᚋmodelᚐImagesResult(ctx, field.Selections, res)
+	return ec.marshalNImagesResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImagesResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Viewer_images(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4577,7 +4577,7 @@ func (ec *executionContext) _Viewer_storageDefinitions(ctx context.Context, fiel
 		if data, ok := tmp.([]*model.StorageDefinition); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*imgdd/graph/model.StorageDefinition`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/ericls/imgdd/graph/model.StorageDefinition`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4591,7 +4591,7 @@ func (ec *executionContext) _Viewer_storageDefinitions(ctx context.Context, fiel
 	}
 	res := resTmp.([]*model.StorageDefinition)
 	fc.Result = res
-	return ec.marshalNStorageDefinition2ᚕᚖimgddᚋgraphᚋmodelᚐStorageDefinitionᚄ(ctx, field.Selections, res)
+	return ec.marshalNStorageDefinition2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageDefinitionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Viewer_storageDefinitions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4657,7 +4657,7 @@ func (ec *executionContext) _Viewer_getStorageDefinition(ctx context.Context, fi
 		if data, ok := tmp.(*model.StorageDefinition); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *imgdd/graph/model.StorageDefinition`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/ericls/imgdd/graph/model.StorageDefinition`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4668,7 +4668,7 @@ func (ec *executionContext) _Viewer_getStorageDefinition(ctx context.Context, fi
 	}
 	res := resTmp.(*model.StorageDefinition)
 	fc.Result = res
-	return ec.marshalOStorageDefinition2ᚖimgddᚋgraphᚋmodelᚐStorageDefinition(ctx, field.Selections, res)
+	return ec.marshalOStorageDefinition2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageDefinition(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Viewer_getStorageDefinition(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4737,7 +4737,7 @@ func (ec *executionContext) _ViewerResult_viewer(ctx context.Context, field grap
 	}
 	res := resTmp.(*model.Viewer)
 	fc.Result = res
-	return ec.marshalNViewer2ᚖimgddᚋgraphᚋmodelᚐViewer(ctx, field.Selections, res)
+	return ec.marshalNViewer2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐViewer(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ViewerResult_viewer(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6672,21 +6672,21 @@ func (ec *executionContext) unmarshalInputImageOrderByInput(ctx context.Context,
 		switch k {
 		case "id":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			data, err := ec.unmarshalOPaginationDirection2ᚖimgddᚋgraphᚋmodelᚐPaginationDirection(ctx, v)
+			data, err := ec.unmarshalOPaginationDirection2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPaginationDirection(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.ID = data
 		case "name":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalOPaginationDirection2ᚖimgddᚋgraphᚋmodelᚐPaginationDirection(ctx, v)
+			data, err := ec.unmarshalOPaginationDirection2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPaginationDirection(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Name = data
 		case "createdAt":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
-			data, err := ec.unmarshalOPaginationDirection2ᚖimgddᚋgraphᚋmodelᚐPaginationDirection(ctx, v)
+			data, err := ec.unmarshalOPaginationDirection2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPaginationDirection(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6747,7 +6747,7 @@ func (ec *executionContext) unmarshalInputcreateStorageDefinitionInput(ctx conte
 			it.Identifier = data
 		case "storageType":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("storageType"))
-			data, err := ec.unmarshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStorageTypeEnum(ctx, v)
+			data, err := ec.unmarshalNStorageTypeEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageTypeEnum(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8493,21 +8493,21 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNCreateUserWithOrganizationInput2imgddᚋgraphᚋmodelᚐCreateUserWithOrganizationInput(ctx context.Context, v any) (model.CreateUserWithOrganizationInput, error) {
+func (ec *executionContext) unmarshalNCreateUserWithOrganizationInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐCreateUserWithOrganizationInput(ctx context.Context, v any) (model.CreateUserWithOrganizationInput, error) {
 	res, err := ec.unmarshalInputCreateUserWithOrganizationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNDeleteImageInput2imgddᚋgraphᚋmodelᚐDeleteImageInput(ctx context.Context, v any) (model.DeleteImageInput, error) {
+func (ec *executionContext) unmarshalNDeleteImageInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐDeleteImageInput(ctx context.Context, v any) (model.DeleteImageInput, error) {
 	res, err := ec.unmarshalInputDeleteImageInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDeleteImageResult2imgddᚋgraphᚋmodelᚐDeleteImageResult(ctx context.Context, sel ast.SelectionSet, v model.DeleteImageResult) graphql.Marshaler {
+func (ec *executionContext) marshalNDeleteImageResult2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐDeleteImageResult(ctx context.Context, sel ast.SelectionSet, v model.DeleteImageResult) graphql.Marshaler {
 	return ec._DeleteImageResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNDeleteImageResult2ᚖimgddᚋgraphᚋmodelᚐDeleteImageResult(ctx context.Context, sel ast.SelectionSet, v *model.DeleteImageResult) graphql.Marshaler {
+func (ec *executionContext) marshalNDeleteImageResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐDeleteImageResult(ctx context.Context, sel ast.SelectionSet, v *model.DeleteImageResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8532,7 +8532,7 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) marshalNImage2ᚕᚖimgddᚋgraphᚋmodelᚐImageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Image) graphql.Marshaler {
+func (ec *executionContext) marshalNImage2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Image) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -8556,7 +8556,7 @@ func (ec *executionContext) marshalNImage2ᚕᚖimgddᚋgraphᚋmodelᚐImageᚄ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNImage2ᚖimgddᚋgraphᚋmodelᚐImage(ctx, sel, v[i])
+			ret[i] = ec.marshalNImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImage(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8576,7 +8576,7 @@ func (ec *executionContext) marshalNImage2ᚕᚖimgddᚋgraphᚋmodelᚐImageᚄ
 	return ret
 }
 
-func (ec *executionContext) marshalNImage2ᚖimgddᚋgraphᚋmodelᚐImage(ctx context.Context, sel ast.SelectionSet, v *model.Image) graphql.Marshaler {
+func (ec *executionContext) marshalNImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImage(ctx context.Context, sel ast.SelectionSet, v *model.Image) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8586,7 +8586,7 @@ func (ec *executionContext) marshalNImage2ᚖimgddᚋgraphᚋmodelᚐImage(ctx c
 	return ec._Image(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNImageEdge2ᚕᚖimgddᚋgraphᚋmodelᚐImageEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ImageEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNImageEdge2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImageEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ImageEdge) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -8610,7 +8610,7 @@ func (ec *executionContext) marshalNImageEdge2ᚕᚖimgddᚋgraphᚋmodelᚐImag
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNImageEdge2ᚖimgddᚋgraphᚋmodelᚐImageEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalNImageEdge2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImageEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8630,7 +8630,7 @@ func (ec *executionContext) marshalNImageEdge2ᚕᚖimgddᚋgraphᚋmodelᚐImag
 	return ret
 }
 
-func (ec *executionContext) marshalNImageEdge2ᚖimgddᚋgraphᚋmodelᚐImageEdge(ctx context.Context, sel ast.SelectionSet, v *model.ImageEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNImageEdge2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImageEdge(ctx context.Context, sel ast.SelectionSet, v *model.ImageEdge) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8640,7 +8640,7 @@ func (ec *executionContext) marshalNImageEdge2ᚖimgddᚋgraphᚋmodelᚐImageEd
 	return ec._ImageEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNImagePageInfo2ᚖimgddᚋgraphᚋmodelᚐImagePageInfo(ctx context.Context, sel ast.SelectionSet, v *model.ImagePageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNImagePageInfo2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImagePageInfo(ctx context.Context, sel ast.SelectionSet, v *model.ImagePageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8650,11 +8650,11 @@ func (ec *executionContext) marshalNImagePageInfo2ᚖimgddᚋgraphᚋmodelᚐIma
 	return ec._ImagePageInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNImagesResult2imgddᚋgraphᚋmodelᚐImagesResult(ctx context.Context, sel ast.SelectionSet, v model.ImagesResult) graphql.Marshaler {
+func (ec *executionContext) marshalNImagesResult2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImagesResult(ctx context.Context, sel ast.SelectionSet, v model.ImagesResult) graphql.Marshaler {
 	return ec._ImagesResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNImagesResult2ᚖimgddᚋgraphᚋmodelᚐImagesResult(ctx context.Context, sel ast.SelectionSet, v *model.ImagesResult) graphql.Marshaler {
+func (ec *executionContext) marshalNImagesResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImagesResult(ctx context.Context, sel ast.SelectionSet, v *model.ImagesResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8679,7 +8679,7 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNOrganization2ᚖimgddᚋgraphᚋmodelᚐOrganization(ctx context.Context, sel ast.SelectionSet, v *model.Organization) graphql.Marshaler {
+func (ec *executionContext) marshalNOrganization2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐOrganization(ctx context.Context, sel ast.SelectionSet, v *model.Organization) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8689,14 +8689,14 @@ func (ec *executionContext) marshalNOrganization2ᚖimgddᚋgraphᚋmodelᚐOrga
 	return ec._Organization(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPermissionNameEnum2imgddᚋgraphᚋmodelᚐPermissionNameEnum(ctx context.Context, v any) (model.PermissionNameEnum, error) {
+func (ec *executionContext) unmarshalNPermissionNameEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPermissionNameEnum(ctx context.Context, v any) (model.PermissionNameEnum, error) {
 	tmp, err := graphql.UnmarshalString(v)
-	res := unmarshalNPermissionNameEnum2imgddᚋgraphᚋmodelᚐPermissionNameEnum[tmp]
+	res := unmarshalNPermissionNameEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPermissionNameEnum[tmp]
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPermissionNameEnum2imgddᚋgraphᚋmodelᚐPermissionNameEnum(ctx context.Context, sel ast.SelectionSet, v model.PermissionNameEnum) graphql.Marshaler {
-	res := graphql.MarshalString(marshalNPermissionNameEnum2imgddᚋgraphᚋmodelᚐPermissionNameEnum[v])
+func (ec *executionContext) marshalNPermissionNameEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPermissionNameEnum(ctx context.Context, sel ast.SelectionSet, v model.PermissionNameEnum) graphql.Marshaler {
+	res := graphql.MarshalString(marshalNPermissionNameEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPermissionNameEnum[v])
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8706,17 +8706,17 @@ func (ec *executionContext) marshalNPermissionNameEnum2imgddᚋgraphᚋmodelᚐP
 }
 
 var (
-	unmarshalNPermissionNameEnum2imgddᚋgraphᚋmodelᚐPermissionNameEnum = map[string]model.PermissionNameEnum{
+	unmarshalNPermissionNameEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPermissionNameEnum = map[string]model.PermissionNameEnum{
 		"AdminAccess":     model.PermissionName_AdminAccess,
 		"SiteOwnerAccess": model.PermissionName_SiteOwnerAccess,
 	}
-	marshalNPermissionNameEnum2imgddᚋgraphᚋmodelᚐPermissionNameEnum = map[model.PermissionNameEnum]string{
+	marshalNPermissionNameEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPermissionNameEnum = map[model.PermissionNameEnum]string{
 		model.PermissionName_AdminAccess:     "AdminAccess",
 		model.PermissionName_SiteOwnerAccess: "SiteOwnerAccess",
 	}
 )
 
-func (ec *executionContext) marshalNRole2ᚕᚖimgddᚋgraphᚋmodelᚐRoleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Role) graphql.Marshaler {
+func (ec *executionContext) marshalNRole2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐRoleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Role) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -8740,7 +8740,7 @@ func (ec *executionContext) marshalNRole2ᚕᚖimgddᚋgraphᚋmodelᚐRoleᚄ(c
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNRole2ᚖimgddᚋgraphᚋmodelᚐRole(ctx, sel, v[i])
+			ret[i] = ec.marshalNRole2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐRole(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8760,7 +8760,7 @@ func (ec *executionContext) marshalNRole2ᚕᚖimgddᚋgraphᚋmodelᚐRoleᚄ(c
 	return ret
 }
 
-func (ec *executionContext) marshalNRole2ᚖimgddᚋgraphᚋmodelᚐRole(ctx context.Context, sel ast.SelectionSet, v *model.Role) graphql.Marshaler {
+func (ec *executionContext) marshalNRole2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐRole(ctx context.Context, sel ast.SelectionSet, v *model.Role) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8770,7 +8770,7 @@ func (ec *executionContext) marshalNRole2ᚖimgddᚋgraphᚋmodelᚐRole(ctx con
 	return ec._Role(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNStorageConfig2imgddᚋgraphᚋmodelᚐStorageConfig(ctx context.Context, sel ast.SelectionSet, v model.StorageConfig) graphql.Marshaler {
+func (ec *executionContext) marshalNStorageConfig2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageConfig(ctx context.Context, sel ast.SelectionSet, v model.StorageConfig) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8780,7 +8780,7 @@ func (ec *executionContext) marshalNStorageConfig2imgddᚋgraphᚋmodelᚐStorag
 	return ec._StorageConfig(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNStorageDefinition2ᚕᚖimgddᚋgraphᚋmodelᚐStorageDefinitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.StorageDefinition) graphql.Marshaler {
+func (ec *executionContext) marshalNStorageDefinition2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageDefinitionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.StorageDefinition) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -8804,7 +8804,7 @@ func (ec *executionContext) marshalNStorageDefinition2ᚕᚖimgddᚋgraphᚋmode
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNStorageDefinition2ᚖimgddᚋgraphᚋmodelᚐStorageDefinition(ctx, sel, v[i])
+			ret[i] = ec.marshalNStorageDefinition2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageDefinition(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8824,7 +8824,7 @@ func (ec *executionContext) marshalNStorageDefinition2ᚕᚖimgddᚋgraphᚋmode
 	return ret
 }
 
-func (ec *executionContext) marshalNStorageDefinition2ᚖimgddᚋgraphᚋmodelᚐStorageDefinition(ctx context.Context, sel ast.SelectionSet, v *model.StorageDefinition) graphql.Marshaler {
+func (ec *executionContext) marshalNStorageDefinition2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageDefinition(ctx context.Context, sel ast.SelectionSet, v *model.StorageDefinition) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8834,14 +8834,14 @@ func (ec *executionContext) marshalNStorageDefinition2ᚖimgddᚋgraphᚋmodel�
 	return ec._StorageDefinition(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStorageTypeEnum(ctx context.Context, v any) (model.StorageTypeEnum, error) {
+func (ec *executionContext) unmarshalNStorageTypeEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageTypeEnum(ctx context.Context, v any) (model.StorageTypeEnum, error) {
 	tmp, err := graphql.UnmarshalString(v)
-	res := unmarshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStorageTypeEnum[tmp]
+	res := unmarshalNStorageTypeEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageTypeEnum[tmp]
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStorageTypeEnum(ctx context.Context, sel ast.SelectionSet, v model.StorageTypeEnum) graphql.Marshaler {
-	res := graphql.MarshalString(marshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStorageTypeEnum[v])
+func (ec *executionContext) marshalNStorageTypeEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageTypeEnum(ctx context.Context, sel ast.SelectionSet, v model.StorageTypeEnum) graphql.Marshaler {
+	res := graphql.MarshalString(marshalNStorageTypeEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageTypeEnum[v])
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8851,17 +8851,17 @@ func (ec *executionContext) marshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStor
 }
 
 var (
-	unmarshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStorageTypeEnum = map[string]model.StorageTypeEnum{
+	unmarshalNStorageTypeEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageTypeEnum = map[string]model.StorageTypeEnum{
 		"S3":    model.StorageType_S3,
 		"Other": model.StorageType_Other,
 	}
-	marshalNStorageTypeEnum2imgddᚋgraphᚋmodelᚐStorageTypeEnum = map[model.StorageTypeEnum]string{
+	marshalNStorageTypeEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageTypeEnum = map[model.StorageTypeEnum]string{
 		model.StorageType_S3:    "S3",
 		model.StorageType_Other: "Other",
 	}
 )
 
-func (ec *executionContext) marshalNStoredImage2ᚕᚖimgddᚋgraphᚋmodelᚐStoredImageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.StoredImage) graphql.Marshaler {
+func (ec *executionContext) marshalNStoredImage2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStoredImageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.StoredImage) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -8885,7 +8885,7 @@ func (ec *executionContext) marshalNStoredImage2ᚕᚖimgddᚋgraphᚋmodelᚐSt
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNStoredImage2ᚖimgddᚋgraphᚋmodelᚐStoredImage(ctx, sel, v[i])
+			ret[i] = ec.marshalNStoredImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStoredImage(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8905,7 +8905,7 @@ func (ec *executionContext) marshalNStoredImage2ᚕᚖimgddᚋgraphᚋmodelᚐSt
 	return ret
 }
 
-func (ec *executionContext) marshalNStoredImage2ᚖimgddᚋgraphᚋmodelᚐStoredImage(ctx context.Context, sel ast.SelectionSet, v *model.StoredImage) graphql.Marshaler {
+func (ec *executionContext) marshalNStoredImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStoredImage(ctx context.Context, sel ast.SelectionSet, v *model.StoredImage) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8945,7 +8945,7 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalNUser2ᚖimgddᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8955,11 +8955,11 @@ func (ec *executionContext) marshalNUser2ᚖimgddᚋgraphᚋmodelᚐUser(ctx con
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNViewer2imgddᚋgraphᚋmodelᚐViewer(ctx context.Context, sel ast.SelectionSet, v model.Viewer) graphql.Marshaler {
+func (ec *executionContext) marshalNViewer2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐViewer(ctx context.Context, sel ast.SelectionSet, v model.Viewer) graphql.Marshaler {
 	return ec._Viewer(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNViewer2ᚖimgddᚋgraphᚋmodelᚐViewer(ctx context.Context, sel ast.SelectionSet, v *model.Viewer) graphql.Marshaler {
+func (ec *executionContext) marshalNViewer2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐViewer(ctx context.Context, sel ast.SelectionSet, v *model.Viewer) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -8969,11 +8969,11 @@ func (ec *executionContext) marshalNViewer2ᚖimgddᚋgraphᚋmodelᚐViewer(ctx
 	return ec._Viewer(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNViewerResult2imgddᚋgraphᚋmodelᚐViewerResult(ctx context.Context, sel ast.SelectionSet, v model.ViewerResult) graphql.Marshaler {
+func (ec *executionContext) marshalNViewerResult2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐViewerResult(ctx context.Context, sel ast.SelectionSet, v model.ViewerResult) graphql.Marshaler {
 	return ec._ViewerResult(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNViewerResult2ᚖimgddᚋgraphᚋmodelᚐViewerResult(ctx context.Context, sel ast.SelectionSet, v *model.ViewerResult) graphql.Marshaler {
+func (ec *executionContext) marshalNViewerResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐViewerResult(ctx context.Context, sel ast.SelectionSet, v *model.ViewerResult) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -9236,17 +9236,17 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) unmarshalNcheckStorageDefinitionConnectivityInput2imgddᚋgraphᚋmodelᚐCheckStorageDefinitionConnectivityInput(ctx context.Context, v any) (model.CheckStorageDefinitionConnectivityInput, error) {
+func (ec *executionContext) unmarshalNcheckStorageDefinitionConnectivityInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐCheckStorageDefinitionConnectivityInput(ctx context.Context, v any) (model.CheckStorageDefinitionConnectivityInput, error) {
 	res, err := ec.unmarshalInputcheckStorageDefinitionConnectivityInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNcreateStorageDefinitionInput2imgddᚋgraphᚋmodelᚐCreateStorageDefinitionInput(ctx context.Context, v any) (model.CreateStorageDefinitionInput, error) {
+func (ec *executionContext) unmarshalNcreateStorageDefinitionInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐCreateStorageDefinitionInput(ctx context.Context, v any) (model.CreateStorageDefinitionInput, error) {
 	res, err := ec.unmarshalInputcreateStorageDefinitionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNupdateStorageDefinitionInput2imgddᚋgraphᚋmodelᚐUpdateStorageDefinitionInput(ctx context.Context, v any) (model.UpdateStorageDefinitionInput, error) {
+func (ec *executionContext) unmarshalNupdateStorageDefinitionInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐUpdateStorageDefinitionInput(ctx context.Context, v any) (model.UpdateStorageDefinitionInput, error) {
 	res, err := ec.unmarshalInputupdateStorageDefinitionInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -9293,14 +9293,14 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalOImage2ᚖimgddᚋgraphᚋmodelᚐImage(ctx context.Context, sel ast.SelectionSet, v *model.Image) graphql.Marshaler {
+func (ec *executionContext) marshalOImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImage(ctx context.Context, sel ast.SelectionSet, v *model.Image) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Image(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOImageFilterInput2ᚖimgddᚋgraphᚋmodelᚐImageFilterInput(ctx context.Context, v any) (*model.ImageFilterInput, error) {
+func (ec *executionContext) unmarshalOImageFilterInput2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImageFilterInput(ctx context.Context, v any) (*model.ImageFilterInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -9308,7 +9308,7 @@ func (ec *executionContext) unmarshalOImageFilterInput2ᚖimgddᚋgraphᚋmodel�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOImageOrderByInput2ᚖimgddᚋgraphᚋmodelᚐImageOrderByInput(ctx context.Context, v any) (*model.ImageOrderByInput, error) {
+func (ec *executionContext) unmarshalOImageOrderByInput2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImageOrderByInput(ctx context.Context, v any) (*model.ImageOrderByInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -9332,14 +9332,14 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) marshalOOrganizationUser2ᚖimgddᚋgraphᚋmodelᚐOrganizationUser(ctx context.Context, sel ast.SelectionSet, v *model.OrganizationUser) graphql.Marshaler {
+func (ec *executionContext) marshalOOrganizationUser2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐOrganizationUser(ctx context.Context, sel ast.SelectionSet, v *model.OrganizationUser) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._OrganizationUser(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOPaginationDirection2ᚖimgddᚋgraphᚋmodelᚐPaginationDirection(ctx context.Context, v any) (*model.PaginationDirection, error) {
+func (ec *executionContext) unmarshalOPaginationDirection2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPaginationDirection(ctx context.Context, v any) (*model.PaginationDirection, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -9348,21 +9348,21 @@ func (ec *executionContext) unmarshalOPaginationDirection2ᚖimgddᚋgraphᚋmod
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOPaginationDirection2ᚖimgddᚋgraphᚋmodelᚐPaginationDirection(ctx context.Context, sel ast.SelectionSet, v *model.PaginationDirection) graphql.Marshaler {
+func (ec *executionContext) marshalOPaginationDirection2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPaginationDirection(ctx context.Context, sel ast.SelectionSet, v *model.PaginationDirection) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) marshalOStorageDefinition2ᚖimgddᚋgraphᚋmodelᚐStorageDefinition(ctx context.Context, sel ast.SelectionSet, v *model.StorageDefinition) graphql.Marshaler {
+func (ec *executionContext) marshalOStorageDefinition2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageDefinition(ctx context.Context, sel ast.SelectionSet, v *model.StorageDefinition) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._StorageDefinition(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOStorageDefinitionConnectivityResult2ᚖimgddᚋgraphᚋmodelᚐStorageDefinitionConnectivityResult(ctx context.Context, sel ast.SelectionSet, v *model.StorageDefinitionConnectivityResult) graphql.Marshaler {
+func (ec *executionContext) marshalOStorageDefinitionConnectivityResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageDefinitionConnectivityResult(ctx context.Context, sel ast.SelectionSet, v *model.StorageDefinitionConnectivityResult) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

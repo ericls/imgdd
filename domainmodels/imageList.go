@@ -1,10 +1,11 @@
 package domainmodels
 
 import (
-	"imgdd/utils/pagination"
 	"mime"
 	"strings"
 	"time"
+
+	"github.com/ericls/imgdd/utils/pagination"
 )
 
 type ListImageResult struct {

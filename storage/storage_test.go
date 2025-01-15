@@ -1,11 +1,12 @@
 package storage_test
 
 import (
-	"imgdd/db"
 	"log"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/ericls/imgdd/db"
 
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"

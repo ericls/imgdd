@@ -1,6 +1,6 @@
 package identity
 
-import "imgdd/db"
+import "github.com/ericls/imgdd/db"
 
 func AddUserToGroup(groupKey, userEmail string, dbConf *db.DBConfigDef) error {
 	conn := db.GetConnection(dbConf)

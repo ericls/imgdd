@@ -2,10 +2,11 @@ package storage_test
 
 import (
 	"bytes"
-	"imgdd/storage"
 	"io"
 	"log"
 	"testing"
+
+	"github.com/ericls/imgdd/storage"
 )
 
 var data = []byte("test data")

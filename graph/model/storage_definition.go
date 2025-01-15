@@ -2,7 +2,8 @@ package model
 
 import (
 	"encoding/json"
-	"imgdd/domainmodels"
+
+	"github.com/ericls/imgdd/domainmodels"
 )
 
 // TODO: Maybe move the enum to the storage package

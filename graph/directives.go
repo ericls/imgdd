@@ -3,7 +3,8 @@ package graph
 import (
 	"context"
 	"fmt"
-	"imgdd/identity"
+
+	"github.com/ericls/imgdd/identity"
 
 	"github.com/99designs/gqlgen/graphql"
 )

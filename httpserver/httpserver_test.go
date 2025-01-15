@@ -2,12 +2,13 @@ package httpserver_test
 
 import (
 	"context"
-	"imgdd/db"
 	"log"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/ericls/imgdd/db"
 
 	"github.com/ory/dockertest/v3"
 	"github.com/redis/go-redis/v9"

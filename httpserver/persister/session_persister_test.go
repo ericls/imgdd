@@ -1,11 +1,12 @@
 package persister_test
 
 import (
-	"imgdd/httpserver/persister"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ericls/imgdd/httpserver/persister"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/gorilla/mux"

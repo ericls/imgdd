@@ -1,9 +1,9 @@
 package httpserver
 
 import (
-	"imgdd/graph"
-	"imgdd/image"
-	"imgdd/storage"
+	"github.com/ericls/imgdd/graph"
+	"github.com/ericls/imgdd/image"
+	"github.com/ericls/imgdd/storage"
 )
 
 type ContextKey string

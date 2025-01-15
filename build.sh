@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-(cd web_client && rm -rf dist/web && npm run build);
+(cd web_client && rm -rf dist/web && npm run build -- --no-cache);
 
 targets=("linux_amd64" "linux_arm64" "darwin_arm64" "windows_amd64")
 set -f
@@ -14,9 +14,9 @@ do
   go build \
   -o dist/imgdd_${target} \
   -ldflags "-s -w
-    -X 'imgdd/buildflag.Debug=false'
-    -X 'imgdd/buildflag.Dev=false'
-    -X imgdd/buildflag.VersionHash=`git rev-parse HEAD`
+    -X 'github.com/ericls/imgdd/buildflag.Debug=false'
+    -X 'github.com/ericls/imgdd/buildflag.Dev=false'
+    -X github.com/ericls/imgdd/buildflag.VersionHash=`git rev-parse HEAD`
   " \
   .
 done

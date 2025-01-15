@@ -3,7 +3,8 @@ package db
 import (
 	"context"
 	"database/sql"
-	"imgdd/internal"
+
+	"github.com/ericls/imgdd/internal"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"

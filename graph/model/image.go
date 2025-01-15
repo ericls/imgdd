@@ -1,9 +1,10 @@
 package model
 
 import (
-	"imgdd/domainmodels"
-	"imgdd/utils/pagination"
 	"time"
+
+	"github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/utils/pagination"
 )
 
 type Image struct {

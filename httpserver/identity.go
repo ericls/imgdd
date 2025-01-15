@@ -2,9 +2,10 @@ package httpserver
 
 import (
 	"context"
-	"imgdd/httpserver/persister"
-	"imgdd/identity"
 	"net/http"
+
+	"github.com/ericls/imgdd/httpserver/persister"
+	"github.com/ericls/imgdd/identity"
 )
 
 const authenticated_user_id_session_key = "authenticated_user_id"

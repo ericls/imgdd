@@ -2,8 +2,9 @@ package config
 
 import (
 	"fmt"
-	"imgdd/db"
-	"imgdd/httpserver"
+
+	"github.com/ericls/imgdd/db"
+	"github.com/ericls/imgdd/httpserver"
 )
 
 type ConfigDef struct {

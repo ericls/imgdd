@@ -1,6 +1,6 @@
 package model
 
-import "imgdd/domainmodels"
+import "github.com/ericls/imgdd/domainmodels"
 
 type Organization struct {
 	ID   string `json:"id"`

@@ -2,16 +2,17 @@ package httpserver
 
 import (
 	"encoding/json"
-	"imgdd/domainmodels"
-	"imgdd/identity"
-	"imgdd/image"
-	"imgdd/storage"
-	"imgdd/utils"
 	"io"
 	"mime"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/identity"
+	"github.com/ericls/imgdd/image"
+	"github.com/ericls/imgdd/storage"
+	"github.com/ericls/imgdd/utils"
 
 	"github.com/google/uuid"
 )

@@ -1,15 +1,16 @@
 package httpserver_test
 
 import (
-	"imgdd/db"
-	"imgdd/httpserver"
-	"imgdd/httpserver/persister"
-	"imgdd/identity"
-	"imgdd/test_support"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ericls/imgdd/db"
+	"github.com/ericls/imgdd/httpserver"
+	"github.com/ericls/imgdd/httpserver/persister"
+	"github.com/ericls/imgdd/identity"
+	"github.com/ericls/imgdd/test_support"
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"

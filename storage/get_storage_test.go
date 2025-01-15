@@ -2,10 +2,11 @@ package storage_test
 
 import (
 	"fmt"
-	"imgdd/db"
-	"imgdd/storage"
-	"imgdd/test_support"
 	"testing"
+
+	"github.com/ericls/imgdd/db"
+	"github.com/ericls/imgdd/storage"
+	"github.com/ericls/imgdd/test_support"
 )
 
 func TestGetStorage(t *testing.T) {

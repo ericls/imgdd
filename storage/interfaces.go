@@ -1,9 +1,10 @@
 package storage
 
 import (
-	dm "imgdd/domainmodels"
-	"imgdd/utils"
 	"io"
+
+	dm "github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/utils"
 )
 
 type FileMeta struct {

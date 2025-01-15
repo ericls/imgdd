@@ -1,6 +1,6 @@
 package test_support
 
-import "imgdd/db"
+import "github.com/ericls/imgdd/db"
 
 func ResetDatabase(dbConf *db.DBConfigDef) {
 	conn := db.GetConnection(dbConf)

@@ -1,8 +1,9 @@
 package graph
 
 import (
-	"imgdd/logging"
 	"os/exec"
+
+	"github.com/ericls/imgdd/logging"
 )
 
 var logger = logging.GetLogger("graph_commands")

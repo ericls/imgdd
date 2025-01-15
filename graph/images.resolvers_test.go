@@ -1,10 +1,11 @@
 package graph_test
 
 import (
-	"imgdd/domainmodels"
-	"imgdd/graph/model"
-	"imgdd/utils"
 	"testing"
+
+	"github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/graph/model"
+	"github.com/ericls/imgdd/utils"
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/google/uuid"

@@ -1,10 +1,11 @@
 package image
 
 import (
-	dm "imgdd/domainmodels"
-	"imgdd/utils"
-	"imgdd/utils/pagination"
 	"time"
+
+	dm "github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/utils"
+	"github.com/ericls/imgdd/utils/pagination"
 )
 
 type SaveFunc func(file utils.SeekerReader, filename string, mimeType string) error

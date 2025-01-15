@@ -2,8 +2,9 @@ package db
 
 import (
 	"embed"
-	"imgdd/logging"
 	"os/exec"
+
+	"github.com/ericls/imgdd/logging"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"

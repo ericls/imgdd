@@ -2,16 +2,17 @@ package httpserver
 
 import (
 	"html/template"
-	"imgdd/buildflag"
-	"imgdd/db"
-	"imgdd/graph"
-	"imgdd/httpserver/persister"
-	"imgdd/identity"
-	"imgdd/image"
-	"imgdd/storage"
 	"io/fs"
 	"net/http"
 	"time"
+
+	"github.com/ericls/imgdd/buildflag"
+	"github.com/ericls/imgdd/db"
+	"github.com/ericls/imgdd/graph"
+	"github.com/ericls/imgdd/httpserver/persister"
+	"github.com/ericls/imgdd/identity"
+	"github.com/ericls/imgdd/image"
+	"github.com/ericls/imgdd/storage"
 
 	"github.com/99designs/gqlgen/graphql"
 	gqlgenHandler "github.com/99designs/gqlgen/graphql/handler"

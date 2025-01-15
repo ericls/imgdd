@@ -3,8 +3,8 @@ package graph_test
 import (
 	"testing"
 
-	"imgdd/graph/model"
-	"imgdd/utils"
+	"github.com/ericls/imgdd/graph/model"
+	"github.com/ericls/imgdd/utils"
 
 	"github.com/stretchr/testify/require"
 )

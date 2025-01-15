@@ -2,9 +2,10 @@ package graph
 
 import (
 	"context"
-	"imgdd/identity"
-	"imgdd/image"
-	"imgdd/storage"
+
+	"github.com/ericls/imgdd/identity"
+	"github.com/ericls/imgdd/image"
+	"github.com/ericls/imgdd/storage"
 )
 
 //go:generate go run github.com/99designs/gqlgen generate

@@ -1,7 +1,7 @@
 package identity
 
 import (
-	"imgdd/buildflag"
+	"github.com/ericls/imgdd/buildflag"
 
 	"golang.org/x/crypto/bcrypt"
 )

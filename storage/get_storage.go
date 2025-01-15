@@ -2,7 +2,8 @@ package storage
 
 import (
 	"errors"
-	"imgdd/domainmodels"
+
+	"github.com/ericls/imgdd/domainmodels"
 )
 
 func GetStorage(storageDef *domainmodels.StorageDefinition) (Storage, error) {

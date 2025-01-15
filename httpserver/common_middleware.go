@@ -2,10 +2,11 @@ package httpserver
 
 import (
 	"context"
-	"imgdd/logging"
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/ericls/imgdd/logging"
 
 	"github.com/felixge/httpsnoop"
 	"github.com/rs/zerolog"

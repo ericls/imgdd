@@ -2,7 +2,8 @@ package identity
 
 import (
 	"context"
-	dm "imgdd/domainmodels"
+
+	dm "github.com/ericls/imgdd/domainmodels"
 )
 
 type AuthenticatedUser struct {

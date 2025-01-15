@@ -1,11 +1,12 @@
 package identity
 
 import (
-	"imgdd/db"
 	"log"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/ericls/imgdd/db"
 
 	"github.com/ory/dockertest/v3"
 )

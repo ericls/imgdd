@@ -4,12 +4,13 @@ package image
 import (
 	"bytes"
 	"database/sql"
-	"imgdd/db"
-	"imgdd/db/.gen/imgdd/public/model"
-	. "imgdd/db/.gen/imgdd/public/table"
-	dm "imgdd/domainmodels"
-	"imgdd/logging"
-	"imgdd/utils"
+
+	"github.com/ericls/imgdd/db"
+	"github.com/ericls/imgdd/db/.gen/imgdd/public/model"
+	. "github.com/ericls/imgdd/db/.gen/imgdd/public/table"
+	dm "github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/logging"
+	"github.com/ericls/imgdd/utils"
 
 	. "github.com/go-jet/jet/v2/postgres"
 	"github.com/google/uuid"

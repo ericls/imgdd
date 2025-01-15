@@ -1,18 +1,19 @@
 package main
 
 import (
-	"imgdd/buildflag"
-	"imgdd/config"
-	"imgdd/db"
-	"imgdd/graph"
-	"imgdd/httpserver"
-	"imgdd/identity"
-	"imgdd/logging"
-	"imgdd/test_support"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/ericls/imgdd/buildflag"
+	"github.com/ericls/imgdd/config"
+	"github.com/ericls/imgdd/db"
+	"github.com/ericls/imgdd/graph"
+	"github.com/ericls/imgdd/httpserver"
+	"github.com/ericls/imgdd/identity"
+	"github.com/ericls/imgdd/logging"
+	"github.com/ericls/imgdd/test_support"
 
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v2"

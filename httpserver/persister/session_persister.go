@@ -4,11 +4,12 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"imgdd/logging"
 	"io"
 	"net/http"
 	"strings"
 	"sync"
+
+	"github.com/ericls/imgdd/logging"
 
 	"github.com/felixge/httpsnoop"
 	"github.com/gorilla/sessions"

@@ -2,12 +2,13 @@ package graph
 
 import (
 	"context"
-	dm "imgdd/domainmodels"
-	"imgdd/graph/model"
-	"imgdd/identity"
-	"imgdd/storage"
 	"net/http"
 	"time"
+
+	dm "github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/graph/model"
+	"github.com/ericls/imgdd/identity"
+	"github.com/ericls/imgdd/storage"
 
 	"github.com/vikstrous/dataloadgen"
 )

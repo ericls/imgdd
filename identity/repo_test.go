@@ -1,9 +1,10 @@
 package identity
 
 import (
-	"imgdd/db"
-	dm "imgdd/domainmodels"
 	"testing"
+
+	"github.com/ericls/imgdd/db"
+	dm "github.com/ericls/imgdd/domainmodels"
 )
 
 func TestIdentityRepo(t *testing.T) {
