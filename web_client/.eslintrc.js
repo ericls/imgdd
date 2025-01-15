@@ -1,5 +1,5 @@
 module.exports = {
-  ignorePatterns: ["dist/*", "src/gql/*.ts", ".eslintrc.js"],
+  ignorePatterns: ["dist/*", "src/gql/*.ts", ".eslintrc.js", "src/__generated__/*"],
   extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",

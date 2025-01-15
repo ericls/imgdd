@@ -9,7 +9,8 @@
     "dev:js": "parcel watch --public-url=/static/web/ --port=8081",
     "build": "NODE_ENV=production parcel build --public-url=/static/web/ --reporter @parcel/reporter-bundle-analyzer",
     "lint": "eslint src",
-    "gen": "graphql-codegen"
+    "gen": "graphql-codegen",
+    "type-check": "tsc --noEmit"
   },
   "engines": {
     "node": ">=20 <21",

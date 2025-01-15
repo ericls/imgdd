@@ -1,22 +1,10 @@
-import classnames from "classnames";
-import classNames from "classnames";
 import React from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import {
   HiOutlineUsers as UsersIcon,
   HiOutlineServerStack as SotrageIcon,
 } from "react-icons/hi2";
 import { PiImages as ImagesIcon } from "react-icons/pi";
-// import { TbDeviceAnalytics as AnalyticsIcon } from "react-icons/tb";
-import { Footer } from "~src/common/Footer";
-import { LazyRouteFallback } from "~src/common/LazyRouteFallback";
-import { TopNav } from "~src/common/TopNav";
-import {
-  PRIMARY_BORDER_COLOR,
-  PRIMARY_TEXT_COLOR,
-  SECONDARY_TEXT_COLOR,
-  SECONDARY_TEXT_COLOR_DIMMER,
-} from "~src/ui/classNames";
 import {
   DashboardLayout,
   DashboardLayoutMenuGroups,
