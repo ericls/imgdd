@@ -109,7 +109,7 @@ func FromPaginationOrder(po *pagination.Order) *ListImagesOrdering {
 
 type ImageRepo interface {
 	CreateAndSaveUploadedImage(image *dm.Image, fileBytes []byte, storageDefinitionId string, saveFn SaveFunc) (*dm.StoredImage, error)
-	ListImages(filters *ListImagesFilters, ordering *ListImagesOrdering) (dm.ListImageResult, error)
+	ListImages(filtersWithoutCursor *ListImagesFilters, filtersWithCursor *ListImagesFilters, ordering *ListImagesOrdering) (dm.ListImageResult, error)
 	CountImages(filters *ListImagesFilters) (int, error)
 	GetImageById(id string) (*dm.Image, error)
 	DeleteImageById(id string) error

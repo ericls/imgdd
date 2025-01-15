@@ -106,7 +106,7 @@ func (r *viewerResolver) Images(ctx context.Context, obj *model.Viewer, orderBy 
 	listImagesFiltersWithCursor := image.FromPaginationFilter(paginator.Filter)
 	listImagesOrdering := image.FromPaginationOrder(paginator.Order)
 
-	listImageResult, err := r.ImageRepo.ListImages(listImagesFiltersWithCursor, listImagesOrdering)
+	listImageResult, err := r.ImageRepo.ListImages(listImagesFilters, listImagesFiltersWithCursor, listImagesOrdering)
 	if err != nil {
 		return nil, err
 	}

@@ -239,16 +239,14 @@ func hasNextImageConditions(ordering *ListImagesOrdering, image *dm.Image) []Boo
 	return conditions
 }
 
-func (repo *DBImageRepo) imageExists(conditions []BoolExpression) bool {
+func (repo *DBImageRepo) imageExists(conditions BoolExpression) bool {
 	statement := ImageTable.SELECT(
 		ImageTable.ID,
 	).FROM(
 		ImageTable,
 	)
 	where := ImageTable.DeletedAt.IS_NULL()
-	for _, condition := range conditions {
-		where = where.AND(condition)
-	}
+	where = where.AND(conditions)
 	statement = statement.WHERE(where)
 	statement = statement.LIMIT(1)
 	dest := []model.ImageTable{}
@@ -260,14 +258,22 @@ func (repo *DBImageRepo) imageExists(conditions []BoolExpression) bool {
 	return len(dest) > 0
 }
 
-func (repo *DBImageRepo) imageHasPrev(ordering *ListImagesOrdering, image *dm.Image) bool {
+func (repo *DBImageRepo) imageHasPrev(filters *ListImagesFilters, ordering *ListImagesOrdering, image *dm.Image) bool {
 	conditions := hasPrevImageConditions(ordering, image)
-	return repo.imageExists(conditions)
+	where := repo.filtersToWhere(filters)
+	for _, cond := range conditions {
+		where = where.AND(cond)
+	}
+	return repo.imageExists(where)
 }
 
-func (repo *DBImageRepo) imageHasNext(ordering *ListImagesOrdering, image *dm.Image) bool {
+func (repo *DBImageRepo) imageHasNext(filters *ListImagesFilters, ordering *ListImagesOrdering, image *dm.Image) bool {
 	conditions := hasNextImageConditions(ordering, image)
-	return repo.imageExists(conditions)
+	where := repo.filtersToWhere(filters)
+	for _, cond := range conditions {
+		where = where.AND(cond)
+	}
+	return repo.imageExists(where)
 }
 
 func (repo *DBImageRepo) filtersToWhere(filters *ListImagesFilters) BoolExpression {
@@ -303,13 +309,17 @@ func (repo *DBImageRepo) filtersToWhere(filters *ListImagesFilters) BoolExpressi
 	return where
 }
 
-func (repo *DBImageRepo) ListImages(filters *ListImagesFilters, ordering *ListImagesOrdering) (dm.ListImageResult, error) {
+func (repo *DBImageRepo) ListImages(
+	filtersWithoutCursor *ListImagesFilters,
+	filtersWithCursor *ListImagesFilters,
+	ordering *ListImagesOrdering,
+) (dm.ListImageResult, error) {
 	stmt := ImageTable.SELECT(
 		ImageTable.AllColumns,
 	).FROM(
 		ImageTable,
 	)
-	where := repo.filtersToWhere(filters)
+	where := repo.filtersToWhere(filtersWithCursor)
 	if where != nil {
 		stmt = stmt.WHERE(where)
 	}
@@ -338,8 +348,8 @@ func (repo *DBImageRepo) ListImages(filters *ListImagesFilters, ordering *ListIm
 	if len(orderByClauses) > 0 {
 		stmt = stmt.ORDER_BY(orderByClauses...)
 	}
-	if filters.Limit > 0 {
-		stmt = stmt.LIMIT(int64(filters.Limit))
+	if filtersWithCursor.Limit > 0 {
+		stmt = stmt.LIMIT(int64(filtersWithCursor.Limit))
 	}
 	dest := []model.ImageTable{}
 	err := stmt.Query(repo.DB, &dest)
@@ -367,8 +377,8 @@ func (repo *DBImageRepo) ListImages(filters *ListImagesFilters, ordering *ListIm
 	if len(images) > 0 {
 		firstImage := images[0]
 		lastImage := images[len(dest)-1]
-		hasNext = repo.imageHasNext(ordering, lastImage)
-		hasPrev = repo.imageHasPrev(ordering, firstImage)
+		hasNext = repo.imageHasNext(filtersWithoutCursor, ordering, lastImage)
+		hasPrev = repo.imageHasPrev(filtersWithoutCursor, ordering, firstImage)
 	}
 
 	return dm.ListImageResult{
