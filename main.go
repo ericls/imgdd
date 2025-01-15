@@ -148,6 +148,13 @@ func main() {
 				return nil
 			},
 		},
+		{
+			Name: "build-info",
+			Action: func(ctx *cli.Context) error {
+				buildflag.PrintBuildInfo()
+				return nil
+			},
+		},
 	}
 	if buildflag.IsDev {
 		commands = append(commands,

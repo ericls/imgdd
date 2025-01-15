@@ -11,3 +11,6 @@ web_client/dist/*
 !web_client/dist/.keep
 
 config.toml
+
+.DS_Store
+/dist/
