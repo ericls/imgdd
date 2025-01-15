@@ -48,7 +48,18 @@ const router = createBrowserRouter([
     children: [
       {
         path: "",
-        element: <Navigate to="/site-admin/storage" replace />,
+        element: <Navigate to="/site-admin/images" replace />,
+      },
+      {
+        path: "users/*",
+        lazy: async () => {
+          const { Users } = await import(
+            "~src/site-admin/pages/users/usersIndex"
+          );
+          return {
+            element: <Users />,
+          };
+        },
       },
       {
         path: "images/*",
@@ -70,6 +81,32 @@ const router = createBrowserRouter([
           );
           return {
             element: <StorageConfig />,
+          };
+        },
+      },
+    ],
+  },
+  {
+    path: "profile",
+    lazy: async () => {
+      const { ProfileLayout } = await import("~src/profile/layout");
+      return {
+        element: <ProfileLayout />,
+      };
+    },
+    children: [
+      {
+        path: "",
+        element: <Navigate to="/profile/images" replace />,
+      },
+      {
+        path: "images/*",
+        lazy: async () => {
+          const { Images } = await import(
+            "~src/profile/pages/images/imagesIndex"
+          );
+          return {
+            element: <Images />,
           };
         },
       },
