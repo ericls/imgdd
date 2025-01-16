@@ -28,7 +28,7 @@ export const Button = React.forwardRef<
       noPadding = false,
       ...props
     },
-    ref
+    ref,
   ) => {
     const variantClassName = BUTTON_VARIANTS[variant];
     let roundedClassName = "";
@@ -47,10 +47,10 @@ export const Button = React.forwardRef<
           `justify-center border border-transparent shadow`,
           `text-sm font-medium`,
           `focus:outline-none focus:ring-2`,
-          { "py-2 px-4": !noPadding }
+          { "py-2 px-4": !noPadding },
         )}
         {...props}
       />
     );
-  }
+  },
 );

@@ -47,7 +47,7 @@ const MENU_ITEM_GETTERS: Record<ImageMenuItemName, MenuItemGetter> = {
 
 function getMenuItemByName(
   name: ImageMenuItemName,
-  props: MenuItemGetterProps
+  props: MenuItemGetterProps,
 ): MenuItem {
   return MENU_ITEM_GETTERS[name](props);
 }
@@ -100,7 +100,7 @@ function getDeleteMenuItem({
 }
 export function useImageItemMenu(
   image: RenderingImageItem,
-  config?: ImageItemMenuConfig
+  config?: ImageItemMenuConfig,
 ): MenuSections | null {
   const { execute: executeDelete } = useDeleteImage(image.id);
   const menuSections = React.useMemo(() => {
@@ -110,7 +110,7 @@ export function useImageItemMenu(
         getMenuItemByName(name, {
           image,
           onDelete: executeDelete,
-        })
+        }),
       );
       return { id: section.id, items };
     });

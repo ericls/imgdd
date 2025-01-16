@@ -41,4 +41,5 @@ export const DEFAULT_INPUT_CHECKBOX =
   "disabled:opacity-50 disabled:cursor-not-allowed ";
 
 // list of classes that we want tailwind to include
+// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 ["rounded-full", "bg-primary-600"];

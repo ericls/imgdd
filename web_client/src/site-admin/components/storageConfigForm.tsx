@@ -85,10 +85,10 @@ export function StorageConfigForm({
     defaultValues: initialValue?.providerConfig,
   });
   const [createStorageDef, { loading: creating }] = useMutation(
-    createStorageDefMutation
+    createStorageDefMutation,
   );
   const [updateStorageDef, { loading: updating }] = useMutation(
-    updateStorageDefMutation
+    updateStorageDefMutation,
   );
   const isSubmitting = creating || updating;
   const onSubmit = React.useCallback(() => {

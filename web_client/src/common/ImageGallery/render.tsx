@@ -87,7 +87,7 @@ export function ImageItemRenderer({ image }: { image: RenderingImageItem }) {
                   variant="secondary"
                   className={classNames(
                     SECONDARY_TEXT_COLOR_DIM,
-                    "block py-0 px-1"
+                    "block py-0 px-1",
                   )}
                 >
                   <DefaultMenuIcon size={16} />
@@ -107,7 +107,7 @@ export function ImageItemRenderer({ image }: { image: RenderingImageItem }) {
           <span
             className={classNames(
               "text-base font-medium truncate w-100",
-              TEXT_COLOR
+              TEXT_COLOR,
             )}
             title={name}
           >
@@ -116,7 +116,7 @@ export function ImageItemRenderer({ image }: { image: RenderingImageItem }) {
           <span
             className={classNames(
               "text-sm text-gray-600",
-              SECONDARY_TEXT_COLOR_DIM
+              SECONDARY_TEXT_COLOR_DIM,
             )}
             title={new Date(createdAt).toLocaleString()}
           >
@@ -164,7 +164,7 @@ export function ImageGallery({
       }
       return <ImageItemRenderer image={image} />;
     },
-    [itemRenderer]
+    [itemRenderer],
   );
   const images = React.useMemo<RenderingImageItem[]>(() => {
     const images = data?.viewer.images.edges.map((edge) => edge.node) ?? [];

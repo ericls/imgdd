@@ -114,14 +114,14 @@ export function UploaderItem({
         className={classNames(
           "w-full bg-gray-200 rounded-md h-8 relative flex items-center p-3 ",
           SECOND_LAYER,
-          { "cursor-pointer": loaded }
+          { "cursor-pointer": loaded },
         )}
         onClick={onClick}
       >
         <div
           className={classNames(
             "h-8 rounded-md absolute top-0 left-0 duration-200",
-            colorClass
+            colorClass,
           )}
           style={{ width: widthPercentage + "%" }}
         ></div>
@@ -150,7 +150,7 @@ export function UploaderItem({
                 className={classNames(
                   "px-[2px] py-[2px]",
                   "hover:bg-white/20 h-full",
-                  "text-white"
+                  "text-white",
                 )}
               >
                 <IoEllipsisVertical size={20} />

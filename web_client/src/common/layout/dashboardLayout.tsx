@@ -47,7 +47,7 @@ export function DashboardLayout({
                   <div
                     className={classNames(
                       SECONDARY_TEXT_COLOR_DIMMER,
-                      "px-2 pb-1 text-xs font-poppins font-medium select-none border-l-4 border-transparent"
+                      "px-2 pb-1 text-xs font-poppins font-medium select-none border-l-4 border-transparent",
                     )}
                   >
                     {group.title}
@@ -74,7 +74,7 @@ export function DashboardLayout({
                                 "border-transparent": !isActive,
                                 "hover:border-neutral-400 hover:dark:border-neutral-500":
                                   !isActive,
-                              }
+                              },
                             )}
                           >
                             <span className="inline-flex w-6 h-6 mr-2 items-center justify-center text-lg">
@@ -94,7 +94,7 @@ export function DashboardLayout({
         <div
           className={classNames(
             mainAreaClassName,
-            "grow min-h-full flex flex-col mt-4 mr-4 ml-4"
+            "grow min-h-full flex flex-col mt-4 mr-4 ml-4",
           )}
         >
           <div className="grow">

@@ -94,7 +94,7 @@ export function MenuWithTrigger({
           "h-full",
           {
             hidden: !(open && breakpointName === "2xs"),
-          }
+          },
         )}
         onClick={onClose}
       />

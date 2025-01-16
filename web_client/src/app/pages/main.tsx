@@ -22,14 +22,14 @@ export function AppMainPage() {
       <h1
         className={classnames(
           TEXT_COLOR,
-          "font-poppins mb-4 mt-20 font-bold select-none"
+          "font-poppins mb-4 mt-20 font-bold select-none",
         )}
       ></h1>
       <TextLogo className="text-4xl" />
       <p
         className={classnames(
           SECONDARY_TEXT_COLOR_DIM,
-          "font-poppins text-2xl mb-10 text-center"
+          "font-poppins text-2xl mb-10 text-center",
         )}
       >
         {t("home.tagLine")}

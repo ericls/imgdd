@@ -26,7 +26,7 @@ export function UpdateOrCreateStorageDef() {
     getStorageDefQuery,
     {
       fetchPolicy: "network-only",
-    }
+    },
   );
   React.useEffect(() => {
     if (id) {
@@ -69,7 +69,7 @@ export function UpdateOrCreateStorageDef() {
         toast.error("Failed to save storage definition");
       }
     },
-    [navigate]
+    [navigate],
   );
   return (
     <div className="m-auto max-w-5xl">

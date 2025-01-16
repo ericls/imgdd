@@ -11,7 +11,7 @@ export function ListImages() {
   const { data: authData, isLoading: isAuthLoading } = useAuth();
   const user = React.useMemo(
     () => authData?.viewer.organizationUser,
-    [authData]
+    [authData],
   );
   if (isAuthLoading || !user) {
     return <FullScreenLoader />;

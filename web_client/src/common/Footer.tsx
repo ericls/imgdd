@@ -11,7 +11,7 @@ export function Footer({ center = false }: { center?: boolean }) {
         {
           ["text-end"]: !center,
           ["text-center"]: center,
-        }
+        },
       )}
     >
       <div>

@@ -27,8 +27,8 @@ export function StorageDefTableConnectivityCell({ id }: { id: string }) {
     resultOk === undefined
       ? t("storageDef.connection.unknown")
       : resultOk
-      ? t("storageDef.connection.success")
-      : t("storageDef.connection.error");
+        ? t("storageDef.connection.success")
+        : t("storageDef.connection.error");
   const onClick = React.useCallback(() => {
     mutate({
       variables: {
@@ -58,8 +58,8 @@ export function StorageDefTableConnectivityCell({ id }: { id: string }) {
           resultOk === undefined
             ? "secondary"
             : resultOk
-            ? "transparent"
-            : "secondary"
+              ? "transparent"
+              : "secondary"
         }
         onClick={onClick}
         disabled={result.loading || resultOk === true}

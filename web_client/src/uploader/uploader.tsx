@@ -32,7 +32,7 @@ export type UploadingFile = {
 export function Uplodaer() {
   const { t } = useTranslation();
   const [uploadingFiles, setUploadingFiles] = React.useState<UploadingFile[]>(
-    []
+    [],
   );
   const inputRef = React.useRef<HTMLInputElement>(null);
   const uploadSingle = React.useCallback(
@@ -97,12 +97,12 @@ export function Uplodaer() {
           console.log("error");
           setCurrentFile({ errored: true });
         },
-        { once: false }
+        { once: false },
       );
       request.addEventListener(
         "abort",
         () => setCurrentFile({ aborted: true }),
-        { once: false }
+        { once: false },
       );
       const formdata = new FormData();
       formdata.append("image", file, file.name);
@@ -110,7 +110,7 @@ export function Uplodaer() {
       addSessionHeaderToXMLHttpRequest(request);
       request.send(formdata);
     },
-    [setUploadingFiles]
+    [setUploadingFiles],
   );
   const onFileChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,7 +130,7 @@ export function Uplodaer() {
         i += 1;
       }
     },
-    [uploadSingle]
+    [uploadSingle],
   );
   const onAreaClick = React.useCallback(() => {
     inputRef.current?.click();
@@ -165,7 +165,7 @@ export function Uplodaer() {
         }
       }
     },
-    [uploadSingle]
+    [uploadSingle],
   );
   React.useEffect(() => {
     const isFirefox = navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
@@ -198,7 +198,7 @@ export function Uplodaer() {
         }
       }
     },
-    [uploadSingle]
+    [uploadSingle],
   );
   const hasMoreThanOneUploaded = React.useMemo(() => {
     let count = 0;
@@ -246,7 +246,7 @@ export function Uplodaer() {
           "bg-neutral-50 dark:bg-neutral-800",
           "hover:bg-neutral-100 hover:dark:bg-neutral-900",
           "border border-dashed border-neutral-300",
-          { ["blur-[1px]"]: dragActive }
+          { ["blur-[1px]"]: dragActive },
         )}
         onClick={onAreaClick}
         onDragEnter={handleDrag}

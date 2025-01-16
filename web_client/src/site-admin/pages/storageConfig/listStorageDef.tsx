@@ -32,7 +32,7 @@ export function ListStorageDef() {
     (id: string) => {
       navigate(`/site-admin/storage/storage-def/${id}`);
     },
-    [navigate]
+    [navigate],
   );
   return (
     <div className="m-auto max-w-5xl">

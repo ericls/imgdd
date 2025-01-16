@@ -13,7 +13,7 @@ export const BREAK_POINT_MIN_WIDTH = {
 export type BreakPoints = keyof typeof BREAK_POINT_MIN_WIDTH;
 
 const SORTED_BREAKPOINT_TUPLE: [width: number, name: string][] = Object.entries(
-  BREAK_POINT_MIN_WIDTH
+  BREAK_POINT_MIN_WIDTH,
 ).map(([k, v]) => [v, k]);
 SORTED_BREAKPOINT_TUPLE.sort((a, b) => b[0] - a[0]);
 
@@ -26,9 +26,8 @@ export function getBreakpointName(width?: number): BreakPoints {
 }
 
 export function useBreakpointName() {
-  const [breakpointName, setBreakpointName] = React.useState<BreakPoints>(
-    getBreakpointName()
-  );
+  const [breakpointName, setBreakpointName] =
+    React.useState<BreakPoints>(getBreakpointName());
   React.useEffect(() => {
     const onResize = () => {
       setBreakpointName(getBreakpointName());

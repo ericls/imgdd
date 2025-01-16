@@ -34,7 +34,7 @@ export type MenuProps = {
 export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
   (
     { onClose, menuSections, closeOnOutside = true, className, ...props },
-    containerRef
+    containerRef,
   ) => {
     const localContainerRef = React.useRef<HTMLDivElement>();
     const menuIdToElement = React.useRef<Map<string, HTMLElement>>(new Map());
@@ -47,7 +47,7 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
         }
         localContainerRef.current = el;
       },
-      [containerRef]
+      [containerRef],
     );
     const itemRef = React.useCallback((el: HTMLButtonElement) => {
       const id = el?.getAttribute("data-item-id");
@@ -79,11 +79,11 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
         setActiveId((currentActiveId) => {
           const currentIndex = menuItemIds.indexOf(currentActiveId || "");
           return menuItemIds.at(
-            (currentIndex + direction) % menuItemIds.length
+            (currentIndex + direction) % menuItemIds.length,
           );
         });
       },
-      [setActiveId, menuItemIds]
+      [setActiveId, menuItemIds],
     );
     React.useLayoutEffect(() => {
       localContainerRef.current?.focus();
@@ -98,7 +98,7 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
         const id = div.getAttribute("data-item-id");
         setActiveId(id || undefined);
       },
-      [setActiveId]
+      [setActiveId],
     );
     const onClickItem = React.useCallback(
       (e: React.MouseEvent<HTMLElement>) => {
@@ -108,7 +108,7 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
         if (item === undefined) return;
         item.action?.({ close: onClose, event: e });
       },
-      [menuIdToItem, onClose]
+      [menuIdToItem, onClose],
     );
     const onKeypress = React.useCallback(
       (e: React.KeyboardEvent<HTMLElement>) => {
@@ -124,7 +124,7 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
           onClose?.();
         }
       },
-      [moveSelection, onClose]
+      [moveSelection, onClose],
     );
     const onMouseLeaveContaienr = React.useCallback(() => {
       // TODO: only clear selection if the last selection is made by mouse events
@@ -161,7 +161,7 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
           "bg-neutral-50 dark:bg-neutral-700 dark:shadow-neutral-800",
           "divide-y dark:divide-neutral-800",
           "z-20",
-          className
+          className,
         )}
       >
         {menuSections.children.map((section) => {
@@ -187,7 +187,7 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
                           activeId === item.id,
                         "text-red-600 dark:text-red-500":
                           item.variant === "danger",
-                      }
+                      },
                     )}
                     onClick={onClickItem}
                   >
@@ -201,5 +201,5 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
         })}
       </div>
     );
-  }
+  },
 );

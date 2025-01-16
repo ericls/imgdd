@@ -86,7 +86,7 @@ export function DumbStorageDefTable({
                     noPadding
                     className={classNames(
                       "py-2 flex items-center gap-1",
-                      PRIMARY_TEXT_COLOR
+                      PRIMARY_TEXT_COLOR,
                     )}
                     onClick={() => {
                       onEdit(row.getValue().id);
@@ -99,10 +99,10 @@ export function DumbStorageDefTable({
               </div>
             );
           },
-        }
+        },
       ),
     ],
-    [onEdit, t]
+    [onEdit, t],
   );
   const table = useReactTable({
     data,
@@ -123,7 +123,7 @@ export function DumbStorageDefTable({
           className={classNames(
             "bg-neutral-50 dark:bg-neutral-700",
             SECONDARY_TEXT_COLOR_DIM,
-            "uppercase"
+            "uppercase",
           )}
         >
           {table.getHeaderGroups().map((headerGroup) => (
@@ -134,7 +134,7 @@ export function DumbStorageDefTable({
                     ? null
                     : flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )}
                 </th>
               ))}

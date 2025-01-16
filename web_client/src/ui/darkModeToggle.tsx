@@ -68,7 +68,7 @@ export function DarkModeSettings() {
                         {
                           "opacity-50 focus:ring-0 ring-0 bg-gray-300":
                             theme === "system",
-                        }
+                        },
                       )}
                       onChange={noop}
                     />
