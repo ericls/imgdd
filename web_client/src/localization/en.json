@@ -12,7 +12,7 @@
           "deleted": "Deleted"
         }
     },
-    "darlModeToggle": {
+    "darkModeToggle": {
         "dark": "Dark",
         "useSystem": "Auto"
     },
