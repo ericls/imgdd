@@ -2,7 +2,6 @@ import React from "react";
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { Button } from "./button";
-import { noop } from "lodash-es";
 
 type PromptProps = {
   title: string;
@@ -79,14 +78,14 @@ function Prompt({
   content,
   yesText = "OK",
   yesDestructive = false,
-  onClose: _onClose,
+  onClose,
   onYes,
   onNo,
   showCancel = true,
 }: PromptProps) {
   return (
     <Transition.Root show as={Fragment}>
-      <Dialog as="div" className="relative z-[100]" onClose={noop}>
+      <Dialog as="div" className="relative z-[100]" onClose={onClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"

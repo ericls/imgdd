@@ -6,8 +6,8 @@ import { copyText } from "~src/lib/copyText";
 import { toast } from "react-toastify";
 import { absoluteURL } from "~src/lib/url";
 import { prompt } from "~src/ui/prompt";
-import i18n from "~src/i18n";
-import { Trans } from "~node_modules/react-i18next";
+import type { i18n as i18nType } from "i18next";
+import { Trans, useTranslation } from "react-i18next";
 
 enum ImageMenuItemName {
   DOWNLOAD = "download",
@@ -34,6 +34,7 @@ export const DEFAULT_MENU_CONFIG: ImageItemMenuConfig = {
 
 type MenuItemGetterProps = {
   image: RenderingImageItem;
+  i18n: i18nType;
   onDelete?: () => PromiseLike<unknown>;
 };
 
@@ -54,6 +55,7 @@ function getMenuItemByName(
 
 function getDownloadMenuItem({
   image: { url },
+  i18n,
 }: MenuItemGetterProps): MenuItem {
   return {
     id: ImageMenuItemName.DOWNLOAD,
@@ -64,7 +66,10 @@ function getDownloadMenuItem({
   };
 }
 
-function getCopyURLMenuItem({ image: { url } }: MenuItemGetterProps): MenuItem {
+function getCopyURLMenuItem({
+  image: { url },
+  i18n,
+}: MenuItemGetterProps): MenuItem {
   return {
     id: ImageMenuItemName.COPY_URL,
     children: i18n.t("imageItem.copyURL"),
@@ -77,10 +82,12 @@ function getCopyURLMenuItem({ image: { url } }: MenuItemGetterProps): MenuItem {
 function getDeleteMenuItem({
   onDelete,
   image: { name },
+  i18n,
 }: MenuItemGetterProps): MenuItem {
   return {
     id: ImageMenuItemName.DELETE,
-    children: i18n.t("common.buttonLabel.delete"),
+    children: <>{i18n.t("common.buttonLabel.deleteWithConfirm")}</>,
+    variant: "danger",
     action: () => {
       prompt({
         content: (
@@ -102,6 +109,7 @@ export function useImageItemMenu(
   image: RenderingImageItem,
   config?: ImageItemMenuConfig,
 ): MenuSections | null {
+  const { i18n } = useTranslation();
   const { execute: executeDelete } = useDeleteImage(image.id);
   const menuSections = React.useMemo(() => {
     if (!config) return null;
@@ -110,11 +118,12 @@ export function useImageItemMenu(
         getMenuItemByName(name, {
           image,
           onDelete: executeDelete,
+          i18n,
         }),
       );
       return { id: section.id, items };
     });
-  }, [image, config, executeDelete]);
+  }, [image, config, executeDelete, i18n]);
   if (!menuSections) return null;
   return {
     children: menuSections,

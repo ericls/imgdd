@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import { TextLogoSmall } from "./TextLogo";
 import { DarkModeSettings } from "~src/ui/darkModeToggle";
@@ -11,6 +12,7 @@ import { MenuWithTrigger } from "~src/ui/menuWithTrigger";
 import { MenuSection } from "~src/ui/menu";
 
 function TopNavAuthInfo() {
+  const { t } = useTranslation();
   const { data: authData, isLoading: isAuthLoading, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,7 +32,7 @@ function TopNavAuthInfo() {
       >
         <div className="flex items-center">
           <HiOutlineUser className="mr-2" size={"1.25rem"} />
-          Sign In
+          {t("topNav.signIn")}
         </div>
       </Button>
     );
@@ -53,12 +55,12 @@ function TopNavAuthInfo() {
               items: [
                 {
                   id: "profile",
-                  children: "Profile",
+                  children: t("topNav.profile"),
                   action: () => navigate("/profile"),
                 },
                 {
                   id: "signOut",
-                  children: "Sign Out",
+                  children: t("topNav.signOut"),
                   action: logout,
                 },
               ],
@@ -68,7 +70,7 @@ function TopNavAuthInfo() {
               items: [
                 {
                   id: "siteSettings",
-                  children: "Site Settings",
+                  children: t("topNav.siteSettings"),
                   action: () => navigate("/site-admin"),
                 },
               ],

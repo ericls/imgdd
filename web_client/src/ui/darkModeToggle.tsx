@@ -1,6 +1,7 @@
 import React from "react";
 import cx from "classnames";
 import { DarkModeContext, DarkModeTheme } from "~src/lib/darkMode";
+import { useTranslation } from "react-i18next";
 import { Button } from "./button";
 
 import {
@@ -12,6 +13,7 @@ import { MenuWithTrigger } from "./menuWithTrigger";
 import { noop } from "lodash-es";
 
 export function DarkModeSettings() {
+  const { t } = useTranslation();
   const { theme, setTheme, isDarkMode } = React.useContext(DarkModeContext);
   const [checkbox, setCheckbox] = React.useState<HTMLInputElement | null>(null);
   const onToggleUseSystem = React.useCallback(() => {
@@ -72,7 +74,7 @@ export function DarkModeSettings() {
                       )}
                       onChange={noop}
                     />
-                    Dark
+                    {t("darkModeToggle.dark")}
                   </div>
                 ),
                 action: onToggleDarkMode,
@@ -88,7 +90,7 @@ export function DarkModeSettings() {
                       className="w-4 h-4 mr-1 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                       onChange={noop}
                     />
-                    Auto
+                    {t("darkModeToggle.useSystem")}
                   </div>
                 ),
                 action: onToggleUseSystem,

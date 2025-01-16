@@ -4,12 +4,23 @@
             "edit": "Edit",
             "save": "Save",
             "cancel": "Cancel",
-            "delete": "Delete"
+            "delete": "Delete",
+            "deleteWithConfirm": "Delete…"
         },
         "toast": {
           "copied": "Copied",
           "deleted": "Deleted"
         }
+    },
+    "darlModeToggle": {
+        "dark": "Dark",
+        "useSystem": "Auto"
+    },
+    "topNav": {
+        "signIn": "Sign in",
+        "siteSettings": "Site settings",
+        "profile": "Profile",
+        "signOut": "Sign out"
     },
     "home": {
         "tagLine": "Fast image delivery across the globe, for free."
@@ -67,6 +78,13 @@
         }
     },
     "siteadmin": {
+      "nav": {
+        "general": "General",
+        "users": "Users",
+        "images": "Images",
+        "storage": "Storage",
+        "storageBackend": "Storage backend"
+      },
       "images": {
         "list": {
           "title": "Manage images"
@@ -79,6 +97,10 @@
       "confirmDelete": "Are you sure you want to delete this image?<br/><b>{{name}}</b>"
     },
     "profile": {
+      "nav": {
+        "general": "General",
+        "images": "Images"
+      },
       "images": {
         "list": {
           "title": "My images"
