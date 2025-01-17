@@ -61,14 +61,19 @@ ADD
 CREATE TABLE stored_image_table (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     image_id UUID REFERENCES image_table(id) ON DELETE SET NULL,
-    storage_definition_id UUID REFERENCES storage_definition_table(id) ON DELETE SET NULL,
+    storage_definition_id UUID,
 
     file_identifier CHARACTER VARYING(255) NOT NULL,
     copied_from_id UUID REFERENCES stored_image_table(id) ON DELETE SET NULL,
     --
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-    is_file_deleted BOOLEAN NOT NULL DEFAULT FALSE
+    is_file_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT stored_image_table_storage_definition_id_fkey
+        FOREIGN KEY (storage_definition_id)
+        REFERENCES storage_definition_table (id)
+        ON DELETE SET NULL
 );
 
 ALTER TABLE

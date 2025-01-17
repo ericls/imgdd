@@ -14,7 +14,7 @@ func TestRepoCRUD(t *testing.T) {
 
 	// Create a new storage repo
 	dbConn := db.GetConnection(&TEST_DB_CONF)
-	repo := storage.NewDBStorageRepo(dbConn)
+	repo := storage.NewDBStorageDefRepo(dbConn)
 
 	// List storage definitions
 	storageDefs, err := repo.ListStorageDefinitions()

@@ -99,7 +99,7 @@ func TestMain(m *testing.M) {
 
 type TestContext struct {
 	identityRepo       identity.IdentityRepo
-	storageRepo        storage.StorageRepo
+	storageDefRepo     storage.StorageDefRepo
 	imageRepo          image.ImageRepo
 	identityManager    *httpserver.IdentityManager
 	tObj               *testing.T
@@ -145,16 +145,17 @@ func newTestContext(tObj *testing.T) *TestContext {
 	identityRepo := identity.NewDBIdentityRepo(conn)
 	sessionPersister := persister.NewSessionPersister(TEST_REDIS_URI, nil, nil, nil)
 	identityManager := httpserver.NewIdentityManager(identityRepo, sessionPersister)
-	storageRepo := storage.NewDBStorageRepo(conn)
+	storageDefRepo := storage.NewDBStorageDefRepo(conn)
+	storedImageRepo := storage.NewDBStoredImageRepo(conn)
 	imageRepo := image.NewDBImageRepo(conn)
-	resolver := httpserver.NewGqlResolver(identityManager, storageRepo, imageRepo, "")
+	resolver := httpserver.NewGqlResolver(identityManager, storageDefRepo, imageRepo, "")
 
 	// make server
 	gqlServer := handler.New(graph.NewExecutableSchema(httpserver.NewGraphConfig(resolver)))
 	gqlServer.AddTransport(transport.POST{})
 	// NOTE: the order of code should be reversed compared to Mux.use
 	handler := identityManager.Middleware(gqlServer)
-	handler = graph.NewLoadersMiddleware(identityRepo, storageRepo)(handler)
+	handler = graph.NewLoadersMiddleware(identityRepo, storageDefRepo, storedImageRepo)(handler)
 	handler = httpserver.RWContextMiddleware(handler)
 	handler = sessionPersister.Middleware(handler)
 	server := httptest.NewServer(handler)
@@ -164,7 +165,7 @@ func newTestContext(tObj *testing.T) *TestContext {
 
 	tc := &TestContext{
 		identityRepo:       identityRepo,
-		storageRepo:        storageRepo,
+		storageDefRepo:     storageDefRepo,
 		imageRepo:          imageRepo,
 		identityManager:    identityManager,
 		tObj:               tObj,

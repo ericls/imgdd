@@ -38,7 +38,7 @@ func (r *imageResolver) Revisions(ctx context.Context, obj *model.Image) ([]*mod
 
 // StoredImages is the resolver for the storedImages field.
 func (r *imageResolver) StoredImages(ctx context.Context, obj *model.Image) ([]*model.StoredImage, error) {
-	loader := LoadersFor(ctx).storedImagesByImageIdsLoader
+	loader := LoadersFor(ctx).StoredImagesByImageIdsLoader
 	return loader.Load(ctx, obj.ID)
 }
 

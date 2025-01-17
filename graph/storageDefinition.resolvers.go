@@ -14,7 +14,7 @@ import (
 
 // CreateStorageDefinition is the resolver for the createStorageDefinition field.
 func (r *mutationResolver) CreateStorageDefinition(ctx context.Context, input model.CreateStorageDefinitionInput) (*model.StorageDefinition, error) {
-	repo := r.StorageRepo
+	repo := r.StorageDefRepo
 	storageType := input.StorageType
 	config := input.ConfigJSON
 	backend := storage.GetBackend(string(storageType))
@@ -41,7 +41,7 @@ func (r *mutationResolver) CreateStorageDefinition(ctx context.Context, input mo
 
 // UpdateStorageDefinition is the resolver for the updateStorageDefinition field.
 func (r *mutationResolver) UpdateStorageDefinition(ctx context.Context, input model.UpdateStorageDefinitionInput) (*model.StorageDefinition, error) {
-	repo := r.StorageRepo
+	repo := r.StorageDefRepo
 	config := input.ConfigJSON
 	var priority int64
 	var priorityPtr *int64
@@ -69,7 +69,7 @@ func (r *mutationResolver) UpdateStorageDefinition(ctx context.Context, input mo
 
 // CheckStorageDefinitionConnectivity is the resolver for the checkStorageDefinitionConnectivity field.
 func (r *mutationResolver) CheckStorageDefinitionConnectivity(ctx context.Context, input model.CheckStorageDefinitionConnectivityInput) (*model.StorageDefinitionConnectivityResult, error) {
-	repo := r.StorageRepo
+	repo := r.StorageDefRepo
 	storageDefinition, err := repo.GetStorageDefinitionById(input.ID)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (r *mutationResolver) CheckStorageDefinitionConnectivity(ctx context.Contex
 
 // Connectivity is the resolver for the connectivity field.
 func (r *storageDefinitionResolver) Connectivity(ctx context.Context, obj *model.StorageDefinition) (bool, error) {
-	repo := r.StorageRepo
+	repo := r.StorageDefRepo
 	storageDefinition, err := repo.GetStorageDefinitionById(obj.Id)
 	if err != nil {
 		return false, err
@@ -111,7 +111,7 @@ func (r *storageDefinitionResolver) Connectivity(ctx context.Context, obj *model
 
 // StorageDefinitions is the resolver for the storageDefinitions field.
 func (r *viewerResolver) StorageDefinitions(ctx context.Context, obj *model.Viewer) ([]*model.StorageDefinition, error) {
-	repo := r.StorageRepo
+	repo := r.StorageDefRepo
 	storageDefinitions, err := repo.ListStorageDefinitions()
 	if err != nil {
 		return nil, err
@@ -126,7 +126,7 @@ func (r *viewerResolver) StorageDefinitions(ctx context.Context, obj *model.View
 
 // GetStorageDefinition is the resolver for the getStorageDefinition field.
 func (r *viewerResolver) GetStorageDefinition(ctx context.Context, obj *model.Viewer, id string) (*model.StorageDefinition, error) {
-	repo := r.StorageRepo
+	repo := r.StorageDefRepo
 	storageDefinition, err := repo.GetStorageDefinitionById(id)
 	if err != nil {
 		return nil, err

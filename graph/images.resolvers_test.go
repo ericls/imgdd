@@ -23,8 +23,8 @@ func createStorageDefinition(t *testing.T, tc *TestContext) *domainmodels.Storag
 		"access": "test",
 		"secret": "test"
 	}`
-	tc.storageRepo.CreateStorageDefinition("s3", configJSON, "test1", true, 1)
-	sd, err := tc.storageRepo.GetStorageDefinitionByIdentifier("test1")
+	tc.storageDefRepo.CreateStorageDefinition("s3", configJSON, "test1", true, 1)
+	sd, err := tc.storageDefRepo.GetStorageDefinitionByIdentifier("test1")
 	require.NoError(t, err)
 	return sd
 }

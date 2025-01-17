@@ -20,8 +20,9 @@ const loadersKey ldctxKey = "loaders_key"
 type Loaders struct {
 	UserLoader                   *dataloadgen.Loader[string, *model.User]
 	OrganizationUserLoader       *dataloadgen.Loader[string, *model.OrganizationUser]
-	storedImagesLoader           *dataloadgen.Loader[string, *model.StoredImage]
-	storedImagesByImageIdsLoader *dataloadgen.Loader[string, []*model.StoredImage]
+	StoredImagesLoader           *dataloadgen.Loader[string, *model.StoredImage]
+	StoredImagesByImageIdsLoader *dataloadgen.Loader[string, []*model.StoredImage]
+	StorageDefinitionsLoader     *dataloadgen.Loader[string, *model.StorageDefinition]
 }
 
 func makeUserLoader(identityRepo identity.IdentityRepo) func(c context.Context, keys []string) ([]*model.User, []error) {
@@ -68,23 +69,36 @@ func makeOrganizationUserLoader(identityRepo identity.IdentityRepo) func(c conte
 	}
 }
 
-func makeStoredImagesLoader(storageRepo storage.StorageRepo) func(c context.Context, keys []string) ([]*model.StoredImage, []error) {
+func makeStoredImagesLoader(storedImageRepo storage.StoredImageRepo, storageDefinitionLoader *dataloadgen.Loader[string, *model.StorageDefinition]) func(c context.Context, keys []string) ([]*model.StoredImage, []error) {
 	return func(c context.Context, keys []string) ([]*model.StoredImage, []error) {
-		storedImages, err := storageRepo.GetStoredImagesByIds(keys)
+		storedImages, err := storedImageRepo.GetStoredImagesByIds(keys)
 		if err != nil {
 			return nil, []error{err}
 		}
 		idToStoredImage := make(map[string]*dm.StoredImage)
+		storageDefIds := make([]string, 0)
 		for _, si := range storedImages {
 			if si == nil {
 				continue
 			}
+			storageDefIds = append(storageDefIds, si.StorageDefinitionId)
 			idToStoredImage[si.Id] = si
+		}
+		storageDefs, err := storageDefinitionLoader.LoadAll(c, storageDefIds)
+		if err != nil {
+			return nil, []error{err}
+		}
+		idToStorageDef := make(map[string]*model.StorageDefinition)
+		for _, sd := range storageDefs {
+			if sd == nil {
+				continue
+			}
+			idToStorageDef[sd.Id] = sd
 		}
 		ret := make([]*model.StoredImage, len(keys))
 		for i, id := range keys {
 			if si, ok := idToStoredImage[id]; ok {
-				ret[i] = model.FromStorageStoredImage(si)
+				ret[i] = model.FromStorageStoredImage(si, idToStorageDef[si.StorageDefinitionId])
 			} else {
 				ret[i] = nil
 			}
@@ -93,9 +107,9 @@ func makeStoredImagesLoader(storageRepo storage.StorageRepo) func(c context.Cont
 	}
 }
 
-func makeStoredImagesByImageIdsLoader(storageRepo storage.StorageRepo, storedImageLoader *dataloadgen.Loader[string, *model.StoredImage]) func(c context.Context, imageIds []string) ([][]*model.StoredImage, []error) {
+func makeStoredImagesByImageIdsLoader(storedImageRepo storage.StoredImageRepo, storedImageLoader *dataloadgen.Loader[string, *model.StoredImage]) func(c context.Context, imageIds []string) ([][]*model.StoredImage, []error) {
 	return func(c context.Context, imageIds []string) ([][]*model.StoredImage, []error) {
-		storedImageIdsByImageId, err := storageRepo.GetStoredImageIdsByImageIds(imageIds)
+		storedImageIdsByImageId, err := storedImageRepo.GetStoredImageIdsByImageIds(imageIds)
 		if err != nil {
 			return nil, []error{err}
 		}
@@ -116,22 +130,56 @@ func makeStoredImagesByImageIdsLoader(storageRepo storage.StorageRepo, storedIma
 	}
 }
 
-func NewLoaders(identityRepo identity.IdentityRepo, storageRepo storage.StorageRepo) *Loaders {
-	userLoader := dataloadgen.NewLoader(makeUserLoader(identityRepo), dataloadgen.WithWait(time.Millisecond))
-	organizationUserLoader := dataloadgen.NewLoader(makeOrganizationUserLoader(identityRepo), dataloadgen.WithWait(time.Millisecond))
-	storedImagesLoader := dataloadgen.NewLoader(makeStoredImagesLoader(storageRepo), dataloadgen.WithWait(time.Millisecond))
-	storedImagesByImageIdsLoader := dataloadgen.NewLoader(makeStoredImagesByImageIdsLoader(storageRepo, storedImagesLoader), dataloadgen.WithWait(time.Millisecond))
-	return &Loaders{
-		UserLoader:                   userLoader,
-		OrganizationUserLoader:       organizationUserLoader,
-		storedImagesLoader:           storedImagesLoader,
-		storedImagesByImageIdsLoader: storedImagesByImageIdsLoader,
+func makeStorageDefinitionsLoader(storageDefRepo storage.StorageDefRepo) func(c context.Context, keys []string) ([]*model.StorageDefinition, []error) {
+	return func(c context.Context, keys []string) ([]*model.StorageDefinition, []error) {
+		storageDefs, err := storageDefRepo.GetStorageDefinitionsByIds(keys)
+		if err != nil {
+			return nil, []error{err}
+		}
+		idToStorageDef := make(map[string]*dm.StorageDefinition)
+		for _, sd := range storageDefs {
+			if sd == nil {
+				continue
+			}
+			idToStorageDef[sd.Id] = sd
+		}
+		ret := make([]*model.StorageDefinition, len(keys))
+		for i, id := range keys {
+			if sd, ok := idToStorageDef[id]; ok {
+				graphSd, err := model.FromStorageDefinition(sd)
+				if err != nil {
+					return nil, []error{err}
+				}
+				ret[i] = graphSd
+			} else {
+				ret[i] = nil
+			}
+		}
+		return ret, nil
 	}
 }
 
-func NewLoadersMiddleware(identityRepo identity.IdentityRepo, storageRepo storage.StorageRepo) func(next http.Handler) http.Handler {
+func NewLoaders(identityRepo identity.IdentityRepo, storageDefRepo storage.StorageDefRepo, storedImageRepo storage.StoredImageRepo) *Loaders {
+	userLoader := dataloadgen.NewLoader(makeUserLoader(identityRepo), dataloadgen.WithWait(time.Millisecond))
+	organizationUserLoader := dataloadgen.NewLoader(makeOrganizationUserLoader(identityRepo), dataloadgen.WithWait(time.Millisecond))
+	storageDefinitionsLoader := dataloadgen.NewLoader(makeStorageDefinitionsLoader(storageDefRepo), dataloadgen.WithWait(time.Millisecond))
+	storedImagesLoader := dataloadgen.NewLoader(makeStoredImagesLoader(storedImageRepo, storageDefinitionsLoader), dataloadgen.WithWait(time.Millisecond))
+	storedImagesByImageIdsLoader := dataloadgen.NewLoader(makeStoredImagesByImageIdsLoader(storedImageRepo, storedImagesLoader), dataloadgen.WithWait(time.Millisecond))
+	return &Loaders{
+		UserLoader:                   userLoader,
+		OrganizationUserLoader:       organizationUserLoader,
+		StoredImagesLoader:           storedImagesLoader,
+		StoredImagesByImageIdsLoader: storedImagesByImageIdsLoader,
+	}
+}
+
+func NewLoadersMiddleware(
+	identityRepo identity.IdentityRepo,
+	storageDefRepo storage.StorageDefRepo,
+	storedImageRepo storage.StoredImageRepo,
+) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		l := NewLoaders(identityRepo, storageRepo)
+		l := NewLoaders(identityRepo, storageDefRepo, storedImageRepo)
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := context.WithValue(r.Context(), loadersKey, l)
 			next.ServeHTTP(w, r.WithContext(ctx))

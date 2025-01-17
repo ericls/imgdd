@@ -7,16 +7,12 @@ type StoredImage struct {
 	StorageDefinition *StorageDefinition `json:"storageDefinition"`
 }
 
-func FromStorageStoredImage(si *domainmodels.StoredImage) *StoredImage {
+func FromStorageStoredImage(si *domainmodels.StoredImage, sd *StorageDefinition) *StoredImage {
 	if si == nil {
-		return nil
-	}
-	storageDef, err := FromStorageDefinition(si.StorageDefinition)
-	if err != nil {
 		return nil
 	}
 	return &StoredImage{
 		ID:                si.Id,
-		StorageDefinition: storageDef,
+		StorageDefinition: sd,
 	}
 }

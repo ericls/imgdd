@@ -132,11 +132,12 @@ func MakeServer(conf *HttpServerConfigDef, dbConf *db.DBConfigDef) *http.Server 
 	r.Use(RWContextMiddleware) // This should come after SessionMiddleware
 
 	identityRepo := identity.NewDBIdentityRepo(conn)
-	storageRepo := storage.NewDBStorageRepo(conn)
+	storageDefRepo := storage.NewDBStorageDefRepo(conn)
+	storedImageRepo := storage.NewDBStoredImageRepo(conn)
 	imageRepo := image.NewDBImageRepo(conn)
-	r.Use(graph.NewLoadersMiddleware(identityRepo, storageRepo))
+	r.Use(graph.NewLoadersMiddleware(identityRepo, storageDefRepo, storedImageRepo))
 	identityManager := NewIdentityManager(identityRepo, sessionPersister)
-	gqlResolver := NewGqlResolver(identityManager, storageRepo, imageRepo, conf.ImageDomain)
+	gqlResolver := NewGqlResolver(identityManager, storageDefRepo, imageRepo, conf.ImageDomain)
 
 	graphqlServer := makeGqlServer(
 		graph.NewExecutableSchema(
@@ -148,8 +149,8 @@ func MakeServer(conf *HttpServerConfigDef, dbConf *db.DBConfigDef) *http.Server 
 
 	r.Handle("/gql_playground", playground.Handler("IMGDD GraphQL", "/query"))
 	r.Handle("/query", graphqlServer)
-	r.Handle("/upload", makeUploadHandler(conf, identityManager, storageRepo, imageRepo))
-	r.PathPrefix("/image").HandlerFunc(makeImageHandler(storageRepo))
+	r.Handle("/upload", makeUploadHandler(conf, identityManager, storageDefRepo, imageRepo))
+	r.PathPrefix("/image").HandlerFunc(makeImageHandler(storageDefRepo, storedImageRepo))
 
 	mountStatic(r, conf.StaticFS)
 	r.PathPrefix("/").HandlerFunc(makeAppHandler(

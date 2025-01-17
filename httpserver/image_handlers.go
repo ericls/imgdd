@@ -2,9 +2,11 @@ package httpserver
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -26,7 +28,7 @@ type UploadReturn struct {
 func makeUploadHandler(
 	conf *HttpServerConfigDef,
 	identityManager *IdentityManager,
-	storageRepo storage.StorageRepo,
+	storageDefRepo storage.StorageDefRepo,
 	imageRepo image.ImageRepo,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -72,7 +74,7 @@ func makeUploadHandler(
 		uploaderIp := ExtractIP(r)
 
 		// Find the best storage definition for storing the image
-		storageDefs, err := storageRepo.ListStorageDefinitions()
+		storageDefs, err := storageDefRepo.ListStorageDefinitions()
 		if err != nil {
 			httpLogger.Error().Err(err).Msg("Unable to list storage definitions")
 			http.Error(w, "Internal error", http.StatusInternalServerError)
@@ -152,8 +154,59 @@ func splitIdentifierExt(filename string) (string, string) {
 
 }
 
+type storedImageWithStorageDef struct {
+	*domainmodels.StoredImage
+	*domainmodels.StorageDefinition
+}
+
+func sortStoredImages(storedImages []*domainmodels.StoredImage, storageDefRepo storage.StorageDefRepo) ([]storedImageWithStorageDef, error) {
+	var storedImageWithStorageDefs []storedImageWithStorageDef
+	storageDefIds := make([]string, 0)
+	for _, si := range storedImages {
+		if si == nil {
+			continue
+		}
+		storageDefIds = append(storageDefIds, si.StorageDefinitionId)
+	}
+	storageDefs, err := storageDefRepo.GetStorageDefinitionsByIds(storageDefIds)
+	if err != nil {
+		return nil, err
+	}
+	idToStorageDef := make(map[string]*domainmodels.StorageDefinition)
+	for _, sd := range storageDefs {
+		if sd == nil {
+			continue
+		}
+		idToStorageDef[sd.Id] = sd
+	}
+	for _, si := range storedImages {
+		if si == nil {
+			continue
+		}
+		storageDef := idToStorageDef[si.StorageDefinitionId]
+		if storageDef == nil {
+			continue
+		}
+		if !storageDef.IsEnabled {
+			continue
+		}
+		storedImageWithStorageDefs = append(storedImageWithStorageDefs, storedImageWithStorageDef{
+			StoredImage:       si,
+			StorageDefinition: storageDef,
+		})
+	}
+	if len(storedImageWithStorageDefs) == 0 {
+		return nil, fmt.Errorf("no enabled storage definitions found")
+	}
+	sort.SliceStable(storedImageWithStorageDefs, func(i, j int) bool {
+		return storedImageWithStorageDefs[i].StorageDefinition.Priority < storedImageWithStorageDefs[j].StorageDefinition.Priority
+	})
+	return storedImageWithStorageDefs, nil
+}
+
 func makeImageHandler(
-	storeRepo storage.StorageRepo,
+	storageDefRepo storage.StorageDefRepo,
+	storedImageRepo storage.StoredImageRepo,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		filename := r.URL.Path[len("/image/"):]
@@ -174,11 +227,11 @@ func makeImageHandler(
 			w.WriteHeader(http.StatusNotModified)
 			return
 		}
-		storedImage, err := storeRepo.GetStoredImageByIdentifierAndMimeType(
+		storedImages, err := storedImageRepo.GetStoredImageByIdentifierAndMimeType(
 			identifier,
 			mimeType,
 		)
-		if err != nil {
+		if err != nil || len(storedImages) == 0 {
 			http.Error(w, "Not found", http.StatusNotFound)
 			httpLogger.Error().Str(
 				"identifier",
@@ -186,7 +239,17 @@ func makeImageHandler(
 			).Err(err).Msg("Unable to get stored image")
 			return
 		}
-		storageInstance, err := storage.GetStorage(storedImage.StorageDefinition)
+		storedImageWithStorageDefs, err := sortStoredImages(storedImages, storageDefRepo)
+		storedImage := storedImageWithStorageDefs[0].StoredImage
+		storageDef := storedImageWithStorageDefs[0].StorageDefinition
+		if err != nil {
+			http.Error(w, "Not found", http.StatusNotFound)
+			httpLogger.Error().Str(
+				"storage_definition_id",
+				storedImage.StorageDefinitionId,
+			).Err(err).Msg("Unable to get storage definition")
+		}
+		storageInstance, err := storage.GetStorage(storageDef)
 		if err != nil {
 			http.Error(w, "Not found", http.StatusNotFound)
 			httpLogger.Info().Err(err).Msg("Unable to get storage instance")
@@ -207,7 +270,7 @@ func makeImageHandler(
 		w.Header().Set("Content-Length", strconv.FormatInt(meta.ByteSize, 10))
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		w.Header().Set("ETag", filename)
-		w.Header().Set("X-imgdd-si", storedImage.StorageDefinition.Identifier)
+		w.Header().Set("X-imgdd-si", storageDef.Identifier)
 		w.WriteHeader(http.StatusOK)
 		if r.Method == http.MethodHead {
 			return

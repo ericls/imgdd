@@ -12,7 +12,7 @@ import (
 func TestGetStorage(t *testing.T) {
 	test_support.ResetDatabase(&TEST_DB_CONF)
 	dbConn := db.GetConnection(&TEST_DB_CONF)
-	repo := storage.NewDBStorageRepo(dbConn)
+	repo := storage.NewDBStorageDefRepo(dbConn)
 
 	storageType := "s3"
 	config := fmt.Sprintf(`{"endpoint":"http://localhost:%s","bucket":"%s","access":"%s","secret":"%s"}`,

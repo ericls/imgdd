@@ -83,7 +83,7 @@ func tCreateStorageDefinition(t *testing.T, tc *TestContext) {
 	require.NoError(t, err)
 	require.NotNil(t, resp.CreateStorageDefinition)
 	// check that the storage definition was created
-	storageDefinition, err := tc.storageRepo.GetStorageDefinitionByIdentifier("test")
+	storageDefinition, err := tc.storageDefRepo.GetStorageDefinitionByIdentifier("test")
 	require.NoError(t, err)
 	require.NotNil(t, storageDefinition)
 }
@@ -171,7 +171,7 @@ func tListStorageDefinitions(t *testing.T, tc *TestContext) {
 		"access": "test",
 		"secret": "test"
 	}`
-	tc.storageRepo.CreateStorageDefinition("s3", configJSON, "test1", true, 1)
+	tc.storageDefRepo.CreateStorageDefinition("s3", configJSON, "test1", true, 1)
 	err = tc.client.Post(gqlQuery, &resp)
 	require.NoError(t, err)
 	require.NotNil(t, resp.Viewer)
@@ -189,7 +189,7 @@ func tUpdateStorageDefinition(t *testing.T, tc *TestContext) {
 		"access": "test",
 		"secret": "test"
 	}`
-	tc.storageRepo.CreateStorageDefinition("s3", configJSON, "test1", true, 1)
+	tc.storageDefRepo.CreateStorageDefinition("s3", configJSON, "test1", true, 1)
 	err := tc.client.Post(`
 	mutation {
 		updateStorageDefinition(input: {
