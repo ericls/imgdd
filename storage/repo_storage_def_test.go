@@ -9,13 +9,7 @@ import (
 	"github.com/ericls/imgdd/test_support"
 )
 
-func TestRepoCRUD(t *testing.T) {
-	test_support.ResetDatabase(&TEST_DB_CONF)
-
-	// Create a new storage repo
-	dbConn := db.GetConnection(&TEST_DB_CONF)
-	repo := storage.NewDBStorageDefRepo(dbConn)
-
+func runCRUDTest(t *testing.T, repo storage.StorageDefRepo) {
 	// List storage definitions
 	storageDefs, err := repo.ListStorageDefinitions()
 	if err != nil {
@@ -71,5 +65,15 @@ func TestRepoCRUD(t *testing.T) {
 	if updatedStorageDef == nil {
 		t.Fatal("updated storage definition not found")
 	}
+}
 
+func TestRepoCRUD(t *testing.T) {
+	test_support.ResetDatabase(&TEST_DB_CONF)
+
+	// Create a new storage repo
+	dbConn := db.GetConnection(&TEST_DB_CONF)
+	repoDb := storage.NewDBStorageDefRepo(dbConn)
+	runCRUDTest(t, repoDb)
+	repoInMemory := storage.NewInMemoryStorageDefRepo()
+	runCRUDTest(t, repoInMemory)
 }

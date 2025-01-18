@@ -190,6 +190,10 @@ func (tc *TestContext) clearAuthenticationInfo() {
 }
 
 func (tc *TestContext) reset() {
+	inMemoryRepo, ok := tc.storageDefRepo.(*storage.InMemoryStorageDefRepo)
+	if ok {
+		inMemoryRepo.Reset()
+	}
 	test_support.ResetDatabase(&TEST_DB_CONF)
 	tc.authenticationInfo = &identity.AuthenticationInfo{}
 }
