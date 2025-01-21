@@ -7,3 +7,8 @@ type StoredImage struct {
 	FileIdentifier      string
 	CopiedFrom          *StoredImage
 }
+
+type ExternalImageIdentifier struct {
+	StorageDefinitionIdentifier string
+	FileIdentifier              string
+}

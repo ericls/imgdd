@@ -41,7 +41,7 @@ func createImage(t *testing.T, tc *TestContext, uploaderId string, storageDefId 
 		NominalWidth:    100,
 		NominalHeight:   100,
 	}
-	si, err := tc.imageRepo.CreateAndSaveUploadedImage(&fakeImage, []byte(""), storageDefId, mockSaveFunc)
+	si, err := tc.imageRepo.CreateAndSaveUploadedImage(&fakeImage, "image/png", []byte(""), storageDefId, mockSaveFunc)
 	require.NoError(t, err)
 	image := si.Image
 	require.Equal(t, fakeImage.Name, image.Name)

@@ -119,25 +119,29 @@ func makeGqlServer(es graphql.ExecutableSchema) *gqlgenHandler.Server {
 	return srv
 }
 
-func MakeServer(conf *HttpServerConfigDef, dbConf *db.DBConfigDef) *http.Server {
+func MakeServer(
+	conf *HttpServerConfigDef,
+	dbConf *db.DBConfigDef,
+	storageConf *storage.StorageConfigDef,
+) *http.Server {
 
 	conn := db.GetConnection(dbConf)
 	db.PopulateBuiltInRoles(dbConf)
 
-	r := mux.NewRouter()
-	r.StrictSlash(true)
+	appRouter := mux.NewRouter()
+	appRouter.StrictSlash(true)
 	sessionHeaderName := "x-session-token"
 	sessionPersister := persister.NewSessionPersister(conf.RedisURIForSession, nil, nil, &sessionHeaderName)
-	r.Use(sessionPersister.Middleware)
-	r.Use(RWContextMiddleware) // This should come after SessionMiddleware
+	appRouter.Use(sessionPersister.Middleware)
+	appRouter.Use(RWContextMiddleware) // This should come after SessionMiddleware
 
 	identityRepo := identity.NewDBIdentityRepo(conn)
-	storageDefRepo := storage.NewDBStorageDefRepo(conn)
+	storageDefRepo := storageConf.MakeStorageDefRepo()
 	storedImageRepo := storage.NewDBStoredImageRepo(conn)
 	imageRepo := image.NewDBImageRepo(conn)
-	r.Use(graph.NewLoadersMiddleware(identityRepo, storageDefRepo, storedImageRepo))
+	appRouter.Use(graph.NewLoadersMiddleware(identityRepo, storageDefRepo, storedImageRepo))
 	identityManager := NewIdentityManager(identityRepo, sessionPersister)
-	gqlResolver := NewGqlResolver(identityManager, storageDefRepo, imageRepo, conf.ImageDomain)
+	gqlResolver := NewGqlResolver(identityManager, storageDefRepo, imageRepo, conf.ImageDomain, conf.DefaultURLFormat)
 
 	graphqlServer := makeGqlServer(
 		graph.NewExecutableSchema(
@@ -145,24 +149,30 @@ func MakeServer(conf *HttpServerConfigDef, dbConf *db.DBConfigDef) *http.Server 
 		),
 	)
 
-	r.Use(identityManager.Middleware)
+	appRouter.Use(identityManager.Middleware)
 
-	r.Handle("/gql_playground", playground.Handler("IMGDD GraphQL", "/query"))
-	r.Handle("/query", graphqlServer)
-	r.Handle("/upload", makeUploadHandler(conf, identityManager, storageDefRepo, imageRepo))
-	r.PathPrefix("/image").HandlerFunc(makeImageHandler(storageDefRepo, storedImageRepo))
+	if conf.EnableGqlPlayground {
+		appRouter.Handle("/gql_playground", playground.Handler("IMGDD GraphQL", "/query"))
+	}
+	appRouter.Handle("/query", graphqlServer)
+	appRouter.Handle("/upload", makeUploadHandler(conf, identityManager, storageDefRepo, imageRepo))
 
-	mountStatic(r, conf.StaticFS)
-	r.PathPrefix("/").HandlerFunc(makeAppHandler(
+	mountStatic(appRouter, conf.StaticFS)
+	appRouter.PathPrefix("/").HandlerFunc(makeAppHandler(
 		withSiteName(conf.SiteName),
 		withTemplateFS(conf.TemplatesFS),
 		withSessionHeaderName(sessionHeaderName),
 		withSessionUseCookie(sessionHeaderName == ""),
 	))
 
+	rootRouter := mux.NewRouter()
+	rootRouter.PathPrefix("/image").HandlerFunc(makeImageHandler(storageDefRepo, storedImageRepo))
+	rootRouter.PathPrefix("/direct").HandlerFunc(makeDirectImageHandler(storageDefRepo))
+	rootRouter.PathPrefix("/").Handler(appRouter)
+
 	srv := &http.Server{
 		Handler: LoggerMiddleware(
-			handlers.RecoveryHandler()(r),
+			handlers.RecoveryHandler()(rootRouter),
 		),
 		Addr:         conf.Bind,
 		WriteTimeout: time.Duration(conf.WriteTimeout) * time.Second,

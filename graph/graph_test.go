@@ -145,10 +145,10 @@ func newTestContext(tObj *testing.T) *TestContext {
 	identityRepo := identity.NewDBIdentityRepo(conn)
 	sessionPersister := persister.NewSessionPersister(TEST_REDIS_URI, nil, nil, nil)
 	identityManager := httpserver.NewIdentityManager(identityRepo, sessionPersister)
-	storageDefRepo := storage.NewDBStorageDefRepo(conn)
+	storageDefRepo := storage.NewDBStorageConfig(conn).MakeStorageDefRepo()
 	storedImageRepo := storage.NewDBStoredImageRepo(conn)
 	imageRepo := image.NewDBImageRepo(conn)
-	resolver := httpserver.NewGqlResolver(identityManager, storageDefRepo, imageRepo, "")
+	resolver := httpserver.NewGqlResolver(identityManager, storageDefRepo, imageRepo, "", domainmodels.ImageURLFormat_CANONICAL)
 
 	// make server
 	gqlServer := handler.New(graph.NewExecutableSchema(httpserver.NewGraphConfig(resolver)))
@@ -192,7 +192,7 @@ func (tc *TestContext) clearAuthenticationInfo() {
 func (tc *TestContext) reset() {
 	inMemoryRepo, ok := tc.storageDefRepo.(*storage.InMemoryStorageDefRepo)
 	if ok {
-		inMemoryRepo.Reset()
+		inMemoryRepo.Clear()
 	}
 	test_support.ResetDatabase(&TEST_DB_CONF)
 	tc.authenticationInfo = &identity.AuthenticationInfo{}

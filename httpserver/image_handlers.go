@@ -123,15 +123,21 @@ func makeUploadHandler(
 			NominalWidth:    width,
 			NominalHeight:   height,
 		}
-		storedImage, err := imageRepo.CreateAndSaveUploadedImage(&image, exifRemovedBytes, storageDef.Id, storageInstance.Save)
+		storedImage, err := imageRepo.CreateAndSaveUploadedImage(&image, detectedMimeType, exifRemovedBytes, storageDef.Id, storageInstance.Save)
 		if err != nil {
 			httpLogger.Error().Stack().Err(err).Msg("Unable to save image")
 			http.Error(w, "Internal error", http.StatusInternalServerError)
 			return
 		}
+		externalImageIdentifiers := []*domainmodels.ExternalImageIdentifier{
+			{
+				StorageDefinitionIdentifier: storageDef.Identifier,
+				FileIdentifier:              storedImage.FileIdentifier,
+			},
+		}
 		ret := UploadReturn{
 			Filename:   storedImage.Image.Name,
-			URL:        image.GetURL(conf.ImageDomain, IsSecure(r)),
+			URL:        image.GetURL(conf.ImageDomain, IsSecure(r), externalImageIdentifiers, conf.DefaultURLFormat),
 			Identifier: storedImage.Image.Identifier,
 		}
 		serialized, err := json.Marshal(ret)
@@ -255,7 +261,16 @@ func makeImageHandler(
 			httpLogger.Info().Err(err).Msg("Unable to get storage instance")
 			return
 		}
-		meta := storageInstance.GetMeta(storedImage.FileIdentifier)
+		meta := storage.GetMetaCached(storageInstance, storedImage.FileIdentifier)
+		w.Header().Set("Content-Type", mimeType)
+		w.Header().Set("Content-Length", strconv.FormatInt(meta.ByteSize, 10))
+		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		w.Header().Set("ETag", filename)
+		w.Header().Set("X-imgdd-si", storageDef.Identifier)
+		w.WriteHeader(http.StatusOK)
+		if r.Method == http.MethodHead {
+			return
+		}
 		reader := storageInstance.GetReader(storedImage.FileIdentifier)
 		if reader == nil {
 			http.Error(w, "Not found", http.StatusNotFound)
@@ -266,15 +281,64 @@ func makeImageHandler(
 			return
 		}
 		defer reader.Close()
-		w.Header().Set("Content-Type", mimeType)
+		io.Copy(w, reader)
+	}
+}
+
+func makeDirectImageHandler(
+	storageDefRepo storage.StorageDefRepo,
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// URL format: <storage_definition_identifier>.<file_identifier>
+		urlSegments := strings.Split(r.URL.Path, "/")
+		if len(urlSegments) < 1 {
+			http.Error(w, "Not found", http.StatusNotFound)
+			httpLogger.Info().Msg("URL is not right")
+			return
+		}
+		lastSeg := urlSegments[len(urlSegments)-1]
+		segments := strings.SplitN(lastSeg, ".", 2)
+		if len(segments) != 2 {
+			http.Error(w, "Not found", http.StatusNotFound)
+			httpLogger.Info().Msg("URL is not right")
+			return
+		}
+		storageDefIdentifier := segments[0]
+		fileIdentifier := segments[1]
+		storageDef, err := storageDefRepo.GetStorageDefinitionByIdentifier(storageDefIdentifier)
+		if err != nil {
+			http.Error(w, "Not found", http.StatusNotFound)
+			httpLogger.Error().Str("storage_definition_identifier", storageDefIdentifier).Err(err).Msg("Unable to get storage definition")
+			return
+		}
+		if !storageDef.IsEnabled {
+			http.Error(w, "Not found", http.StatusNotFound)
+			httpLogger.Error().Str("storage_definition_identifier", storageDefIdentifier).Msg("Storage definition is not enabled")
+			return
+		}
+		storageInstance, err := storage.GetStorage(storageDef)
+		if err != nil {
+			http.Error(w, "Not found", http.StatusNotFound)
+			httpLogger.Error().Str("storage_definition_identifier", storageDefIdentifier).Err(err).Msg("Unable to get storage instance")
+			return
+		}
+		meta := storage.GetMetaCached(storageInstance, fileIdentifier)
+		w.Header().Set("Content-Type", meta.ContentType)
 		w.Header().Set("Content-Length", strconv.FormatInt(meta.ByteSize, 10))
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-		w.Header().Set("ETag", filename)
+		w.Header().Set("ETag", fileIdentifier)
 		w.Header().Set("X-imgdd-si", storageDef.Identifier)
 		w.WriteHeader(http.StatusOK)
 		if r.Method == http.MethodHead {
 			return
 		}
+		reader := storageInstance.GetReader(fileIdentifier)
+		if reader == nil {
+			http.Error(w, "Not found", http.StatusNotFound)
+			httpLogger.Info().Str("file_identifier", fileIdentifier).Msg("Unable to get reader")
+			return
+		}
+		defer reader.Close()
 		io.Copy(w, reader)
 	}
 }

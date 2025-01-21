@@ -38,18 +38,47 @@ func (r *RedisConfigFileDef) GetCacheRedisURI() string {
 }
 
 type HTTPServerConfigFileDef struct {
-	Bind         string `toml:"Bind" comment:"HTTP server bind address"`
-	WriteTimeout int    `toml:"WriteTimeout" comment:"HTTP server write timeout"`
-	ReadTimeout  int    `toml:"ReadTimeout" comment:"HTTP server read timeout"`
-	SessionKey   string `toml:"SessionKey" comment:"Session key"`
-	SiteName     string `toml:"SiteName" comment:"Site name"`
-	ImageDomain  string `toml:"ImageDomain" comment:"Image domain"`
+	BIND               string `toml:"BIND" comment:"HTTP server bind address"`
+	WRITE_TIMEOUT      int    `toml:"WRITE_TIMEOUT" comment:"HTTP server write timeout"`
+	READ_TIMEOUT       int    `toml:"READ_TIMEOUT" comment:"HTTP server read timeout"`
+	SESSION_KEY        string `toml:"SESSION_KEY" comment:"Session key"`
+	SITE_NAME          string `toml:"SITE_NAME" comment:"Site name"`
+	IMAGE_DOMAIN       string `toml:"IMAGE_DOMAIN" comment:"Image domain"`
+	DEFAULT_URL_FORMAT string `toml:"DEFAULT_URL_FORMAT" comment:"Default URL format. Choices are \n1. 'canonical' - Chooses best backend, and proxies content from that backend. \n2. 'direct' - A backend identifier is included in the URL and directly proxies that storage backend. \n3. 'backend_direct' - URL directly links to the backend"`
+}
+
+type StorageBackendItem struct {
+	ID           string `toml:"ID" comment:"ID for internal references, must be a valid and unique uuid"`
+	IDENTIFIER   string `toml:"IDENTIFIER" comment:"Storage identifier"`
+	STORAGE_TYPE string `toml:"STORAGE_TYPE" comment:"Storage type"`
+	CONFIG       string `toml:"CONFIG" comment:"Storage configuration. \nFormat is dependent on STORAGE_TYPE"`
+	IS_ENABLED   bool   `toml:"IS_ENABLED" comment:"Is storage enabled"`
+	PRIORITY     int32  `toml:"PRIORITY" comment:"Storage priority. Lower value means higher priority"`
+}
+
+type StorageConfigFileDef struct {
+	STORAGE_BACKEND_SOURCE string               `toml:"STORAGE_BACKEND_SOURCE" comment:"Storage backend source. \nCan be 'db' or 'conf'. \nIf 'db', the storage backends are read from the database. \nIf 'conf', the storage backends are read from the configuration file."`
+	STORAGE_BACKENDS       []StorageBackendItem `toml:"STORAGE_BACKENDS" comment:"Storage backends. \nOnly used if STORAGE_BACKEND_SOURCE is 'conf'"`
 }
 
 type ConfigFileDef struct {
 	DB         *DBConfigFileDef         `toml:"DBConfig" comment:"Database configuration"`
-	HTTPServer *HTTPServerConfigFileDef `toml:"HTTPServerConfig" comment:"HTTP server configuration"`
 	Redis      *RedisConfigFileDef      `toml:"RedisConfig" comment:"Redis configuration"`
+	HTTPServer *HTTPServerConfigFileDef `toml:"HTTPServerConfig" comment:"HTTP server configuration"`
+	Storage    *StorageConfigFileDef    `toml:"StorageConfig" comment:"Storage configuration"`
+}
+
+func (cfd *ConfigFileDef) Clone() ConfigFileDef {
+	tomlData, err := toml.Marshal(EmptyConfig)
+	if err != nil {
+		panic(err)
+	}
+	var newConfig ConfigFileDef
+	err = toml.Unmarshal(tomlData, &newConfig)
+	if err != nil {
+		panic(err)
+	}
+	return newConfig
 }
 
 var EmptyConfig = ConfigFileDef{
@@ -58,6 +87,19 @@ var EmptyConfig = ConfigFileDef{
 	},
 	HTTPServer: &HTTPServerConfigFileDef{},
 	Redis:      &RedisConfigFileDef{},
+	Storage: &StorageConfigFileDef{
+		STORAGE_BACKEND_SOURCE: "db",
+		STORAGE_BACKENDS: []StorageBackendItem{
+			{
+				ID:           "00000000-0000-0000-0000-000000000000",
+				IDENTIFIER:   "default",
+				STORAGE_TYPE: "s3",
+				CONFIG:       `{"endpoint":"http://s3.ca-central-1.amazonaws.com","bucket":"foo","access":"access","secret":"secret!"}`,
+				IS_ENABLED:   true,
+				PRIORITY:     0,
+			},
+		},
+	},
 }
 
 func resolveFilePath(userInput string, checkExist bool) (string, error) {

@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 
+	"github.com/ericls/imgdd/domainmodels"
 	"github.com/ericls/imgdd/identity"
 	"github.com/ericls/imgdd/image"
 	"github.com/ericls/imgdd/storage"
@@ -21,5 +22,6 @@ type Resolver struct {
 	LoginFn            func(c context.Context, userId string, organizationUserId string)
 	LogoutFn           func(c context.Context)
 	ImageDomain        string
+	DefaultURLFormat   domainmodels.ImageURLFormat
 	IsHttps            func(c context.Context) bool
 }

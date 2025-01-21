@@ -116,7 +116,7 @@ func (s *S3Storage) ensureClient() {
 
 		uploader := s3manager.NewUploader(sess)
 		downloader := s3manager.NewDownloader(sess, func(d *s3manager.Downloader) {
-			d.Concurrency = 1
+			d.Concurrency = 10
 		})
 		s3Client := s3.New(sess)
 		return &S3Client{

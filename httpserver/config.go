@@ -3,18 +3,22 @@ package httpserver
 import (
 	"io/fs"
 	"os"
+
+	"github.com/ericls/imgdd/domainmodels"
 )
 
 type HttpServerConfigDef struct {
-	Bind               string
-	WriteTimeout       int
-	ReadTimeout        int
-	TemplatesFS        fs.FS
-	StaticFS           fs.FS
-	SessionKey         string
-	RedisURIForSession string
-	SiteName           string
-	ImageDomain        string
+	Bind                string
+	WriteTimeout        int
+	ReadTimeout         int
+	TemplatesFS         fs.FS
+	StaticFS            fs.FS
+	SessionKey          string
+	RedisURIForSession  string
+	SiteName            string
+	ImageDomain         string
+	DefaultURLFormat    domainmodels.ImageURLFormat
+	EnableGqlPlayground bool
 }
 
 func getenv(key, fallback string) string {
@@ -33,5 +37,6 @@ func ReadServerConfigFromEnv() HttpServerConfigDef {
 		RedisURIForSession: getenv("IMGDD_REDIS_URI_FOR_SESSION", "redis://localhost:30102"),
 		SiteName:           getenv("IMGDD_SITE_NAME", "imgdd"),
 		ImageDomain:        getenv("IMGDD_IMAGE_DOMAIN", ""),
+		DefaultURLFormat:   domainmodels.ImageURLFormat(getenv("IMGDD_DEFAULT_URL_FORMAT", "canonical")),
 	}
 }

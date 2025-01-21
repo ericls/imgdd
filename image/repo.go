@@ -166,18 +166,20 @@ func (repo *DBImageRepo) CreateStoredImage(imageId string, storageDefinitionId s
 		return nil, err
 	}
 	return &dm.StoredImage{
-		Id:    dest.ID.String(),
-		Image: image,
+		Id:                  dest.ID.String(),
+		FileIdentifier:      dest.FileIdentifier,
+		StorageDefinitionId: dest.StorageDefinitionID.String(),
+		Image:               image,
 	}, nil
 }
 
-func (repo *DBImageRepo) CreateAndSaveUploadedImage(image *dm.Image, fileBytes []byte, storageDefinitionId string, saveFn SaveFunc) (*dm.StoredImage, error) {
+func (repo *DBImageRepo) CreateAndSaveUploadedImage(image *dm.Image, mimeType string, fileBytes []byte, storageDefinitionId string, saveFn SaveFunc) (*dm.StoredImage, error) {
 	return db.RunInTransaction(repo, func(txRepo *DBImageRepo) (*dm.StoredImage, error) {
 		image, err := txRepo.CreateImage(image)
 		if err != nil {
 			return nil, err
 		}
-		fileIdentifier := uuid.New().String()
+		fileIdentifier := uuid.New().String() + utils.GetExtFromMIMEType(mimeType)
 		reader := bytes.NewReader(fileBytes)
 		err = saveFn(reader, fileIdentifier, image.MIMEType)
 		if err != nil {

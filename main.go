@@ -75,9 +75,12 @@ func main() {
 				if bind != "" {
 					httpServerConf.Bind = bind
 				}
+				if buildflag.IsDev {
+					httpServerConf.EnableGqlPlayground = true
+				}
 				httpServerConf.StaticFS = MoutingFS.Static
 				httpServerConf.TemplatesFS = MoutingFS.Templates
-				srv := httpserver.MakeServer(&httpServerConf, &conf.Db)
+				srv := httpserver.MakeServer(&httpServerConf, &conf.Db, &conf.Storage)
 				logger.Info().Str("bind", srv.Addr).Msg("Starting server")
 				return srv.ListenAndServe()
 			},

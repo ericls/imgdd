@@ -4,6 +4,7 @@ import "github.com/ericls/imgdd/domainmodels"
 
 type StoredImage struct {
 	ID                string             `json:"id"`
+	FileIdentifier    string             `json:"fileIdentifier"`
 	StorageDefinition *StorageDefinition `json:"storageDefinition"`
 }
 
@@ -13,6 +14,7 @@ func FromStorageStoredImage(si *domainmodels.StoredImage, sd *StorageDefinition)
 	}
 	return &StoredImage{
 		ID:                si.Id,
+		FileIdentifier:    si.FileIdentifier,
 		StorageDefinition: sd,
 	}
 }

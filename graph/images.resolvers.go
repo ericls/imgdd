@@ -21,7 +21,19 @@ func (r *imageResolver) URL(ctx context.Context, obj *model.Image) (string, erro
 		Identifier: obj.Identifier,
 		MIMEType:   obj.MIMEType,
 	}
-	return image.GetURL(r.ImageDomain, r.IsHttps(ctx)), nil
+	loader := LoadersFor(ctx).StoredImagesByImageIdsLoader
+	storedImages, err := loader.Load(ctx, obj.ID)
+	if err != nil {
+		return "", err
+	}
+	var externalIdentifiers []*domainmodels.ExternalImageIdentifier
+	for _, storedImage := range storedImages {
+		externalIdentifiers = append(externalIdentifiers, &domainmodels.ExternalImageIdentifier{
+			StorageDefinitionIdentifier: storedImage.StorageDefinition.Identifier,
+			FileIdentifier:              storedImage.FileIdentifier,
+		})
+	}
+	return image.GetURL(r.ImageDomain, r.IsHttps(ctx), externalIdentifiers, r.DefaultURLFormat), nil
 }
 
 // Root is the resolver for the root field.

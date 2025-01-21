@@ -17,8 +17,12 @@ func NewInMemoryStorageDefRepo() *InMemoryStorageDefRepo {
 	}
 }
 
-func (repo *InMemoryStorageDefRepo) Reset() {
+func (repo *InMemoryStorageDefRepo) Clear() {
 	repo.storageDefs = make(map[string]*dm.StorageDefinition)
+}
+
+func (repo *InMemoryStorageDefRepo) AddStorageDefinition(storageDef *dm.StorageDefinition) {
+	repo.storageDefs[storageDef.Id] = storageDef
 }
 
 func (repo *InMemoryStorageDefRepo) GetStorageDefinitionById(id string) (*dm.StorageDefinition, error) {
@@ -49,6 +53,7 @@ func (repo *InMemoryStorageDefRepo) GetStorageDefinitionsByIds(ids []string) ([]
 }
 
 func (repo *InMemoryStorageDefRepo) GetStorageDefinitionByIdentifier(id string) (*dm.StorageDefinition, error) {
+	// TODO: build a map keyed by identifier
 	for _, storageDef := range repo.storageDefs {
 		if storageDef.Identifier == id {
 			return storageDef, nil

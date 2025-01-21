@@ -1,5 +1,6 @@
 type StoredImage {
   id: ID!
+  fileIdentifier: String!
   storageDefinition: StorageDefinition!
 }
 

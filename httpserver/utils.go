@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"github.com/ericls/imgdd/domainmodels"
 	"github.com/ericls/imgdd/graph"
 	"github.com/ericls/imgdd/image"
 	"github.com/ericls/imgdd/storage"
@@ -8,7 +9,13 @@ import (
 
 type ContextKey string
 
-func NewGqlResolver(identityManager *IdentityManager, storageDefRepo storage.StorageDefRepo, imageRepo image.ImageRepo, imageDomain string) *graph.Resolver {
+func NewGqlResolver(
+	identityManager *IdentityManager,
+	storageDefRepo storage.StorageDefRepo,
+	imageRepo image.ImageRepo,
+	imageDomain string,
+	defaultURLFormat domainmodels.ImageURLFormat,
+) *graph.Resolver {
 	return &graph.Resolver{
 		IdentityRepo:       identityManager.IdentityRepo,
 		StorageDefRepo:     storageDefRepo,
@@ -17,6 +24,7 @@ func NewGqlResolver(identityManager *IdentityManager, storageDefRepo storage.Sto
 		LoginFn:            identityManager.AuthenticateContext,
 		LogoutFn:           identityManager.LogoutContext,
 		ImageDomain:        imageDomain,
+		DefaultURLFormat:   defaultURLFormat,
 		IsHttps:            IsHttps,
 	}
 }
