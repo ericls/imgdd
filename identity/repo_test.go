@@ -8,7 +8,7 @@ import (
 )
 
 func TestIdentityRepo(t *testing.T) {
-	conn := db.GetConnection(&TEST_DB_CONF)
+	conn := db.GetConnection(TestServiceMan.GetDBConfig())
 	identityRepo := NewDBIdentityRepo(conn)
 	emailAddr := "test@home.arpa"
 	var assertUser = func(ou *dm.OrganizationUser, err error) {

@@ -1,7 +1,6 @@
 package storage_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/ericls/imgdd/db"
@@ -10,18 +9,15 @@ import (
 )
 
 func TestGetStorage(t *testing.T) {
-	test_support.ResetDatabase(&TEST_DB_CONF)
-	dbConn := db.GetConnection(&TEST_DB_CONF)
+	test_support.ResetDatabase(TestServiceMan.GetDBConfig())
+	dbConn := db.GetConnection(TestServiceMan.GetDBConfig())
 	repo := storage.NewDBStorageConfig(dbConn).MakeStorageDefRepo()
 
 	storageType := "s3"
-	config := fmt.Sprintf(`{"endpoint":"http://localhost:%s","bucket":"%s","access":"%s","secret":"%s"}`,
-		testS3Port, testS3Bucket, testS3Access, testS3Secret,
-	)
 	identifier := "test"
 	isEnabled := true
 	priority := int64(1)
-	storageDef, err := repo.CreateStorageDefinition(storageType, config, identifier, isEnabled, priority)
+	storageDef, err := repo.CreateStorageDefinition(storageType, TestServiceMan.GetS3ConfigJSON(), identifier, isEnabled, priority)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +25,7 @@ func TestGetStorage(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := dockerTestPool.Retry(func() error {
+	if err := TestServiceMan.Pool.Retry(func() error {
 		return s3Store.CheckConnection()
 	}); err != nil {
 		t.Fatal(err)

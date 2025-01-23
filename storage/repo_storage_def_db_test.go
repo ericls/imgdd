@@ -1,7 +1,6 @@
 package storage_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/ericls/imgdd/db"
@@ -21,13 +20,10 @@ func runCRUDTest(t *testing.T, repo storage.StorageDefRepo) {
 
 	// Create a new storage definition
 	storageType := "s3"
-	config := fmt.Sprintf(`{"endpoint":"http://localhost:%s","bucket":"%s","access":"%s","secret":"%s"}`,
-		testS3Port, testS3Bucket, testS3Access, testS3Secret,
-	)
 	identifier := "test"
 	isEnabled := true
 	priority := int64(1)
-	storageDef, err := repo.CreateStorageDefinition(storageType, config, identifier, isEnabled, priority)
+	storageDef, err := repo.CreateStorageDefinition(storageType, TestServiceMan.GetS3ConfigJSON(), identifier, isEnabled, priority)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,10 +64,10 @@ func runCRUDTest(t *testing.T, repo storage.StorageDefRepo) {
 }
 
 func TestRepoCRUD(t *testing.T) {
-	test_support.ResetDatabase(&TEST_DB_CONF)
+	test_support.ResetDatabase(TestServiceMan.GetDBConfig())
 
 	// Create a new storage repo
-	dbConn := db.GetConnection(&TEST_DB_CONF)
+	dbConn := db.GetConnection(TestServiceMan.GetDBConfig())
 	repoDb := storage.NewDBStorageDefRepo(dbConn)
 	runCRUDTest(t, repoDb)
 	repoInMemory := storage.NewInMemoryStorageDefRepo()

@@ -12,11 +12,12 @@ import (
 var data = []byte("test data")
 
 func TestS3Storage(t *testing.T) {
+	s3Config := TestServiceMan.GetS3Config()
 	conf := storage.S3StorageConfig{
-		Endpoint: "http://localhost:" + testS3Port,
-		Bucket:   testS3Bucket,
-		Access:   testS3Access,
-		Secret:   testS3Secret,
+		Endpoint: "http://localhost:" + s3Config.Port,
+		Bucket:   s3Config.Bucket,
+		Access:   s3Config.Access,
+		Secret:   s3Config.Secret,
 	}
 
 	// Create a new S3 storage backend
@@ -32,14 +33,14 @@ func TestS3Storage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := dockerTestPool.Retry(func() error {
+	if err := TestServiceMan.Pool.Retry(func() error {
 		return s3Storage.CheckConnection()
 	}); err != nil {
 		log.Fatalf("Could not connect to minio: %s", err)
 	}
 
 	// create bucket
-	err = s3Storage.CreateBucket(testS3Bucket)
+	err = s3Storage.CreateBucket(s3Config.Bucket)
 	if err != nil {
 		t.Fatal(err)
 	}

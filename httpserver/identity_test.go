@@ -17,11 +17,12 @@ import (
 )
 
 func TestLoginLogout(t *testing.T) {
-	conn := db.GetConnection(&TEST_DB_CONF)
+	testDBConf := TestServiceMan.GetDBConfig()
+	conn := db.GetConnection(testDBConf)
 	identityRepo := identity.NewDBIdentityRepo(conn)
-	test_support.ResetDatabase(&TEST_DB_CONF)
+	test_support.ResetDatabase(testDBConf)
 	contextUserManager := httpserver.NewContextUserManager("foo", identityRepo)
-	sessionPersister := persister.NewSessionPersister(TEST_REDIS_URI, nil, nil, nil)
+	sessionPersister := persister.NewSessionPersister(TestServiceMan.GetRedisURI(), nil, nil, nil)
 	testIdentityManager := httpserver.IdentityManager{
 		IdentityRepo:       identityRepo,
 		ContextUserManager: contextUserManager,
@@ -121,12 +122,13 @@ func TestLoginLogout(t *testing.T) {
 }
 
 func TestLoginLogoutSessionToken(t *testing.T) {
-	conn := db.GetConnection(&TEST_DB_CONF)
+	testDBConf := TestServiceMan.GetDBConfig()
+	conn := db.GetConnection(testDBConf)
 	identityRepo := identity.NewDBIdentityRepo(conn)
-	test_support.ResetDatabase(&TEST_DB_CONF)
+	test_support.ResetDatabase(testDBConf)
 	contextUserManager := httpserver.NewContextUserManager("foo", identityRepo)
 	sessionTokenName := "x-session-token"
-	sessionPersister := persister.NewSessionPersister(TEST_REDIS_URI, nil, nil, &sessionTokenName)
+	sessionPersister := persister.NewSessionPersister(TestServiceMan.GetRedisURI(), nil, nil, &sessionTokenName)
 	testIdentityManager := httpserver.IdentityManager{
 		IdentityRepo:       identityRepo,
 		ContextUserManager: contextUserManager,
