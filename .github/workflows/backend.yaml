@@ -1,15 +1,15 @@
-name: Test with Docker
+name: Backend test
 
 on:
   push:
   pull_request:
 
 jobs:
-  test:
+  backend-test:
     runs-on: ubuntu-latest
     services:
       dind:
-        image: docker:23.0-rc-dind-rootless
+        image: docker:27.5.1-dind-rootless
         ports:
           - 2375:2375
     steps:
@@ -21,5 +21,5 @@ jobs:
         with:
           go-version: "1.23"
 
-      - name: Test backend
+      - name: Run tests with Docker
         run: go test -v ./...
