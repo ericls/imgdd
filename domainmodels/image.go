@@ -17,6 +17,14 @@ const (
 	ImageURLFormat_BACKEND_DIRECT ImageURLFormat = "backend_direct"
 )
 
+func (f ImageURLFormat) IsValid() bool {
+	switch f {
+	case ImageURLFormat_CANONICAL, ImageURLFormat_DIRECT, ImageURLFormat_BACKEND_DIRECT:
+		return true
+	}
+	return false
+}
+
 type Image struct {
 	Id              string
 	CreatedById     string

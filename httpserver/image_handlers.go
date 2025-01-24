@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/httpserver/imagechecks"
 	"github.com/ericls/imgdd/identity"
 	"github.com/ericls/imgdd/image"
 	"github.com/ericls/imgdd/storage"
@@ -69,6 +71,19 @@ func makeUploadHandler(
 			httpLogger.Warn().Msgf("Declared MIME type: %s, Detected MIME type: %s", declaredMimeType, detectedMimeType)
 			http.Error(w, "Declared MIME type does not match detected MIME type", http.StatusBadRequest)
 			return
+		}
+
+		checkers := make([]imagechecks.Checker, 0)
+		if conf.EnableSafeImageCheck && conf.SafeImageCheckEndpoint != "" {
+			checkers = append(checkers, imagechecks.MakeImageChecker(conf.SafeImageCheckEndpoint))
+		}
+		if len(checkers) > 0 {
+			imageReader := bytes.NewReader(exifRemovedBytes)
+			ok := imagechecks.CheckAll(checkers, imageReader)
+			if !ok {
+				http.Error(w, "Bad image", http.StatusBadRequest)
+				return
+			}
 		}
 
 		uploaderIp := ExtractIP(r)

@@ -13,9 +13,10 @@ import (
 )
 
 type ConfigDef struct {
-	Db         db.DBConfigDef
-	HttpServer httpserver.HttpServerConfigDef
-	Storage    storage.StorageConfigDef
+	Db            db.DBConfigDef
+	HttpServer    httpserver.HttpServerConfigDef
+	Storage       storage.StorageConfigDef
+	configFileDef *ConfigFileDef
 }
 
 func ConfigFromEnv() (*ConfigDef, error) {
@@ -44,6 +45,10 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			Priority:    storageDef.PRIORITY,
 		}
 	}
+	defaultURLFormat := dm.ImageURLFormat(configFile.HTTPServer.DEFAULT_URL_FORMAT)
+	if !defaultURLFormat.IsValid() {
+		return nil, fmt.Errorf("invalid default URL format: %s", configFile.HTTPServer.DEFAULT_URL_FORMAT)
+	}
 	return &ConfigDef{
 		Db: db.DBConfigDef{
 			POSTGRES_DB:       configFile.DB.POSTGRES_DB,
@@ -54,12 +59,16 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			LOG_QUERIES:       configFile.DB.LOG_QUERIES,
 		},
 		HttpServer: httpserver.HttpServerConfigDef{
-			Bind:               configFile.HTTPServer.BIND,
-			WriteTimeout:       configFile.HTTPServer.WRITE_TIMEOUT,
-			ReadTimeout:        configFile.HTTPServer.READ_TIMEOUT,
-			SessionKey:         configFile.HTTPServer.SESSION_KEY,
-			RedisURIForSession: configFile.Redis.GetSessionRedisURI(),
-			SiteName:           configFile.HTTPServer.SITE_NAME,
+			Bind:                   configFile.HTTPServer.BIND,
+			WriteTimeout:           configFile.HTTPServer.WRITE_TIMEOUT,
+			ReadTimeout:            configFile.HTTPServer.READ_TIMEOUT,
+			SessionKey:             configFile.HTTPServer.SESSION_KEY,
+			RedisURIForSession:     configFile.Redis.GetSessionRedisURI(),
+			SiteName:               configFile.HTTPServer.SITE_NAME,
+			ImageDomain:            configFile.HTTPServer.IMAGE_DOMAIN,
+			DefaultURLFormat:       defaultURLFormat,
+			EnableSafeImageCheck:   utils.IsStrTruthy(configFile.HTTPServer.ENABLE_SAFE_IMAGE_CHECK),
+			SafeImageCheckEndpoint: configFile.HTTPServer.SAFE_IMAGE_CHECK_ENDPOINT,
 		},
 		Storage: storage.StorageConfigDef{
 			StorageDefSource: storage.StorageDefSource(configFile.Storage.STORAGE_BACKEND_SOURCE),
@@ -73,6 +82,7 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		Storage: storage.StorageConfigDef{
 			StorageDefSource: storage.StorageDefSourceDB,
 		},
+		HttpServer: configs[0].HttpServer,
 	}
 	for _, config := range configs {
 		if config == nil {
@@ -120,6 +130,12 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		if config.HttpServer.DefaultURLFormat != "" {
 			merged.HttpServer.DefaultURLFormat = config.HttpServer.DefaultURLFormat
 		}
+		if config.configFileDef != nil && config.configFileDef.HTTPServer.ENABLE_SAFE_IMAGE_CHECK != "" {
+			merged.HttpServer.EnableSafeImageCheck = config.HttpServer.EnableSafeImageCheck
+		}
+		if config.HttpServer.SafeImageCheckEndpoint != "" {
+			merged.HttpServer.SafeImageCheckEndpoint = config.HttpServer.SafeImageCheckEndpoint
+		}
 		if config.Storage.StorageDefSource != "" {
 			merged.Storage.StorageDefSource = config.Storage.StorageDefSource
 		}
@@ -143,5 +159,5 @@ func GetConfig(maybeConfigFile string) (*ConfigDef, error) {
 }
 
 func (c *ConfigDef) PrintConfig() {
-	fmt.Printf("%#v", c)
+	fmt.Printf("%#v\n", c)
 }

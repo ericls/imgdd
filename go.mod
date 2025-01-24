@@ -246,6 +246,7 @@ require (
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/crypto v0.32.0
+	golang.org/x/image v0.23.0
 	golang.org/x/sys v0.29.0 // indirect
 )
 

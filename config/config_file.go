@@ -38,13 +38,15 @@ func (r *RedisConfigFileDef) GetCacheRedisURI() string {
 }
 
 type HTTPServerConfigFileDef struct {
-	BIND               string `toml:"BIND" comment:"HTTP server bind address"`
-	WRITE_TIMEOUT      int    `toml:"WRITE_TIMEOUT" comment:"HTTP server write timeout"`
-	READ_TIMEOUT       int    `toml:"READ_TIMEOUT" comment:"HTTP server read timeout"`
-	SESSION_KEY        string `toml:"SESSION_KEY" comment:"Session key"`
-	SITE_NAME          string `toml:"SITE_NAME" comment:"Site name"`
-	IMAGE_DOMAIN       string `toml:"IMAGE_DOMAIN" comment:"Image domain"`
-	DEFAULT_URL_FORMAT string `toml:"DEFAULT_URL_FORMAT" comment:"Default URL format. Choices are \n1. 'canonical' - Chooses best backend, and proxies content from that backend. \n2. 'direct' - A backend identifier is included in the URL and directly proxies that storage backend. \n3. 'backend_direct' - URL directly links to the backend"`
+	BIND                      string `toml:"BIND" comment:"HTTP server bind address"`
+	WRITE_TIMEOUT             int    `toml:"WRITE_TIMEOUT" comment:"HTTP server write timeout"`
+	READ_TIMEOUT              int    `toml:"READ_TIMEOUT" comment:"HTTP server read timeout"`
+	SESSION_KEY               string `toml:"SESSION_KEY" comment:"Session key"`
+	SITE_NAME                 string `toml:"SITE_NAME" comment:"Site name"`
+	IMAGE_DOMAIN              string `toml:"IMAGE_DOMAIN" comment:"Image domain"`
+	DEFAULT_URL_FORMAT        string `toml:"DEFAULT_URL_FORMAT" comment:"Default URL format. Choices are \n1. 'canonical' - Chooses best backend, and proxies content from that backend. \n2. 'direct' - A backend identifier is included in the URL and directly proxies that storage backend. \n3. 'backend_direct' - URL directly links to the backend"`
+	ENABLE_SAFE_IMAGE_CHECK   string `toml:"ENABLE_SAFE_IMAGE_CHECK" comment:"Enable safe image check. 'true', '1' or 'yes' to enable"`
+	SAFE_IMAGE_CHECK_ENDPOINT string `toml:"SAFE_IMAGE_CHECK_ENDPOINT" comment:"Safe image check endpoint. Used if ENABLE_SAFE_IMAGE_CHECK is true"`
 }
 
 type StorageBackendItem struct {
