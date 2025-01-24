@@ -276,7 +276,7 @@ func makeImageHandler(
 			httpLogger.Info().Err(err).Msg("Unable to get storage instance")
 			return
 		}
-		meta := storage.GetMetaCached(storageInstance, storedImage.FileIdentifier)
+		meta := storage.GetMetaCached(storageInstance, storageDef.Id, storedImage.FileIdentifier)
 		w.Header().Set("Content-Type", mimeType)
 		w.Header().Set("Content-Length", strconv.FormatInt(meta.ByteSize, 10))
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
@@ -337,7 +337,7 @@ func makeDirectImageHandler(
 			httpLogger.Error().Str("storage_definition_identifier", storageDefIdentifier).Err(err).Msg("Unable to get storage instance")
 			return
 		}
-		meta := storage.GetMetaCached(storageInstance, fileIdentifier)
+		meta := storage.GetMetaCached(storageInstance, storageDef.Id, fileIdentifier)
 		w.Header().Set("Content-Type", meta.ContentType)
 		w.Header().Set("Content-Length", strconv.FormatInt(meta.ByteSize, 10))
 		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")

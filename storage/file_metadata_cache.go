@@ -2,14 +2,20 @@ package storage
 
 import lru "github.com/hashicorp/golang-lru/v2"
 
-var metaCache, _ = lru.New2Q[string, FileMeta](2048)
+var metaCache, _ = lru.New2Q[cacheKey, FileMeta](2048)
 
-func GetMetaCached(storage Storage, filename string) FileMeta {
-	if meta, ok := metaCache.Get(filename); ok {
+type cacheKey struct {
+	storageDefId string
+	filename     string
+}
+
+func GetMetaCached(storage Storage, storageDefId string, filename string) FileMeta {
+	key := cacheKey{storageDefId, filename}
+	if meta, ok := metaCache.Get(key); ok {
 		return meta
 	}
 
 	meta := storage.GetMeta(filename)
-	metaCache.Add(filename, meta)
+	metaCache.Add(key, meta)
 	return meta
 }
