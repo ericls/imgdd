@@ -10,15 +10,15 @@ import (
 	"time"
 )
 
-const resetPasswordSaltPrefix = "imgdd-reset-password"
+const resetPasswordSalt = "imgdd-reset-password"
 const resetPasswordTokenValidity = 15 * time.Minute
 
 func makeResetTokenDigest(userId string, currentHashedPassword string, timeInfo time.Time, secret string) string {
-	hasher := sha256.New()
-	salt := fmt.Sprintf("%s-%s-%s", resetPasswordSaltPrefix, secret, timeInfo.Format(time.RFC3339))
+	key := fmt.Sprintf("%s.%s", resetPasswordSalt, secret)
+	hasher := hmac.New(sha256.New, []byte(key))
 	hasher.Write([]byte(userId))
 	hasher.Write([]byte(currentHashedPassword))
-	hasher.Write([]byte(salt))
+	hasher.Write([]byte(timeInfo.Format(time.RFC3339Nano)))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
