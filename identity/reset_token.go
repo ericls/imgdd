@@ -18,7 +18,7 @@ func makeResetTokenDigest(userId string, currentHashedPassword string, timeInfo 
 	hasher := hmac.New(sha256.New, []byte(key))
 	hasher.Write([]byte(userId))
 	hasher.Write([]byte(currentHashedPassword))
-	hasher.Write([]byte(timeInfo.Format(time.RFC3339Nano)))
+	hasher.Write([]byte(timeInfo.Format(time.RFC3339)))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
@@ -42,7 +42,12 @@ func checkToken(userId string, currentHashedPassword string, currentTime time.Ti
 	timeThen := time.Unix(0, tsInt*int64(time.Millisecond))
 	digest1 := makeResetTokenDigest(userId, currentHashedPassword, timeThen, secret)
 	digest2 := parts[1]
-	if !hmac.Equal([]byte(digest1), []byte(digest2)) {
+	d1, err1 := hex.DecodeString(digest1)
+	d2, err2 := hex.DecodeString(digest2)
+	if err1 != nil || err2 != nil {
+		return false
+	}
+	if !hmac.Equal([]byte(d1), []byte(d2)) {
 		return false
 	}
 	return currentTime.Sub(timeThen) <= resetPasswordTokenValidity
