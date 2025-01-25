@@ -2,8 +2,6 @@ name: Backend test
 
 on:
   push:
-    branches:
-      - main
   pull_request:
 
 jobs:
