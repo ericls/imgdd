@@ -63,11 +63,25 @@ type StorageConfigFileDef struct {
 	STORAGE_BACKENDS       []StorageBackendItem `toml:"STORAGE_BACKENDS" comment:"Storage backends. \nOnly used if STORAGE_BACKEND_SOURCE is 'conf'"`
 }
 
+type SMTPConfigFileDef struct {
+	HOST     string `toml:"HOST" comment:"SMTP host"`
+	PORT     string `toml:"PORT" comment:"SMTP port"`
+	USERNAME string `toml:"USERNAME" comment:"SMTP username"`
+	PASSOWRD string `toml:"PASSWORD" comment:"SMTP password"`
+	FROM     string `toml:"FROM" comment:"SMTP from"`
+}
+
+type EmailConfigFileDef struct {
+	TYPE string             `toml:"TYPE" comment:"Email backend. Choices are 'dummy' or 'smtp'"`
+	SMTP *SMTPConfigFileDef `toml:"SMTP" comment:"SMTP configuration. Used if TYPE is 'smtp'"`
+}
+
 type ConfigFileDef struct {
 	DB         *DBConfigFileDef         `toml:"DBConfig" comment:"Database configuration"`
 	Redis      *RedisConfigFileDef      `toml:"RedisConfig" comment:"Redis configuration"`
 	HTTPServer *HTTPServerConfigFileDef `toml:"HTTPServerConfig" comment:"HTTP server configuration"`
 	Storage    *StorageConfigFileDef    `toml:"StorageConfig" comment:"Storage configuration"`
+	Email      *EmailConfigFileDef      `toml:"EmailConfig" comment:"Email configuration"`
 }
 
 func (cfd *ConfigFileDef) Clone() ConfigFileDef {
@@ -87,8 +101,10 @@ var EmptyConfig = ConfigFileDef{
 	DB: &DBConfigFileDef{
 		LOG_QUERIES: new(bool),
 	},
-	HTTPServer: &HTTPServerConfigFileDef{},
-	Redis:      &RedisConfigFileDef{},
+	HTTPServer: &HTTPServerConfigFileDef{
+		DEFAULT_URL_FORMAT: "canonical",
+	},
+	Redis: &RedisConfigFileDef{},
 	Storage: &StorageConfigFileDef{
 		STORAGE_BACKEND_SOURCE: "db",
 		STORAGE_BACKENDS: []StorageBackendItem{
@@ -100,6 +116,16 @@ var EmptyConfig = ConfigFileDef{
 				IS_ENABLED:   true,
 				PRIORITY:     0,
 			},
+		},
+	},
+	Email: &EmailConfigFileDef{
+		TYPE: "dummy",
+		SMTP: &SMTPConfigFileDef{
+			HOST:     "smtp.home.arpa",
+			PORT:     "587",
+			USERNAME: "user",
+			PASSOWRD: "password",
+			FROM:     "noreply@imgdd.com",
 		},
 	},
 }

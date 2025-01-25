@@ -13,13 +13,13 @@ func tAuthenticate(t *testing.T, tc *TestContext) {
 	var resp struct {
 		Authenticate *model.ViewerResult
 	}
-	orgUser, err := tc.identityRepo.CreateUserWithOrganization("test@example.com", "test_org", "password")
+	orgUser, err := tc.identityRepo.CreateUserWithOrganization("test@home.arpa", "test_org", "password")
 	if err != nil {
 		t.Fatal(err)
 	}
 	err = tc.client.Post(`
 	mutation {
-		authenticate(email: "test@example.com", password: "password") {
+		authenticate(email: "test@home.arpa", password: "password") {
 			viewer {
 				id
 				organizationUser {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ericls/imgdd/db"
+	"github.com/ericls/imgdd/email"
 	"github.com/ericls/imgdd/httpserver"
 	"github.com/ericls/imgdd/storage"
 	"github.com/ericls/imgdd/utils"
@@ -16,6 +17,7 @@ type ConfigDef struct {
 	Db            db.DBConfigDef
 	HttpServer    httpserver.HttpServerConfigDef
 	Storage       storage.StorageConfigDef
+	Email         email.EmailConfigDef
 	configFileDef *ConfigFileDef
 }
 
@@ -23,6 +25,7 @@ func ConfigFromEnv() (*ConfigDef, error) {
 	return &ConfigDef{
 		Db:         db.ReadConfigFromEnv(),
 		HttpServer: httpserver.ReadServerConfigFromEnv(),
+		Email:      email.ReadEmailConfigFromEnv(),
 	}, nil
 }
 
@@ -49,6 +52,22 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 	if !defaultURLFormat.IsValid() {
 		return nil, fmt.Errorf("invalid default URL format: %s", configFile.HTTPServer.DEFAULT_URL_FORMAT)
 	}
+
+	emailBackendType := email.EmailBackendType(configFile.Email.TYPE)
+	if !emailBackendType.IsValid() {
+		return nil, fmt.Errorf("invalid email backend type: %s", configFile.Email.TYPE)
+	}
+	SMTPConfigFormFile := configFile.Email.SMTP
+	var SMTPConfig *email.SMTPConfigDef
+	if SMTPConfigFormFile != nil {
+		SMTPConfig = &email.SMTPConfigDef{
+			Host:     SMTPConfigFormFile.HOST,
+			Port:     SMTPConfigFormFile.PORT,
+			Username: SMTPConfigFormFile.USERNAME,
+			Password: SMTPConfigFormFile.PASSOWRD,
+			From:     SMTPConfigFormFile.FROM,
+		}
+	}
 	return &ConfigDef{
 		Db: db.DBConfigDef{
 			POSTGRES_DB:       configFile.DB.POSTGRES_DB,
@@ -74,6 +93,11 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			StorageDefSource: storage.StorageDefSource(configFile.Storage.STORAGE_BACKEND_SOURCE),
 			StorageDefs:      storageDefs,
 		},
+		Email: email.EmailConfigDef{
+			Type: emailBackendType,
+			SMTP: SMTPConfig,
+		},
+		configFileDef: configFile,
 	}, nil
 }
 
@@ -141,6 +165,12 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		}
 		if config.Storage.StorageDefSource == storage.StorageDefSourceConf {
 			merged.Storage.StorageDefs = config.Storage.StorageDefs
+		}
+		if config.Email.Type != "" {
+			merged.Email.Type = config.Email.Type
+		}
+		if config.Email.SMTP != nil && config.Email.SMTP.Host != "" {
+			merged.Email.SMTP = config.Email.SMTP
 		}
 	}
 	if merged.Storage.StorageDefSource == storage.StorageDefSourceDB {

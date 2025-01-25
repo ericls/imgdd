@@ -9,6 +9,7 @@ import (
 	"github.com/ericls/imgdd/buildflag"
 	"github.com/ericls/imgdd/config"
 	"github.com/ericls/imgdd/db"
+	"github.com/ericls/imgdd/email"
 	"github.com/ericls/imgdd/graph"
 	"github.com/ericls/imgdd/httpserver"
 	"github.com/ericls/imgdd/identity"
@@ -150,6 +151,25 @@ func main() {
 				conf := getConfig(ctx)
 				conf.PrintConfig()
 				return nil
+			},
+		},
+		{
+			Name: "send-test-email",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "to",
+					Usage:    "Email address to send the test email to",
+					Required: true,
+				},
+			},
+			Action: func(ctx *cli.Context) error {
+				conf := getConfig(ctx)
+				emailBackend, err := email.GetEmailBackendFromConfig(&conf.Email)
+				if err != nil {
+					return err
+				}
+				err = email.SendEmail(emailBackend, "", []string{ctx.String("to")}, "IMGDD Test email", "This is a test email", "")
+				return err
 			},
 		},
 		{
