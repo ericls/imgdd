@@ -32,6 +32,7 @@ func makeUploadHandler(
 	identityManager *IdentityManager,
 	storageDefRepo storage.StorageDefRepo,
 	imageRepo image.ImageRepo,
+	limiter *RateLimiter,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.ParseMultipartForm(10 * 1024 * 1024) // 10 MB
@@ -119,6 +120,11 @@ func makeUploadHandler(
 		var createdById string
 		if orgUser != nil {
 			createdById = orgUser.Id
+		}
+
+		if orgUser == nil && limiter.IsRateLimited(uploaderIp) {
+			http.Error(w, "Rate limited", http.StatusTooManyRequests)
+			return
 		}
 
 		imageIdentifier := uuid.New().String()

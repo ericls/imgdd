@@ -143,6 +143,9 @@ func MakeServer(
 	identityManager := NewIdentityManager(identityRepo, sessionPersister)
 	gqlResolver := NewGqlResolver(identityManager, storageDefRepo, imageRepo, conf.ImageDomain, conf.DefaultURLFormat)
 
+	uploadLimiter := NewRateLimiter(5, 5)
+	go uploadLimiter.Cleanup()
+
 	graphqlServer := makeGqlServer(
 		graph.NewExecutableSchema(
 			NewGraphConfig(gqlResolver),
@@ -155,7 +158,7 @@ func MakeServer(
 		appRouter.Handle("/gql_playground", playground.Handler("IMGDD GraphQL", "/query"))
 	}
 	appRouter.Handle("/query", graphqlServer)
-	appRouter.Handle("/upload", makeUploadHandler(conf, identityManager, storageDefRepo, imageRepo))
+	appRouter.Handle("/upload", makeUploadHandler(conf, identityManager, storageDefRepo, imageRepo, uploadLimiter))
 
 	mountStatic(appRouter, conf.StaticFS)
 	appRouter.PathPrefix("/").HandlerFunc(makeAppHandler(

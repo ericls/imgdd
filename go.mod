@@ -17,6 +17,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v2 v2.27.5
 	github.com/vektah/gqlparser/v2 v2.5.21
+	golang.org/x/time v0.9.0
 )
 
 require (
@@ -194,7 +195,6 @@ require (
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/term v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
-	golang.org/x/time v0.9.0 // indirect
 	golang.org/x/tools v0.29.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.216.0 // indirect
