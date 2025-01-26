@@ -25,6 +25,7 @@ type IdentityRepo interface {
 	GetOrganizationUserById(id string) *dm.OrganizationUser
 
 	GetUserPassword(id string) string
+	UpdateUserPassword(id string, password string) error
 }
 
 type ContextUserManager interface {

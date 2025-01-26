@@ -10,13 +10,13 @@ func TestMakeAndCheckToken(t *testing.T) {
 	userId := "user"
 	currentHashedPassword := "password"
 	then := time.Now()
-	token := makeToken(userId, currentHashedPassword, then, secret)
+	token := makeResetPasswordToken(userId, currentHashedPassword, then, secret)
 	now := then.Add(resetPasswordTokenValidity / 2)
-	if !checkToken(userId, currentHashedPassword, now, secret, token) {
+	if !checkResetPasswordToken(userId, currentHashedPassword, now, secret, token) {
 		t.Errorf("token should be valid")
 	}
 	now = then.Add(resetPasswordTokenValidity + 1)
-	if checkToken(userId, currentHashedPassword, now, secret, token) {
+	if checkResetPasswordToken(userId, currentHashedPassword, now, secret, token) {
 		t.Errorf("token should be invalid, expired")
 	}
 }

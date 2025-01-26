@@ -4,6 +4,14 @@ input CreateUserWithOrganizationInput {
   organizationName: String!
 }
 
+input SendResetPasswordEmailInput {
+  email: String!
+}
+
+type SendResetPasswordEmailResult {
+  success: Boolean!
+}
+
 extend type Mutation {
   authenticate(
     email: String!
@@ -14,4 +22,5 @@ extend type Mutation {
   createUserWithOrganization(
     input: CreateUserWithOrganizationInput!
   ): ViewerResult!
+  sendResetPasswordEmail(input: SendResetPasswordEmailInput!): SendResetPasswordEmailResult!
 }

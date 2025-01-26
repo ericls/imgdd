@@ -22,14 +22,14 @@ func makeResetTokenDigest(userId string, currentHashedPassword string, timeInfo 
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func makeToken(userId string, currentHashedPassord string, currentTime time.Time, secret string) string {
+func makeResetPasswordToken(userId string, currentHashedPassword string, currentTime time.Time, secret string) string {
 	ts := currentTime.UnixMilli()
 	tsB36 := strconv.FormatInt(ts, 36)
-	hashedUserWithTs := makeResetTokenDigest(userId, currentHashedPassord, currentTime, secret)
+	hashedUserWithTs := makeResetTokenDigest(userId, currentHashedPassword, currentTime, secret)
 	return fmt.Sprintf("%s-%s", tsB36, hashedUserWithTs)
 }
 
-func checkToken(userId string, currentHashedPassword string, currentTime time.Time, secret string, token string) bool {
+func checkResetPasswordToken(userId string, currentHashedPassword string, currentTime time.Time, secret string, token string) bool {
 	parts := strings.SplitN(token, "-", 2)
 	if len(parts) != 2 {
 		return false

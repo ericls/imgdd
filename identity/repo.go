@@ -136,6 +136,16 @@ func (repo *DBIdentityRepo) GetUserPassword(id string) string {
 	return dest.Password
 }
 
+func (repo *DBIdentityRepo) UpdateUserPassword(id string, password string) error {
+	hashsedPassword, err := HashPassword(password)
+	if err != nil {
+		return err
+	}
+	stmt := UserTable.UPDATE().SET(UserTable.Password.SET(String(hashsedPassword))).WHERE(UserTable.ID.EQ(UUID(uuid.MustParse(id))))
+	_, err = stmt.Exec(repo.DB)
+	return err
+}
+
 func (repo *DBIdentityRepo) GetUsersByIds(ids []string) []*dm.User {
 	dest := []userSelectResult{}
 	uuids := make([]Expression, len(ids))
