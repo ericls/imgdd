@@ -94,7 +94,6 @@ export function Uplodaer() {
       request.addEventListener(
         "error",
         () => {
-          console.log("error");
           setCurrentFile({ errored: true });
         },
         { once: false },

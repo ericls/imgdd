@@ -1,6 +1,6 @@
 import { t } from "i18next";
 import React from "react";
-import classNames from "~node_modules/classnames";
+import classNames from "classnames";
 import { DEFAULT_MENU_CONFIG } from "~src/common/ImageGallery/menu";
 import { ImageGallery } from "~src/common/ImageGallery/render";
 import { useAuth } from "~src/lib/auth";

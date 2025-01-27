@@ -33,6 +33,7 @@
     "auth": {
         "authenticationFailed": "Authentication failed. Please check your credentials and try again.",
         "passwordsDoNotMatch": "Passwords do not match.",
+        "passwordCannotBeEmpty": "Password cannot be empty.",
         "userCreationFailed": "User creation failed. Please try again or contact support.",
         "titleSignIn": "Sign in to your account",
         "titleCreateAccount": "Create a new account",
@@ -46,7 +47,22 @@
         "fieldRepeatPasswordPlaceholder": "Repeat password",
         "forgotPasswordLink": "Forgot your password?",
         "buttonSignIn": "Sign in",
-        "buttonCreateAccount": "Create account"
+        "buttonCreateAccount": "Create account",
+        "buttonSubmit": "Submit",
+        "forgotPassword": {
+          "title": "Forgot password?",
+          "backToSignInLink": "Back to sign in",
+          "description": "Enter your email and we'll send you a link to reset your password",
+          "success": "An email has been sent to you with a link to reset your password.",
+          "error": "An error occurred while sending the email. Please try again."
+        },
+        "resetPassword": {
+          "title": "Reset password",
+          "success": "Your password has been reset successfully.",
+          "error": "An error occurred while resetting your password. Please try again.",
+          "newPasswordPlaceholder": "New password",
+          "newPasswordConfirmPlaceholder": "Repeat new password"
+        }
     },
     "listStorageDefPage": {
         "title": "Storage backend"

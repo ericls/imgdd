@@ -3,7 +3,7 @@ import { RenderingImageItem, ImageItemRenderer } from "./types";
 import { useImagesQuery } from "./data";
 import { humanFileSize } from "~src/lib/humanizeFileSize";
 import { useHumanizeDateTime } from "~src/lib/humanizeDateTime";
-import classNames from "~node_modules/classnames";
+import classNames from "classnames";
 import { SECONDARY_TEXT_COLOR_DIM, TEXT_COLOR } from "~src/ui/classNames";
 import { Button } from "~src/ui/button";
 import {

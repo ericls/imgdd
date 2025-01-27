@@ -1,5 +1,5 @@
 import React from "react";
-import { useLazyQuery, useMutation } from "~node_modules/@apollo/client";
+import { useLazyQuery, useMutation } from "@apollo/client";
 import { gql } from "~src/__generated__";
 import {
   ImageOrderByInput,

@@ -123,7 +123,29 @@ const router = createBrowserRouter([
         element: <AppMainPage />,
       },
       {
-        path: "auth",
+        path: "/auth/forgot-password",
+        lazy: async () => {
+          const { ForgotPasswordPage } = await import(
+            "./app/pages/forgotPassword"
+          );
+          return {
+            element: <ForgotPasswordPage />,
+          };
+        },
+      },
+      {
+        path: "/auth/reset-password",
+        lazy: async () => {
+          const { ResetPasswordPage } = await import(
+            "./app/pages/resetPassword"
+          );
+          return {
+            element: <ResetPasswordPage />,
+          };
+        },
+      },
+      {
+        path: "/auth",
         lazy: async () => {
           const { AuthPage } = await import("./app/pages/auth");
           return {

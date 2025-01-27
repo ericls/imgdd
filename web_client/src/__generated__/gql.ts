@@ -15,6 +15,8 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
 const documents = {
     "\nmutation createUserWithOrganization($input: CreateUserWithOrganizationInput!) {\n  createUserWithOrganization(\n    input: $input\n  ) {\n    viewer {\n      id\n      organizationUser {\n        id\n        user {\n          id\n          email\n          name\n        }\n      }\n    }\n  }\n}\n": types.CreateUserWithOrganizationDocument,
     "\nmutation authenticate($email: String!, $password: String!) {\n  authenticate(email: $email, password: $password) {\n    viewer {\n      id\n      organizationUser {\n        id\n        user {\n          id\n          email\n          name\n        }\n      }\n    }\n  }\n}\n": types.AuthenticateDocument,
+    "\nmutation sendResetPasswordEmail($input: SendResetPasswordEmailInput!) {\n  sendResetPasswordEmail(input: $input) {\n    success\n  }\n}\n": types.SendResetPasswordEmailDocument,
+    "\nmutation resetPassword($input: ResetPasswordInput!) {\n  resetPassword(input: $input) {\n    success\n  }\n}\n": types.ResetPasswordDocument,
     "\n  query ImagesQuery(\n    $orderBy: ImageOrderByInput\n    $filters: ImageFilterInput\n    $after: String\n    $before: String\n  ) {\n    viewer {\n      id\n      images(\n        orderBy: $orderBy\n        filters: $filters\n        after: $after\n        before: $before\n      ) {\n        pageInfo {\n          hasNextPage\n          hasPreviousPage\n          startCursor\n          endCursor\n          totalCount\n          currentCount\n        }\n        edges {\n          cursor\n          node {\n            id\n            url\n            name\n            nominalWidth\n            nominalHeight\n            nominalByteSize\n            createdAt\n            storedImages {\n              id\n            }\n          }\n        }\n      }\n    }\n  }\n": types.ImagesQueryDocument,
     "\n  mutation DeleteImage($input: DeleteImageInput!) {\n    deleteImage(input: $input) {\n      id\n    }\n  }\n": types.DeleteImageDocument,
     "\nquery Auth {\n  viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n  }\n}\n": types.AuthDocument,
@@ -49,6 +51,14 @@ export function gql(source: "\nmutation createUserWithOrganization($input: Creat
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\nmutation authenticate($email: String!, $password: String!) {\n  authenticate(email: $email, password: $password) {\n    viewer {\n      id\n      organizationUser {\n        id\n        user {\n          id\n          email\n          name\n        }\n      }\n    }\n  }\n}\n"): (typeof documents)["\nmutation authenticate($email: String!, $password: String!) {\n  authenticate(email: $email, password: $password) {\n    viewer {\n      id\n      organizationUser {\n        id\n        user {\n          id\n          email\n          name\n        }\n      }\n    }\n  }\n}\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\nmutation sendResetPasswordEmail($input: SendResetPasswordEmailInput!) {\n  sendResetPasswordEmail(input: $input) {\n    success\n  }\n}\n"): (typeof documents)["\nmutation sendResetPasswordEmail($input: SendResetPasswordEmailInput!) {\n  sendResetPasswordEmail(input: $input) {\n    success\n  }\n}\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\nmutation resetPassword($input: ResetPasswordInput!) {\n  resetPassword(input: $input) {\n    success\n  }\n}\n"): (typeof documents)["\nmutation resetPassword($input: ResetPasswordInput!) {\n  resetPassword(input: $input) {\n    success\n  }\n}\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -209,7 +209,10 @@ export function AuthPage() {
 
         <div className="flex items-center justify-end">
           <div className="text-sm">
-            <Link to="/auth/forgot" className={cx("font-medium", LINK_COLOR)}>
+            <Link
+              to="/auth/forgot-password"
+              className={cx("font-medium", LINK_COLOR)}
+            >
               {t("auth.forgotPasswordLink")}
             </Link>
           </div>
