@@ -32,7 +32,7 @@ func SendResetPasswordEmail(
 		return err
 	}
 	resetURL := baseURL
-	resetURL.Path = "/reset_password"
+	resetURL.Path = "/auth/reset-password"
 	resetURL.RawQuery = url.Values{"message": {message}}.Encode()
 	resetURLString := resetURL.String()
 	htmlBody, err := email.RenderTemplate("reset_password.html", struct {
