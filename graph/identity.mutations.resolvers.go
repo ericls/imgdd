@@ -53,6 +53,41 @@ func (r *mutationResolver) CreateUserWithOrganization(ctx context.Context, input
 	return &model.ViewerResult{Viewer: &model.Viewer{}}, nil
 }
 
+// SendResetPasswordEmail is the resolver for the sendResetPasswordEmail field.
+func (r *mutationResolver) SendResetPasswordEmail(ctx context.Context, input model.SendResetPasswordEmailInput) (*model.SendResetPasswordEmailResult, error) {
+	inputEmail := input.Email
+	if inputEmail == "" {
+		return nil, fmt.Errorf("email is required")
+	}
+	// This should always be true.
+	success := true
+	resp := &model.SendResetPasswordEmailResult{Success: success}
+	user := r.IdentityRepo.GetUserByEmail(inputEmail)
+	if user == nil {
+		return resp, nil
+	}
+	err := identity.SendResetPasswordEmail(r.GetEmailBackend(ctx), r.SecretKey, user, r.IdentityRepo, r.GetBaseURL(ctx))
+	if err != nil {
+		resolverLogger.Err(err).Msg("failed to send reset password email")
+	}
+	return resp, nil
+}
+
+// ResetPassword is the resolver for the resetPassword field.
+func (r *mutationResolver) ResetPassword(ctx context.Context, input model.ResetPasswordInput) (*model.ResetPasswordResult, error) {
+	message := input.Message
+	newPassword := input.Password
+	if message == "" {
+		return nil, fmt.Errorf("message is required")
+	}
+	err := identity.ResetPassword(r.IdentityRepo, r.SecretKey, message, newPassword)
+	if err != nil {
+		resolverLogger.Err(err).Msg("failed to reset password")
+		return &model.ResetPasswordResult{Success: false}, nil
+	}
+	return &model.ResetPasswordResult{Success: true}, nil
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 

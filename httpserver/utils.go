@@ -1,7 +1,10 @@
 package httpserver
 
 import (
+	"context"
+
 	"github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/email"
 	"github.com/ericls/imgdd/graph"
 	"github.com/ericls/imgdd/image"
 	"github.com/ericls/imgdd/storage"
@@ -15,6 +18,8 @@ func NewGqlResolver(
 	imageRepo image.ImageRepo,
 	imageDomain string,
 	defaultURLFormat domainmodels.ImageURLFormat,
+	getEmailBackend func(c context.Context) email.EmailBackend,
+	SecretKey string,
 ) *graph.Resolver {
 	return &graph.Resolver{
 		IdentityRepo:       identityManager.IdentityRepo,
@@ -26,6 +31,9 @@ func NewGqlResolver(
 		ImageDomain:        imageDomain,
 		DefaultURLFormat:   defaultURLFormat,
 		IsHttps:            IsHttps,
+		GetBaseURL:         GetBaseURL,
+		GetEmailBackend:    getEmailBackend,
+		SecretKey:          SecretKey,
 	}
 }
 

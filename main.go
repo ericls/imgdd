@@ -81,7 +81,7 @@ func main() {
 				}
 				httpServerConf.StaticFS = MoutingFS.Static
 				httpServerConf.TemplatesFS = MoutingFS.Templates
-				srv := httpserver.MakeServer(&httpServerConf, &conf.Db, &conf.Storage)
+				srv := httpserver.MakeServer(&httpServerConf, &conf.Db, &conf.Storage, &conf.Email)
 				logger.Info().Str("bind", srv.Addr).Msg("Starting server")
 				return srv.ListenAndServe()
 			},

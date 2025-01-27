@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/ericls/imgdd/logging"
@@ -63,6 +64,18 @@ func IsSecure(r *http.Request) bool {
 func IsHttps(c context.Context) bool {
 	r := GetRequest(c)
 	return IsSecure(r)
+}
+
+func GetBaseURL(c context.Context) *url.URL {
+	r := GetRequest(c)
+	url := &url.URL{
+		Scheme: "http",
+		Host:   r.Host,
+	}
+	if IsSecure(r) {
+		url.Scheme = "https"
+	}
+	return url
 }
 
 type loggingEntry struct {

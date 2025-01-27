@@ -2,11 +2,7 @@ package graph
 
 import (
 	"os/exec"
-
-	"github.com/ericls/imgdd/logging"
 )
-
-var logger = logging.GetLogger("graph_commands")
 
 func GenerateGqlCode() {
 	cmd := exec.Command(
@@ -15,8 +11,8 @@ func GenerateGqlCode() {
 	cmd.Dir = "." // relative to project root (where go.mod is)
 	out, err := cmd.Output()
 	if err != nil {
-		logger.Error().Err(err).Msg(string(out))
+		commandLogger.Error().Err(err).Msg(string(out))
 	} else {
-		logger.Info().Str("Event", "Generated graphql code").Msg(string(out))
+		commandLogger.Info().Str("Event", "Generated graphql code").Msg(string(out))
 	}
 }

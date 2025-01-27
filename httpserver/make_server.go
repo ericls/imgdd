@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"context"
 	"html/template"
 	"io/fs"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/ericls/imgdd/buildflag"
 	"github.com/ericls/imgdd/db"
+	"github.com/ericls/imgdd/email"
 	"github.com/ericls/imgdd/graph"
 	"github.com/ericls/imgdd/httpserver/persister"
 	"github.com/ericls/imgdd/identity"
@@ -123,6 +125,7 @@ func MakeServer(
 	conf *HttpServerConfigDef,
 	dbConf *db.DBConfigDef,
 	storageConf *storage.StorageConfigDef,
+	emailConf *email.EmailConfigDef,
 ) *http.Server {
 
 	conn := db.GetConnection(dbConf)
@@ -141,7 +144,16 @@ func MakeServer(
 	imageRepo := image.NewDBImageRepo(conn)
 	appRouter.Use(graph.NewLoadersMiddleware(identityRepo, storageDefRepo, storedImageRepo))
 	identityManager := NewIdentityManager(identityRepo, sessionPersister)
-	gqlResolver := NewGqlResolver(identityManager, storageDefRepo, imageRepo, conf.ImageDomain, conf.DefaultURLFormat)
+
+	getEmailBackend := func(c context.Context) email.EmailBackend {
+		backend, err := email.GetEmailBackendFromConfig(emailConf)
+		if err != nil {
+			panic(err)
+		}
+		return backend
+	}
+
+	gqlResolver := NewGqlResolver(identityManager, storageDefRepo, imageRepo, conf.ImageDomain, conf.DefaultURLFormat, getEmailBackend, conf.SessionKey)
 
 	uploadLimiter := NewRateLimiter(5, 5)
 	go uploadLimiter.Cleanup()

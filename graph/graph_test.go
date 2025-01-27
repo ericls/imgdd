@@ -11,6 +11,7 @@ import (
 
 	"github.com/ericls/imgdd/db"
 	"github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/email"
 	"github.com/ericls/imgdd/graph"
 	"github.com/ericls/imgdd/graph/model"
 	"github.com/ericls/imgdd/httpserver"
@@ -89,7 +90,18 @@ func newTestContext(tObj *testing.T) *TestContext {
 	storageDefRepo := storage.NewDBStorageConfig(conn).MakeStorageDefRepo()
 	storedImageRepo := storage.NewDBStoredImageRepo(conn)
 	imageRepo := image.NewDBImageRepo(conn)
-	resolver := httpserver.NewGqlResolver(identityManager, storageDefRepo, imageRepo, "", domainmodels.ImageURLFormat_CANONICAL)
+	dummyEmailBackend := email.NewDummyBackend()
+	resolver := httpserver.NewGqlResolver(
+		identityManager,
+		storageDefRepo,
+		imageRepo,
+		"",
+		domainmodels.ImageURLFormat_CANONICAL,
+		func(c context.Context) email.EmailBackend {
+			return dummyEmailBackend
+		},
+		"secret",
+	)
 
 	// make server
 	gqlServer := handler.New(graph.NewExecutableSchema(httpserver.NewGraphConfig(resolver)))
