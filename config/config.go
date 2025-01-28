@@ -160,6 +160,21 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		if config.HttpServer.SafeImageCheckEndpoint != "" {
 			merged.HttpServer.SafeImageCheckEndpoint = config.HttpServer.SafeImageCheckEndpoint
 		}
+		if config.HttpServer.CaptchaProvider != "" {
+			merged.HttpServer.CaptchaProvider = config.HttpServer.CaptchaProvider
+			if config.HttpServer.TurnstileSiteKey != "" {
+				merged.HttpServer.TurnstileSiteKey = config.HttpServer.TurnstileSiteKey
+			}
+			if config.HttpServer.RecaptchaClientKey != "" {
+				merged.HttpServer.RecaptchaClientKey = config.HttpServer.RecaptchaClientKey
+			}
+			if config.HttpServer.RecaptchaServerKey != "" {
+				merged.HttpServer.RecaptchaServerKey = config.HttpServer.RecaptchaServerKey
+			}
+			if config.HttpServer.TurnstileSecretKey != "" {
+				merged.HttpServer.TurnstileSecretKey = config.HttpServer.TurnstileSecretKey
+			}
+		}
 		if config.Storage.StorageDefSource != "" {
 			merged.Storage.StorageDefSource = config.Storage.StorageDefSource
 		}

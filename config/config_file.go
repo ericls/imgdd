@@ -47,6 +47,11 @@ type HTTPServerConfigFileDef struct {
 	DEFAULT_URL_FORMAT        string `toml:"DEFAULT_URL_FORMAT" comment:"Default URL format. Choices are \n1. 'canonical' - Chooses best backend, and proxies content from that backend. \n2. 'direct' - A backend identifier is included in the URL and directly proxies that storage backend. \n3. 'backend_direct' - URL directly links to the backend"`
 	ENABLE_SAFE_IMAGE_CHECK   string `toml:"ENABLE_SAFE_IMAGE_CHECK" comment:"Enable safe image check. 'true', '1' or 'yes' to enable"`
 	SAFE_IMAGE_CHECK_ENDPOINT string `toml:"SAFE_IMAGE_CHECK_ENDPOINT" comment:"Safe image check endpoint. Used if ENABLE_SAFE_IMAGE_CHECK is true"`
+	CAPTCHA_PROVIDER          string `toml:"CAPTCHA_PROVIDER" comment:"Captcha provider. Choices are 'off', 'recaptcha', 'turnstile'"`
+	RECAPTCHA_CLIENT_KEY      string `toml:"RECAPTCHA_CLIENT_KEY" comment:"Recaptcha client key. Used if CAPTCHA_PROVIDER is 'recaptcha'"`
+	TURNSTILE_SITE_KEY        string `toml:"TURNSTILE_SITE_KEY" comment:"Turnstile site key. Used if CAPTCHA_PROVIDER is 'turnstile'"`
+	RECAPTCHA_SERVER_KEY      string `toml:"RECAPTCHA_SERVER_KEY" comment:"Recaptcha server key. Used if CAPTCHA_PROVIDER is 'recaptcha'"`
+	TURNSTILE_SECRET_KEY      string `toml:"TURNSTILE_SECRET_KEY" comment:"Turnstile secret key. Used if CAPTCHA_PROVIDER is 'turnstile'"`
 }
 
 type StorageBackendItem struct {

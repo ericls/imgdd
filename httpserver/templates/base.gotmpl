@@ -8,6 +8,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+{{ if eq .CaptchaProvider "recaptcha"}}
+{{ if .RecaptchaClientKey }}
+<script src="https://www.google.com/recaptcha/api.js?render={{.RecaptchaClientKey}}"></script>
+{{ end}}
+{{ end }}
+{{ if eq .CaptchaProvider "turnstile"}}
+{{ if .TurnstileSiteKey }}
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
+{{ end }}
+{{ end }}
 <script>
       if (
         localStorage.imgddtheme === "dark" ||

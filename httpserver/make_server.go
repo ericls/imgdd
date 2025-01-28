@@ -29,10 +29,13 @@ import (
 )
 
 type appHandlerOptions struct {
-	siteName          string
-	templatesFS       fs.FS
-	sessionHeaderName string
-	sessionUseCookie  bool
+	siteName           string
+	templatesFS        fs.FS
+	sessionHeaderName  string
+	sessionUseCookie   bool
+	captchaProvider    captchaProvider
+	recaptchaClientKey string
+	turnstileSiteKey   string
 }
 
 type appHandlerOption func(*appHandlerOptions)
@@ -61,6 +64,27 @@ func withTemplateFS(fs fs.FS) func(*appHandlerOptions) {
 	}
 }
 
+func withCaptchaProvider(provider captchaProvider) func(*appHandlerOptions) {
+	if !provider.isValid() {
+		panic("Invalid captcha provider")
+	}
+	return func(o *appHandlerOptions) {
+		o.captchaProvider = provider
+	}
+}
+
+func withRecaptchaClientKey(key string) func(*appHandlerOptions) {
+	return func(o *appHandlerOptions) {
+		o.recaptchaClientKey = key
+	}
+}
+
+func withTurnstileSiteKey(key string) func(*appHandlerOptions) {
+	return func(o *appHandlerOptions) {
+		o.turnstileSiteKey = key
+	}
+}
+
 func makeAppHandler(
 	options ...appHandlerOption,
 ) http.HandlerFunc {
@@ -69,10 +93,11 @@ func makeAppHandler(
 		opt(&opts)
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		// renders the `app.gotmpl` template
 		template, err := template.ParseFS(opts.templatesFS, "*.gotmpl")
 		if err != nil {
-			w.Write([]byte("Error rendering template"))
+			httpLogger.Err(err).Msg("Error parsing template")
+			w.Write([]byte("Error parsing template"))
+			return
 		}
 		var sessionHeaderName string
 		if opts.sessionUseCookie {
@@ -81,20 +106,26 @@ func makeAppHandler(
 			sessionHeaderName = opts.sessionHeaderName
 		}
 		err = template.Execute(w, struct {
-			Version           string
-			VersionHash       string
-			SiteName          string
-			Debug             bool
-			SessionHeaderName string
+			Version            string
+			VersionHash        string
+			SiteName           string
+			Debug              bool
+			SessionHeaderName  string
+			CaptchaProvider    captchaProvider
+			RecaptchaClientKey string
+			TurnstileSiteKey   string
 		}{
-			Version:           buildflag.VersionHash,
-			Debug:             buildflag.IsDebug,
-			SiteName:          opts.siteName,
-			VersionHash:       buildflag.VersionHash,
-			SessionHeaderName: sessionHeaderName,
+			Version:            buildflag.VersionHash,
+			Debug:              buildflag.IsDebug,
+			SiteName:           opts.siteName,
+			VersionHash:        buildflag.VersionHash,
+			SessionHeaderName:  sessionHeaderName,
+			CaptchaProvider:    opts.captchaProvider,
+			RecaptchaClientKey: opts.recaptchaClientKey,
+			TurnstileSiteKey:   opts.turnstileSiteKey,
 		})
 		if err != nil {
-			w.Write([]byte("Error rendering template 2"))
+			w.Write([]byte("Error rendering template"))
 		}
 	}
 }
@@ -154,7 +185,15 @@ func MakeServer(
 		return backend
 	}
 
-	gqlResolver := NewGqlResolver(identityManager, storageDefRepo, imageRepo, conf.ImageDomain, conf.DefaultURLFormat, getEmailBackend, conf.SessionKey)
+	gqlResolver := NewGqlResolver(
+		identityManager,
+		storageDefRepo,
+		imageRepo,
+		conf.ImageDomain,
+		conf.DefaultURLFormat,
+		getEmailBackend,
+		conf.SessionKey,
+	)
 
 	uploadLimiter := ratelimit.NewRateLimiter(5, 5)
 	go uploadLimiter.Cleanup()
@@ -179,6 +218,9 @@ func MakeServer(
 		withTemplateFS(conf.TemplatesFS),
 		withSessionHeaderName(sessionHeaderName),
 		withSessionUseCookie(sessionHeaderName == ""),
+		withCaptchaProvider(conf.CaptchaProvider),
+		withRecaptchaClientKey(conf.RecaptchaClientKey),
+		withTurnstileSiteKey(conf.TurnstileSiteKey),
 	))
 
 	rootRouter := mux.NewRouter()
