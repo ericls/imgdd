@@ -16,4 +16,8 @@ interface Window {
   };
   VERSION: string;
   SESSION_HEADER_NAME: string;
+  CAPTCHA_PROVIDER?: "recaptcha" | "turnstile" | "";
+  RECAPTCHA_CLIENT_KEY?: string;
+  TURNSTILE_SITE_KEY?: string;
+  turnstyle?: Turnstile.Turnstile;
 }
