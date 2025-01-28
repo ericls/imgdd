@@ -15,6 +15,7 @@ import (
 	"github.com/ericls/imgdd/httpserver/imagechecks"
 	"github.com/ericls/imgdd/identity"
 	"github.com/ericls/imgdd/image"
+	"github.com/ericls/imgdd/ratelimit"
 	"github.com/ericls/imgdd/storage"
 	"github.com/ericls/imgdd/utils"
 
@@ -32,7 +33,7 @@ func makeUploadHandler(
 	identityManager *IdentityManager,
 	storageDefRepo storage.StorageDefRepo,
 	imageRepo image.ImageRepo,
-	limiter *RateLimiter,
+	limiter *ratelimit.RateLimiter,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.ParseMultipartForm(10 * 1024 * 1024) // 10 MB

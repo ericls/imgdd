@@ -14,6 +14,7 @@ import (
 	"github.com/ericls/imgdd/httpserver/persister"
 	"github.com/ericls/imgdd/identity"
 	"github.com/ericls/imgdd/image"
+	"github.com/ericls/imgdd/ratelimit"
 	"github.com/ericls/imgdd/storage"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -155,7 +156,7 @@ func MakeServer(
 
 	gqlResolver := NewGqlResolver(identityManager, storageDefRepo, imageRepo, conf.ImageDomain, conf.DefaultURLFormat, getEmailBackend, conf.SessionKey)
 
-	uploadLimiter := NewRateLimiter(5, 5)
+	uploadLimiter := ratelimit.NewRateLimiter(5, 5)
 	go uploadLimiter.Cleanup()
 
 	graphqlServer := makeGqlServer(
