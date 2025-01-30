@@ -11,11 +11,19 @@
 {{ if eq .CaptchaProvider "recaptcha"}}
 {{ if .RecaptchaClientKey }}
 <script src="https://www.google.com/recaptcha/api.js?render={{.RecaptchaClientKey}}"></script>
+<script>
+  window.RECAPTCHA_CLIENT_KEY = "{{.RecaptchaClientKey}}";
+  window.CAPTCHA_PROVIDER = "recaptcha";
+</script>
 {{ end}}
 {{ end }}
 {{ if eq .CaptchaProvider "turnstile"}}
 {{ if .TurnstileSiteKey }}
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
+<script>
+  window.TURNSTILE_SITE_KEY = "{{.TurnstileSiteKey}}";
+  window.CAPTCHA_PROVIDER = "turnstile";
+</script>
 {{ end }}
 {{ end }}
 <script>

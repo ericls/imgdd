@@ -11,6 +11,7 @@ import { useMutation } from "@apollo/client";
 import { toast } from "react-toastify";
 import { Loader } from "~src/ui/loader";
 import { useNavigate } from "react-router-dom";
+import { captchaProtected } from "~src/lib/captcha";
 
 type ResetPasswordFormData = {
   message: string;
@@ -52,22 +53,34 @@ export function ResetPasswordPage() {
       toast.error(t("auth.passwordCannotBeEmpty"));
       return;
     }
-    resetPassword({
-      variables: {
-        input: {
-          message,
-          password: newPassword,
-        },
+    captchaProtected(
+      "reset-password-form-captcha",
+      "resetPassword",
+      (token, cleanup) => {
+        return resetPassword({
+          variables: {
+            input: {
+              message,
+              password: newPassword,
+            },
+          },
+          context: { captchaToken: token },
+          errorPolicy: "all",
+        })
+          .then((data) => {
+            if (!data.data?.resetPassword.success) {
+              throw new Error("Reset password failed");
+            }
+            toast.success(t("auth.resetPassword.success"));
+            reset();
+            navigate("/auth");
+          })
+          .catch(() => {
+            toast.error(t("auth.resetPassword.error"));
+          })
+          .finally(cleanup);
       },
-    }).then((data) => {
-      if (!data.data?.resetPassword.success) {
-        toast.error(t("auth.resetPassword.error"));
-        return;
-      }
-      toast.success(t("auth.resetPassword.success"));
-      reset();
-      navigate("/auth");
-    });
+    );
   }, [getValues, navigate, reset, resetPassword, t]);
   return (
     <div className="max-w-md flex flex-col mx-auto">
@@ -119,6 +132,8 @@ export function ResetPasswordPage() {
             />
           </div>
         </div>
+
+        <div id="reset-password-form-captcha"></div>
 
         <div>
           <Button

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/ericls/imgdd/captcha"
 	"github.com/ericls/imgdd/db"
 	"github.com/ericls/imgdd/email"
 	"github.com/ericls/imgdd/httpserver"
@@ -88,6 +89,9 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			DefaultURLFormat:       defaultURLFormat,
 			EnableSafeImageCheck:   utils.IsStrTruthy(configFile.HTTPServer.ENABLE_SAFE_IMAGE_CHECK),
 			SafeImageCheckEndpoint: configFile.HTTPServer.SAFE_IMAGE_CHECK_ENDPOINT,
+			CaptchaProvider:        captcha.CaptchaProvider(configFile.HTTPServer.CAPTCHA_PROVIDER),
+			RecaptchaClientKey:     configFile.HTTPServer.RECAPTCHA_CLIENT_KEY,
+			TurnstileSiteKey:       configFile.HTTPServer.TURNSTILE_SITE_KEY,
 		},
 		Storage: storage.StorageConfigDef{
 			StorageDefSource: storage.StorageDefSource(configFile.Storage.STORAGE_BACKEND_SOURCE),

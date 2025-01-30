@@ -48,8 +48,9 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
-	IsAuthenticated func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error)
-	IsSiteOwner     func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error)
+	CaptchaProtected func(ctx context.Context, obj any, next graphql.Resolver, action string) (res any, err error)
+	IsAuthenticated  func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error)
+	IsSiteOwner      func(ctx context.Context, obj any, next graphql.Resolver) (res any, err error)
 }
 
 type ComplexityRoot struct {
@@ -924,6 +925,34 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) dir_captchaProtected_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.dir_captchaProtected_argsAction(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["action"] = arg0
+	return args, nil
+}
+func (ec *executionContext) dir_captchaProtected_argsAction(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	if _, ok := rawArgs["action"]; !ok {
+		var zeroVal string
+		return zeroVal, nil
+	}
+
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("action"))
+	if tmp, ok := rawArgs["action"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
 
 func (ec *executionContext) field_Mutation_authenticate_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
@@ -2719,8 +2748,35 @@ func (ec *executionContext) _Mutation_sendResetPasswordEmail(ctx context.Context
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SendResetPasswordEmail(rctx, fc.Args["input"].(model.SendResetPasswordEmailInput))
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().SendResetPasswordEmail(rctx, fc.Args["input"].(model.SendResetPasswordEmailInput))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			action, err := ec.unmarshalNString2string(ctx, "sendResetPasswordEmail")
+			if err != nil {
+				var zeroVal *model.SendResetPasswordEmailResult
+				return zeroVal, err
+			}
+			if ec.directives.CaptchaProtected == nil {
+				var zeroVal *model.SendResetPasswordEmailResult
+				return zeroVal, errors.New("directive captchaProtected is not implemented")
+			}
+			return ec.directives.CaptchaProtected(ctx, nil, directive0, action)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.SendResetPasswordEmailResult); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/ericls/imgdd/graph/model.SendResetPasswordEmailResult`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2778,8 +2834,35 @@ func (ec *executionContext) _Mutation_resetPassword(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ResetPassword(rctx, fc.Args["input"].(model.ResetPasswordInput))
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ResetPassword(rctx, fc.Args["input"].(model.ResetPasswordInput))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			action, err := ec.unmarshalNString2string(ctx, "resetPassword")
+			if err != nil {
+				var zeroVal *model.ResetPasswordResult
+				return zeroVal, err
+			}
+			if ec.directives.CaptchaProtected == nil {
+				var zeroVal *model.ResetPasswordResult
+				return zeroVal, errors.New("directive captchaProtected is not implemented")
+			}
+			return ec.directives.CaptchaProtected(ctx, nil, directive0, action)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.ResetPasswordResult); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/ericls/imgdd/graph/model.ResetPasswordResult`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)

@@ -31,6 +31,6 @@ extend type Mutation {
   createUserWithOrganization(
     input: CreateUserWithOrganizationInput!
   ): ViewerResult!
-  sendResetPasswordEmail(input: SendResetPasswordEmailInput!): SendResetPasswordEmailResult!
-  resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
+  sendResetPasswordEmail(input: SendResetPasswordEmailInput!): SendResetPasswordEmailResult! @captchaProtected(action: "sendResetPasswordEmail")
+  resetPassword(input: ResetPasswordInput!): ResetPasswordResult! @captchaProtected(action: "resetPassword")
 }

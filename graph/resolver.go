@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/url"
 
+	"github.com/ericls/imgdd/captcha"
 	"github.com/ericls/imgdd/domainmodels"
 	"github.com/ericls/imgdd/email"
 	"github.com/ericls/imgdd/identity"
@@ -29,4 +30,5 @@ type Resolver struct {
 	GetBaseURL         func(c context.Context) *url.URL
 	GetEmailBackend    func(c context.Context) email.EmailBackend
 	SecretKey          string
+	CaptchaClient      captcha.CaptchaClient
 }

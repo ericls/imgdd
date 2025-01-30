@@ -3,7 +3,13 @@ import { getSessionToken } from "./lib/sessionToken";
 
 const apolloLinkWithToken = createHttpLink({
   uri: (operation) => {
-    return `/query?operation=${operation.operationName}`;
+    const context = operation.getContext();
+    const maybeCaptchaToken = context.captchaToken;
+    let urlStr = `/query?operation=${operation.operationName}`;
+    if (maybeCaptchaToken) {
+      urlStr += `&captchaToken=${maybeCaptchaToken}`;
+    }
+    return urlStr;
   },
   fetch: async (uri, options) => {
     const token = getSessionToken();

@@ -101,6 +101,7 @@ func newTestContext(tObj *testing.T) *TestContext {
 			return dummyEmailBackend
 		},
 		"secret",
+		nil,
 	)
 
 	// make server

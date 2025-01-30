@@ -3,6 +3,7 @@ package httpserver
 import (
 	"context"
 
+	"github.com/ericls/imgdd/captcha"
 	"github.com/ericls/imgdd/domainmodels"
 	"github.com/ericls/imgdd/email"
 	"github.com/ericls/imgdd/graph"
@@ -19,7 +20,8 @@ func NewGqlResolver(
 	imageDomain string,
 	defaultURLFormat domainmodels.ImageURLFormat,
 	getEmailBackend func(c context.Context) email.EmailBackend,
-	SecretKey string,
+	secretKey string,
+	captchaClient captcha.CaptchaClient,
 ) *graph.Resolver {
 	return &graph.Resolver{
 		IdentityRepo:       identityManager.IdentityRepo,
@@ -33,7 +35,8 @@ func NewGqlResolver(
 		IsHttps:            IsHttps,
 		GetBaseURL:         GetBaseURL,
 		GetEmailBackend:    getEmailBackend,
-		SecretKey:          SecretKey,
+		SecretKey:          secretKey,
+		CaptchaClient:      captchaClient,
 	}
 }
 
@@ -43,5 +46,6 @@ func NewGraphConfig(resolver *graph.Resolver) graph.Config {
 	}
 	config.Directives.IsSiteOwner = graph.IsSiteOwner(resolver)
 	config.Directives.IsAuthenticated = graph.IsAuthenticated(resolver)
+	config.Directives.CaptchaProtected = graph.CaptchaProtected(resolver)
 	return config
 }

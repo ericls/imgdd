@@ -11,6 +11,7 @@ import { gql } from "~src/__generated__";
 import { useMutation } from "@apollo/client";
 import { toast } from "react-toastify";
 import { Loader } from "~src/ui/loader";
+import { captchaProtected } from "~src/lib/captcha";
 
 type ForgotPasswordFormData = {
   email: string;
@@ -32,19 +33,33 @@ export function ForgotPasswordPage() {
   );
   const onSubmit = React.useCallback(() => {
     const { email } = getValues();
-    sendResetPasswordEmail({
-      variables: {
-        input: {
-          email,
-        },
+    captchaProtected(
+      "forgot-password-form-captcha",
+      "sendResetPasswordEmail",
+      (token, cleanup) => {
+        sendResetPasswordEmail({
+          variables: {
+            input: {
+              email,
+            },
+          },
+          errorPolicy: "all",
+          context: {
+            captchaToken: token,
+          },
+        })
+          .then(() => {
+            toast.success(t("auth.forgotPassword.success"));
+          })
+          .catch(() => {
+            toast.error(t("auth.forgotPassword.error"));
+          })
+          .finally(() => {
+            reset();
+            cleanup?.();
+          });
       },
-    })
-      .then(() => {
-        toast.success(t("auth.forgotPassword.success"));
-      })
-      .finally(() => {
-        reset();
-      });
+    );
   }, [getValues, reset, sendResetPasswordEmail, t]);
   return (
     <div className="max-w-md flex flex-col mx-auto">
@@ -83,6 +98,8 @@ export function ForgotPasswordPage() {
             </Link>
           </div>
         </div>
+
+        <div id="forgot-password-form-captcha" className="mb-4"></div>
 
         <div>
           <Button

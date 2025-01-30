@@ -14,7 +14,7 @@ function getTokenTurnstile(
 ): Promise<GetCaptchaResult> {
   return new Promise((resolve) => {
     const key = window.TURNSTILE_SITE_KEY;
-    const turnstile = window.turnstyle;
+    const turnstile = window.turnstile;
     if (!key || !turnstile) {
       resolve(EMPTY_RESULT);
       return;
@@ -23,6 +23,16 @@ function getTokenTurnstile(
       const id = turnstile.render(elementId, {
         action: action,
         sitekey: key,
+        callback: (token) => {
+          resolve({
+            token,
+            cleanup,
+          });
+        },
+        ["error-callback"]: (error) => {
+          console.error(error);
+          resolve(EMPTY_RESULT);
+        },
       });
       if (!id) {
         resolve(EMPTY_RESULT);
@@ -31,10 +41,6 @@ function getTokenTurnstile(
       const cleanup = () => {
         turnstile.remove(id);
       };
-      resolve({
-        token: turnstile.getResponse(id),
-        cleanup,
-      });
     });
   });
 }
@@ -61,10 +67,10 @@ function getTokenRecaptcha(
   });
 }
 
-export function maybeRecaptchaProtected<T>(
+export function captchaProtected<T>(
   elementId: string,
   action: string,
-  cb: (token?: string) => T,
+  cb: (token?: string, cleanup?: () => void) => T,
 ): Promise<T> {
   const provider = window.CAPTCHA_PROVIDER;
   if (!provider) {
@@ -83,9 +89,11 @@ export function maybeRecaptchaProtected<T>(
     return Promise.resolve(cb());
   }
   return new Promise((resolve) => {
-    getToken(elementId, action).then((result) => {
-      resolve(cb(result.token));
-      result.cleanup?.();
+    getToken(
+      elementId.startsWith("#") ? elementId : `#${elementId}`,
+      action,
+    ).then((result) => {
+      resolve(cb(result.token, result.cleanup));
     });
   });
 }

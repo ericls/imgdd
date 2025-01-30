@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ericls/imgdd/buildflag"
+	"github.com/ericls/imgdd/captcha"
 	"github.com/ericls/imgdd/db"
 	"github.com/ericls/imgdd/email"
 	"github.com/ericls/imgdd/graph"
@@ -33,7 +34,7 @@ type appHandlerOptions struct {
 	templatesFS        fs.FS
 	sessionHeaderName  string
 	sessionUseCookie   bool
-	captchaProvider    captchaProvider
+	captchaProvider    captcha.CaptchaProvider
 	recaptchaClientKey string
 	turnstileSiteKey   string
 }
@@ -64,8 +65,8 @@ func withTemplateFS(fs fs.FS) func(*appHandlerOptions) {
 	}
 }
 
-func withCaptchaProvider(provider captchaProvider) func(*appHandlerOptions) {
-	if !provider.isValid() {
+func withCaptchaProvider(provider captcha.CaptchaProvider) func(*appHandlerOptions) {
+	if !provider.IsValid() {
 		panic("Invalid captcha provider")
 	}
 	return func(o *appHandlerOptions) {
@@ -99,6 +100,13 @@ func makeAppHandler(
 			w.Write([]byte("Error parsing template"))
 			return
 		}
+		// csp := "default-src 'self'; " +
+		// 	"script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://www.google.com https://www.gstatic.com; " +
+		// 	"frame-src 'self' https://challenges.cloudflare.com https://www.google.com https://recaptcha.google.com https://www.gstatic.com; " +
+		// 	"style-src 'self' 'unsafe-inline'; " +
+		// 	"img-src 'self' data: https://www.gstatic.com https://www.google.com https://challenges.cloudflare.com; " +
+		// 	"connect-src 'self' https://www.google.com https://www.gstatic.com https://challenges.cloudflare.com;"
+		// w.Header().Set("Content-Security-Policy", csp)
 		var sessionHeaderName string
 		if opts.sessionUseCookie {
 			sessionHeaderName = ""
@@ -111,7 +119,7 @@ func makeAppHandler(
 			SiteName           string
 			Debug              bool
 			SessionHeaderName  string
-			CaptchaProvider    captchaProvider
+			CaptchaProvider    captcha.CaptchaProvider
 			RecaptchaClientKey string
 			TurnstileSiteKey   string
 		}{
@@ -185,6 +193,8 @@ func MakeServer(
 		return backend
 	}
 
+	captchaClient := captcha.MakeClient(conf.CaptchaProvider, conf.RecaptchaServerKey, conf.TurnstileSecretKey)
+
 	gqlResolver := NewGqlResolver(
 		identityManager,
 		storageDefRepo,
@@ -193,16 +203,17 @@ func MakeServer(
 		conf.DefaultURLFormat,
 		getEmailBackend,
 		conf.SessionKey,
+		captchaClient,
 	)
 
 	uploadLimiter := ratelimit.NewRateLimiter(5, 5)
 	go uploadLimiter.Cleanup()
 
-	graphqlServer := makeGqlServer(
+	graphqlServer := captcha.MakeHttpMiddleware()(makeGqlServer(
 		graph.NewExecutableSchema(
 			NewGraphConfig(gqlResolver),
 		),
-	)
+	))
 
 	appRouter.Use(identityManager.Middleware)
 

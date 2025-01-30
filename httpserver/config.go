@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"os"
 
+	"github.com/ericls/imgdd/captcha"
 	"github.com/ericls/imgdd/domainmodels"
 	"github.com/ericls/imgdd/utils"
 )
@@ -22,7 +23,7 @@ type HttpServerConfigDef struct {
 	EnableGqlPlayground    bool
 	EnableSafeImageCheck   bool
 	SafeImageCheckEndpoint string
-	CaptchaProvider        captchaProvider
+	CaptchaProvider        captcha.CaptchaProvider
 	RecaptchaClientKey     string
 	TurnstileSiteKey       string
 	RecaptchaServerKey     string
@@ -41,7 +42,7 @@ func ReadServerConfigFromEnv() HttpServerConfigDef {
 		DefaultURLFormat:       domainmodels.ImageURLFormat(utils.GetEnv("IMGDD_DEFAULT_URL_FORMAT", "canonical")),
 		EnableSafeImageCheck:   utils.IsStrTruthy(utils.GetEnv("IMGDD_ENABLE_SAFE_IMAGE_CHECK", "false")),
 		SafeImageCheckEndpoint: utils.GetEnv("IMGDD_SAFE_IMAGE_CHECK_ENDPOINT", ""),
-		CaptchaProvider:        captchaProvider(utils.GetEnv("IMGDD_CAPTCHA_PROVIDER", "off")),
+		CaptchaProvider:        captcha.CaptchaProvider(utils.GetEnv("IMGDD_CAPTCHA_PROVIDER", "off")),
 		RecaptchaClientKey:     utils.GetEnv("IMGDD_RECAPTCHA_CLIENT_KEY", ""),
 		TurnstileSiteKey:       utils.GetEnv("IMGDD_TURNSTILE_SITE_KEY", ""),
 		RecaptchaServerKey:     utils.GetEnv("IMGDD_RECAPTCHA_SERVER_KEY", ""),
