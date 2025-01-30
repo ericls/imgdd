@@ -10,6 +10,7 @@ import (
 type OrderField interface {
 	Name() string
 	Asc() bool
+	Reverse() OrderField
 	GetValue(object interface{}) string
 }
 
@@ -26,8 +27,26 @@ func (b *BaseOrderField) Asc() bool {
 	return b.FieldAsc
 }
 
+func (b *BaseOrderField) Reverse() *BaseOrderField {
+	return &BaseOrderField{
+		FieldName: b.FieldName,
+		FieldAsc:  !b.FieldAsc,
+	}
+}
+
 type Order struct {
 	Fields []OrderField
+}
+
+func (o *Order) Reverse() *Order {
+	if o == nil {
+		return nil
+	}
+	newOrder := &Order{}
+	for _, field := range o.Fields {
+		newOrder.AddField(field.Reverse())
+	}
+	return newOrder
 }
 
 func (o *Order) AddField(field OrderField) {

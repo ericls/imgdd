@@ -316,6 +316,7 @@ func (repo *DBImageRepo) ListImages(
 	filtersWithoutCursor *ListImagesFilters,
 	filtersWithCursor *ListImagesFilters,
 	ordering *ListImagesOrdering,
+	reverse bool,
 ) (dm.ListImageResult, error) {
 	stmt := ImageTable.SELECT(
 		ImageTable.AllColumns,
@@ -380,8 +381,16 @@ func (repo *DBImageRepo) ListImages(
 	if len(images) > 0 {
 		firstImage := images[0]
 		lastImage := images[len(dest)-1]
-		hasNext = repo.imageHasNext(filtersWithoutCursor, ordering, lastImage)
-		hasPrev = repo.imageHasPrev(filtersWithoutCursor, ordering, firstImage)
+		if reverse {
+			hasPrev = repo.imageHasNext(filtersWithoutCursor, ordering, lastImage)
+			hasNext = repo.imageHasPrev(filtersWithoutCursor, ordering, firstImage)
+		} else {
+			hasNext = repo.imageHasNext(filtersWithoutCursor, ordering, lastImage)
+			hasPrev = repo.imageHasPrev(filtersWithoutCursor, ordering, firstImage)
+		}
+	}
+	if reverse {
+		images = utils.Reversed(images)
 	}
 
 	return dm.ListImageResult{

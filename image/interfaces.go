@@ -11,6 +11,13 @@ import (
 type SaveFunc func(file utils.SeekerReader, filename string, mimeType string) error
 type PaginationDirection string
 
+func (pd PaginationDirection) Reverse() PaginationDirection {
+	if pd == PaginationDirectionAsc {
+		return PaginationDirectionDesc
+	}
+	return PaginationDirectionAsc
+}
+
 var (
 	PaginationDirectionAsc  PaginationDirection = "asc"
 	PaginationDirectionDesc PaginationDirection = "desc"
@@ -110,7 +117,7 @@ func FromPaginationOrder(po *pagination.Order) *ListImagesOrdering {
 
 type ImageRepo interface {
 	CreateAndSaveUploadedImage(image *dm.Image, mimeType string, fileBytes []byte, storageDefinitionId string, saveFn SaveFunc) (*dm.StoredImage, error)
-	ListImages(filtersWithoutCursor *ListImagesFilters, filtersWithCursor *ListImagesFilters, ordering *ListImagesOrdering) (dm.ListImageResult, error)
+	ListImages(filtersWithoutCursor *ListImagesFilters, filtersWithCursor *ListImagesFilters, ordering *ListImagesOrdering, reverse bool) (dm.ListImageResult, error)
 	CountImages(filters *ListImagesFilters) (int, error)
 	GetImageById(id string) (*dm.Image, error)
 	DeleteImageById(id string) error

@@ -117,9 +117,14 @@ func (r *viewerResolver) Images(ctx context.Context, obj *model.Viewer, orderBy 
 	}
 
 	listImagesFiltersWithCursor := image.FromPaginationFilter(paginator.Filter)
-	listImagesOrdering := image.FromPaginationOrder(paginator.Order)
+	var listImagesOrdering *image.ListImagesOrdering
+	if before != nil {
+		listImagesOrdering = image.FromPaginationOrder(paginator.Order.Reverse())
+	} else {
+		listImagesOrdering = image.FromPaginationOrder(paginator.Order)
+	}
 
-	listImageResult, err := r.ImageRepo.ListImages(listImagesFilters, listImagesFiltersWithCursor, listImagesOrdering)
+	listImageResult, err := r.ImageRepo.ListImages(listImagesFilters, listImagesFiltersWithCursor, listImagesOrdering, before != nil)
 	if err != nil {
 		return nil, err
 	}

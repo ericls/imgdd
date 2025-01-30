@@ -48,10 +48,10 @@ func CaptchaProtected(r *Resolver) func(ctx context.Context, obj interface{}, ne
 		if ok, err := captchaClient.VerifyCaptcha(ctx, token, action); err != nil {
 			return nil, err
 		} else {
+			resolverLogger.Info().Str("field", fieldContext.Field.Name).Str("action", action).Bool("ok", ok).Msgf("captcha token validation result")
 			if !ok {
 				return nil, fmt.Errorf("captcha verification failed")
 			} else {
-				resolverLogger.Info().Str("field", fieldContext.Field.Name).Str("action", action).Msgf("Validated captcha token")
 				return next(ctx)
 			}
 		}

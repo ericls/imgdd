@@ -34,7 +34,7 @@ export function DumbImageGallery({
   loading,
 }: DumbImageGalleryProps) {
   return (
-    <div>
+    <div className="max-w-full mx-auto xl:max-w-7xl">
       <div className="grid gap-x-6 gap-y-2 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
         {images.map((image) => (
           <React.Fragment key={image.id}>{itemRenderer(image)}</React.Fragment>

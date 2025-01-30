@@ -18,6 +18,12 @@ type ImageOrderField struct {
 	pagination.BaseOrderField
 }
 
+func (f *ImageOrderField) Reverse() pagination.OrderField {
+	return &ImageOrderField{
+		BaseOrderField: *f.BaseOrderField.Reverse(),
+	}
+}
+
 func (f *ImageOrderField) GetValue(object interface{}) string {
 	image := object.(*Image)
 	switch f.Name() {
