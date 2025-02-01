@@ -145,7 +145,7 @@ export function DashboardLayout({
           </div>
         </div>
         <div className="screen-container overflow-y-auto grow flex flex-col">
-          <div className={classNames("top-0 z-50", BASE_LAYER)}>
+          <div className={classNames("top-0 z-50 pr-2", BASE_LAYER)}>
             <TopNav hideLogo leftContent={sidebarToggle} />
           </div>
           <div
