@@ -144,14 +144,14 @@ export function DashboardLayout({
             </div>
           </div>
         </div>
-        <div className="screen-container overflow-y-auto grow">
+        <div className="screen-container overflow-y-auto grow flex flex-col">
           <div className={classNames("top-0 z-50", BASE_LAYER)}>
             <TopNav hideLogo leftContent={sidebarToggle} />
           </div>
           <div
             className={classNames(
               mainAreaClassName,
-              "grow min-h-full flex flex-col mt-4 mr-4 ml-4",
+              "grow flex flex-col mt-4 mr-4 ml-4",
             )}
           >
             <div className="grow w-full mx-auto xl:max-w-7xl">
