@@ -84,10 +84,15 @@ export function DashboardLayout({
           )}
         >
           <div className={classNames("flex flex-col")}>
-            <div className="flex items-center justify-start px-4 py-4">
+            <div className="flex items-center justify-start pl-4 p-2">
               <Link to="/" className="block">
-                <TextLogo className="text-2xl" />
+                <TextLogoSmall className="text-2xl" />
               </Link>
+              <Button className="invisible">
+                <div className="flex items-center">
+                  <MenuIcon className="mr-2" size={24} />
+                </div>
+              </Button>
             </div>
             <div className="dashboard-sidebar-menu py-4 flex flex-col gap-4">
               {menuGroups.map((group) => (
