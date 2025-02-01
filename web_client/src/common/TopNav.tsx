@@ -10,6 +10,7 @@ import { Button } from "~src/ui/button";
 import { SECONDARY_TEXT_COLOR_DIM } from "~src/ui/classNames";
 import { MenuWithTrigger } from "~src/ui/menuWithTrigger";
 import { MenuSection } from "~src/ui/menu";
+import classNames from "classnames";
 
 function TopNavAuthInfo() {
   const { t } = useTranslation();
@@ -82,14 +83,20 @@ function TopNavAuthInfo() {
   );
 }
 
-export function TopNav() {
+type TopNavProps = {
+  hideLogo?: boolean;
+  leftContent?: React.ReactNode;
+};
+
+export function TopNav({ hideLogo, leftContent }: TopNavProps) {
   return (
     <div className="top-nav sticky top-0 p-2 flex justify-between text-neutral-800 dark:text-neutral-200 text-end z-50">
       <div className="flex items-center">
         {/* left */}
-        <Link to="/" className="">
+        <Link to="/" className={classNames({ hidden: hideLogo })}>
           <TextLogoSmall className="text-2xl" />
         </Link>
+        {leftContent}
       </div>
       <div>
         {/* right */}

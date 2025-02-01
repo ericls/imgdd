@@ -1,8 +1,10 @@
 import React from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import classNames from "classnames";
+import { HiOutlineBars3 as MenuIcon } from "react-icons/hi2";
 import { TopNav } from "~src/common/TopNav";
 import {
+  BASE_LAYER,
   PRIMARY_BORDER_COLOR,
   PRIMARY_TEXT_COLOR,
   SECONDARY_TEXT_COLOR,
@@ -10,6 +12,8 @@ import {
 } from "~src/ui/classNames";
 import { Footer } from "~src/common/Footer";
 import { LazyRouteFallback } from "~src/common/LazyRouteFallback";
+import { TextLogo, TextLogoSmall } from "../TextLogo";
+import { Button } from "~src/ui/button";
 
 export type DashboardLayoutMenuItem = {
   title: string;
@@ -33,15 +37,59 @@ export function DashboardLayout({
   mainAreaClassName?: string;
 }) {
   const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+  const toggleSidebar = React.useCallback(
+    () => setIsSidebarOpen((prev) => !prev),
+    [setIsSidebarOpen],
+  );
+  React.useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location, setIsSidebarOpen]);
+  const sidebarToggle = React.useMemo(() => {
+    return (
+      <Button
+        className={classNames("md:hidden", { hidden: isSidebarOpen })}
+        onClick={toggleSidebar}
+        aria-label="Toggle Sidebar"
+        variant="transparent"
+      >
+        {<MenuIcon />}
+      </Button>
+    );
+  }, [toggleSidebar, isSidebarOpen]);
   return (
     <div className="main min-h-full flex flex-col">
-      <div className={classNames("mb-0 px-2")}>
-        <TopNav />
-      </div>
-      <div className="grow relative z-0 flex">
-        <div className="site-admin-sidebar basis-56">
-          <div className={classNames("h-full overflow-y-auto sticky buttom-0")}>
-            <div className="site-admin-sidebar-menu py-4 flex flex-col gap-4">
+      <div className="grow relative z-0 flex max-h-screen overflow-hidden">
+        <div
+          className={classNames(
+            "sidebar-backdrop",
+            {
+              hidden: !isSidebarOpen,
+            },
+            "md:hidden",
+            "fixed top-0 left-0 bottom-0 right-0 z-10",
+            "bg-black bg-opacity-50",
+          )}
+          onClick={toggleSidebar}
+        ></div>
+        <div
+          className={classNames(
+            "h-screen buttom-0 top-0 overscroll-y-none",
+            "dashboard-sidebar w-60 absolute left-0 top-0 bottom-0 z-20 transition-all duration-200 ease-in-out",
+            {
+              "left-[-100%]": !isSidebarOpen,
+            },
+            BASE_LAYER,
+            "md:block md:sticky md:basis-56 md:w-auto",
+          )}
+        >
+          <div className={classNames("flex flex-col")}>
+            <div className="flex items-center justify-start px-4 py-4">
+              <Link to="/" className="block">
+                <TextLogo className="text-2xl" />
+              </Link>
+            </div>
+            <div className="dashboard-sidebar-menu py-4 flex flex-col gap-4">
               {menuGroups.map((group) => (
                 <div key={group.title}>
                   <div
@@ -91,18 +139,23 @@ export function DashboardLayout({
             </div>
           </div>
         </div>
-        <div
-          className={classNames(
-            mainAreaClassName,
-            "grow min-h-full flex flex-col mt-4 mr-4 ml-4",
-          )}
-        >
-          <div className="grow">
-            <LazyRouteFallback />
-            {children || <Outlet />}
+        <div className="screen-container overflow-y-auto grow">
+          <div className={classNames("top-0 z-50", BASE_LAYER)}>
+            <TopNav hideLogo leftContent={sidebarToggle} />
           </div>
-          <div>
-            <Footer />
+          <div
+            className={classNames(
+              mainAreaClassName,
+              "grow min-h-full flex flex-col mt-4 mr-4 ml-4",
+            )}
+          >
+            <div className="grow w-full mx-auto xl:max-w-7xl">
+              <LazyRouteFallback />
+              {children || <Outlet />}
+            </div>
+            <div>
+              <Footer />
+            </div>
           </div>
         </div>
       </div>
