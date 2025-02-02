@@ -6,7 +6,7 @@ export function TextLogoSmall({ className }: { className?: string }) {
   return (
     <h1
       className={classNames(LOGO_TEXT_1, className)}
-      hook-id="text-logo-small"
+      slot-id="text-logo-small"
     >
       {(() => {
         if (window.SITE_NAME) {
@@ -25,7 +25,7 @@ export function TextLogoSmall({ className }: { className?: string }) {
 
 export function TextLogo({ className }: { className?: string }) {
   return (
-    <div className={classNames(LOGO_TEXT_1, className)} hook-id="text-logo">
+    <div className={classNames(LOGO_TEXT_1, className)} slot-id="text-logo">
       {(() => {
         if (window.SITE_NAME) {
           return window.SITE_NAME;
