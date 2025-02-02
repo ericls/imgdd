@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>IMGDD - Image Direct Delivery</title>
+<title>{{.SiteTitle}}</title>
 <meta name="description" content="The Image Direct Delivery service" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,6 +44,11 @@
 </script>
 <link rel="stylesheet" href="/static/web/entry.css?v={{.Version}}-{{.VersionHash}}" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+{{ if .CustomCSS}}
+<style>
+{{.CustomCSS}}
+</style>
+{{ end }}
 {{if .Debug}}
 {{else}}
 {{/* analytics */}}

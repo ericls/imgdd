@@ -4,16 +4,39 @@ import { LOGO_TEXT_1, LOGO_TEXT_2 } from "~src/ui/classNames";
 
 export function TextLogoSmall({ className }: { className?: string }) {
   return (
-    <h1 className={classNames(LOGO_TEXT_1, className)}>
-      I<span className={LOGO_TEXT_2}>D</span>
+    <h1
+      className={classNames(LOGO_TEXT_1, className)}
+      hook-id="text-logo-small"
+    >
+      {(() => {
+        if (window.SITE_NAME) {
+          return window.SITE_NAME;
+        } else {
+          return (
+            <>
+              I<span className={LOGO_TEXT_2}>D</span>
+            </>
+          );
+        }
+      })()}
     </h1>
   );
 }
 
 export function TextLogo({ className }: { className?: string }) {
   return (
-    <div className={classNames(LOGO_TEXT_1, className)}>
-      IMG<span className={LOGO_TEXT_2}>DD</span>
+    <div className={classNames(LOGO_TEXT_1, className)} hook-id="text-logo">
+      {(() => {
+        if (window.SITE_NAME) {
+          return window.SITE_NAME;
+        } else {
+          return (
+            <>
+              IMG<span className={LOGO_TEXT_2}>DD</span>
+            </>
+          );
+        }
+      })()}
     </div>
   );
 }

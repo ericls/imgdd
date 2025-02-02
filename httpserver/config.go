@@ -18,6 +18,7 @@ type HttpServerConfigDef struct {
 	SessionKey             string
 	RedisURIForSession     string
 	SiteName               string
+	SiteTitle              string
 	ImageDomain            string
 	DefaultURLFormat       domainmodels.ImageURLFormat
 	EnableGqlPlayground    bool
@@ -28,6 +29,7 @@ type HttpServerConfigDef struct {
 	TurnstileSiteKey       string
 	RecaptchaServerKey     string
 	TurnstileSecretKey     string
+	CustomCSS              string
 }
 
 func ReadServerConfigFromEnv() HttpServerConfigDef {
@@ -38,6 +40,7 @@ func ReadServerConfigFromEnv() HttpServerConfigDef {
 		SessionKey:             utils.GetEnv("IMGDD_SESSION_KEY", "NOT_SECURE_KEY"),
 		RedisURIForSession:     utils.GetEnv("IMGDD_REDIS_URI_FOR_SESSION", "redis://localhost:30102"),
 		SiteName:               utils.GetEnv("IMGDD_SITE_NAME", "imgdd"),
+		SiteTitle:              utils.GetEnv("IMGDD_SITE_TITLE", "IMGDD - Image Direct Delivery"),
 		ImageDomain:            utils.GetEnv("IMGDD_IMAGE_DOMAIN", ""),
 		DefaultURLFormat:       domainmodels.ImageURLFormat(utils.GetEnv("IMGDD_DEFAULT_URL_FORMAT", "canonical")),
 		EnableSafeImageCheck:   utils.IsStrTruthy(utils.GetEnv("IMGDD_ENABLE_SAFE_IMAGE_CHECK", "false")),
@@ -47,5 +50,6 @@ func ReadServerConfigFromEnv() HttpServerConfigDef {
 		TurnstileSiteKey:       utils.GetEnv("IMGDD_TURNSTILE_SITE_KEY", ""),
 		RecaptchaServerKey:     utils.GetEnv("IMGDD_RECAPTCHA_SERVER_KEY", ""),
 		TurnstileSecretKey:     utils.GetEnv("IMGDD_TURNSTILE_SECRET_KEY", ""),
+		CustomCSS:              utils.GetEnv("IMGDD_CUSTOM_CSS", ""),
 	}
 }

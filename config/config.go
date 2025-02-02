@@ -85,6 +85,7 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			SessionKey:             configFile.HTTPServer.SESSION_KEY,
 			RedisURIForSession:     configFile.Redis.GetSessionRedisURI(),
 			SiteName:               configFile.HTTPServer.SITE_NAME,
+			SiteTitle:              configFile.HTTPServer.SITE_TITLE,
 			ImageDomain:            configFile.HTTPServer.IMAGE_DOMAIN,
 			DefaultURLFormat:       defaultURLFormat,
 			EnableSafeImageCheck:   utils.IsStrTruthy(configFile.HTTPServer.ENABLE_SAFE_IMAGE_CHECK),
@@ -92,6 +93,9 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			CaptchaProvider:        captcha.CaptchaProvider(configFile.HTTPServer.CAPTCHA_PROVIDER),
 			RecaptchaClientKey:     configFile.HTTPServer.RECAPTCHA_CLIENT_KEY,
 			TurnstileSiteKey:       configFile.HTTPServer.TURNSTILE_SITE_KEY,
+			RecaptchaServerKey:     configFile.HTTPServer.RECAPTCHA_SERVER_KEY,
+			TurnstileSecretKey:     configFile.HTTPServer.TURNSTILE_SECRET_KEY,
+			CustomCSS:              configFile.HTTPServer.CUSTOM_CSS,
 		},
 		Storage: storage.StorageConfigDef{
 			StorageDefSource: storage.StorageDefSource(configFile.Storage.STORAGE_BACKEND_SOURCE),
@@ -152,6 +156,9 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		if config.HttpServer.SiteName != "" {
 			merged.HttpServer.SiteName = config.HttpServer.SiteName
 		}
+		if config.HttpServer.SiteTitle != "" {
+			merged.HttpServer.SiteTitle = config.HttpServer.SiteTitle
+		}
 		if config.HttpServer.ImageDomain != "" {
 			merged.HttpServer.ImageDomain = config.HttpServer.ImageDomain
 		}
@@ -178,6 +185,9 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 			if config.HttpServer.TurnstileSecretKey != "" {
 				merged.HttpServer.TurnstileSecretKey = config.HttpServer.TurnstileSecretKey
 			}
+		}
+		if config.HttpServer.CustomCSS != "" {
+			merged.HttpServer.CustomCSS = config.HttpServer.CustomCSS
 		}
 		if config.Storage.StorageDefSource != "" {
 			merged.Storage.StorageDefSource = config.Storage.StorageDefSource
