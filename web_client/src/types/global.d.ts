@@ -1,4 +1,5 @@
 interface Window {
+  // Server side rendered data
   SITE_NAME: string;
   DEBUG?: boolean;
   TERMS_AND_CONDITIONS_URL: string;
@@ -19,4 +20,6 @@ interface Window {
   CAPTCHA_PROVIDER?: "recaptcha" | "turnstile" | string;
   RECAPTCHA_CLIENT_KEY?: string;
   TURNSTILE_SITE_KEY?: string;
+  // plugins
+  IMGDD_PLUGINS?: IMGDDPlugin[];
 }

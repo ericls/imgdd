@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import React from "react";
+import { Slot } from "~src/lib/slot";
 import { SECONDARY_TEXT_COLOR_DIM } from "~src/ui/classNames";
 
 export function Footer({ center = false }: { center?: boolean }) {
@@ -16,7 +17,8 @@ export function Footer({ center = false }: { center?: boolean }) {
     >
       <div>
         <span slot-id="footer-content" className="opacity-50">
-          IMGDD.COM 🇨🇦
+          <Slot id="footer-content" fallback="IMGDD.COM 🇨🇦" />
+          {/* IMGDD.COM 🇨🇦 */}
         </span>
       </div>
     </div>

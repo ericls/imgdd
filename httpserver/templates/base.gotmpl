@@ -56,6 +56,7 @@
 </head>
 <body class="bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-100 font-ui h-screen">
 {{block "content" .}}{{end}}
+<script src="/static/web/jssdk/prelude.js?v={{.Version}}-{{.VersionHash}}"></script>
 <script defer src="/static/web/entry.js?v={{.Version}}-{{.VersionHash}}"></script>
 </body>
 </html>

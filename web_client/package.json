@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "concurrently \"npm:dev:*\"",
     "dev:js": "parcel watch --public-url=/static/web/ --port=8081",
-    "build": "NODE_ENV=production parcel build --public-url=/static/web/ --reporter @parcel/reporter-bundle-analyzer",
+    "build": "NODE_ENV=production parcel build --public-url=/static/web/ --reporter @parcel/reporter-bundle-analyzer --no-source-maps",
     "lint": "eslint src",
     "gen": "graphql-codegen",
     "type-check": "tsc --noEmit"
@@ -74,7 +74,7 @@
   },
   "targets": {
     "web_client": {
-      "source": "src/entry.tsx",
+      "source": ["src/entry.tsx", "src/jssdk/prelude.ts"],
       "distDir": "dist/web",
       "engines": {
         "browsers": "> 0.5%, last 2 versions, not dead"
@@ -85,6 +85,7 @@
     "~": "./"
   },
   "parcel-namer-hashless": {
-    "mode": "production"
+    "mode": "production",
+    "include": ["entry.js$", "entry.css$", "prelude.js$"]
   }
 }

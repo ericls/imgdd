@@ -20,6 +20,7 @@ import { AuthProvider } from "./lib/auth";
 import { AppLayout } from "./app/layout";
 import { AppMainPage } from "./app/pages/main";
 import { PromptContainer } from "./ui/prompt";
+import { SlotsProvider } from "./lib/slot";
 
 function AutoDarkToastContainer() {
   const darkContext = React.useContext(DarkModeContext);
@@ -160,15 +161,17 @@ const router = createBrowserRouter([
 function Root() {
   return (
     <React.StrictMode>
-      <ApolloProvider client={apolloClient}>
-        <AuthProvider>
-          <DarkModeProvider>
-            <PromptContainer />
-            <RouterProvider router={router} />
-            <AutoDarkToastContainer />
-          </DarkModeProvider>
-        </AuthProvider>
-      </ApolloProvider>
+      <SlotsProvider>
+        <ApolloProvider client={apolloClient}>
+          <AuthProvider>
+            <DarkModeProvider>
+              <PromptContainer />
+              <RouterProvider router={router} />
+              <AutoDarkToastContainer />
+            </DarkModeProvider>
+          </AuthProvider>
+        </ApolloProvider>
+      </SlotsProvider>
     </React.StrictMode>
   );
 }
