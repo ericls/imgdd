@@ -15,7 +15,9 @@ export function Footer({ center = false }: { center?: boolean }) {
       )}
     >
       <div>
-        <span className="opacity-50">IMGDD.COM 🇨🇦</span>
+        <span hook-id="footer-content" className="opacity-50">
+          IMGDD.COM 🇨🇦
+        </span>
       </div>
     </div>
   );
