@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "concurrently \"npm:dev:*\"",
     "dev:js": "parcel watch --public-url=/static/web/ --port=8081",
-    "build": "NODE_ENV=production parcel build --public-url=/static/web/ --reporter @parcel/reporter-bundle-analyzer --no-source-maps",
+    "build": "NODE_ENV=production parcel build --public-url=/static/web/ --no-source-maps",
+    "build-with-report": "npm run build -- --reporter @parcel/reporter-bundle-analyzer",
     "lint": "eslint src",
     "gen": "graphql-codegen",
     "type-check": "tsc --noEmit"
@@ -24,6 +25,7 @@
     "@graphql-codegen/client-preset": "^1.3.0",
     "@graphql-typed-document-node/core": "^3.2.0",
     "@headlessui/tailwindcss": "^0.1.1",
+    "@parcel/config-default": "^2.13.3",
     "@parcel/reporter-bundle-analyzer": "^2.8.0",
     "@tailwindcss/aspect-ratio": "^0.4.0",
     "@tailwindcss/forms": "^0.4.0",
@@ -74,7 +76,10 @@
   },
   "targets": {
     "web_client": {
-      "source": ["src/entry.tsx", "src/jssdk/prelude.ts"],
+      "source": [
+        "src/entry.tsx",
+        "src/jssdk/prelude.ts"
+      ],
       "distDir": "dist/web",
       "engines": {
         "browsers": "> 0.5%, last 2 versions, not dead"
@@ -86,6 +91,10 @@
   },
   "parcel-namer-hashless": {
     "mode": "production",
-    "include": ["entry.js$", "entry.css$", "prelude.js$"]
+    "include": [
+      "entry.js$",
+      "entry.css$",
+      "prelude.js$"
+    ]
   }
 }

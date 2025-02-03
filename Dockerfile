@@ -2,13 +2,15 @@
 # 1) FRONTEND BUILD STAGE
 # -----------------------------------------------------
 FROM --platform=$BUILDPLATFORM node:20-alpine AS ui-build
+RUN npm install -g pnpm
 
 RUN mkdir /code
 WORKDIR /code
 
 # Install dependencies first (leveraging Docker cache)
 COPY ./web_client/package*.json ./
-RUN npm ci
+RUN pnpm import
+RUN pnpm install --frozen-lockfile
 
 # Copy the rest of the frontend source code and build it
 COPY web_client ./
@@ -33,7 +35,7 @@ RUN rm -rf web_client
 RUN mkdir -p web_client/dist
 
 # Copy the built frontend files into the backend directory
-COPY --from=ui-build /code/web_client/dist/ web_client/dist/
+COPY --from=ui-build /code/dist/ web_client/dist/
 
 # Set cross-compilation environment variables
 ARG TARGETPLATFORM

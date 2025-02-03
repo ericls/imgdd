@@ -26,6 +26,8 @@ docker-compose.yml
 tmp
 
 web_client/node_modules
+web_client/.pnpm
+web_client/.pnpm-store
 web_client/npm-debug.log
 web_client/build
 web_client/dist
