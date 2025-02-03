@@ -37,6 +37,9 @@ func (r *mutationResolver) Logout(ctx context.Context) (*model.ViewerResult, err
 
 // CreateUserWithOrganization is the resolver for the createUserWithOrganization field.
 func (r *mutationResolver) CreateUserWithOrganization(ctx context.Context, input model.CreateUserWithOrganizationInput) (*model.ViewerResult, error) {
+	if !r.AllowNewUser {
+		return nil, fmt.Errorf("new user creation is disabled")
+	}
 	orgName := input.OrganizationName
 	if orgName == "" {
 		orgName = input.UserEmail + "'s organization"

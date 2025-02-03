@@ -36,6 +36,10 @@ func makeUploadHandler(
 	limiter *ratelimit.RateLimiter,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if !conf.AllowUpload {
+			http.Error(w, "Image upload is disabled", http.StatusForbidden)
+			return
+		}
 		r.ParseMultipartForm(10 * 1024 * 1024) // 10 MB
 		_, fileHeader, err := r.FormFile("image")
 		if err != nil {

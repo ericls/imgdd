@@ -22,6 +22,7 @@ func NewGqlResolver(
 	getEmailBackend func(c context.Context) email.EmailBackend,
 	secretKey string,
 	captchaClient captcha.CaptchaClient,
+	allowNewUser bool,
 ) *graph.Resolver {
 	return &graph.Resolver{
 		IdentityRepo:       identityManager.IdentityRepo,
@@ -37,6 +38,7 @@ func NewGqlResolver(
 		GetEmailBackend:    getEmailBackend,
 		SecretKey:          secretKey,
 		CaptchaClient:      captchaClient,
+		AllowNewUser:       allowNewUser,
 	}
 }
 

@@ -93,6 +93,7 @@ func MakeServer(
 		getEmailBackend,
 		conf.SessionKey,
 		captchaClient,
+		conf.AllowNewUser,
 	)
 
 	uploadLimiter := ratelimit.NewRateLimiter(5, 5)

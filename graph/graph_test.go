@@ -102,6 +102,7 @@ func newTestContext(tObj *testing.T) *TestContext {
 		},
 		"secret",
 		nil,
+		true,
 	)
 
 	// make server

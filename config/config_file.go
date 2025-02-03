@@ -55,6 +55,8 @@ type HTTPServerConfigFileDef struct {
 	TURNSTILE_SECRET_KEY      string `toml:"TURNSTILE_SECRET_KEY" comment:"Turnstile secret key. Used if CAPTCHA_PROVIDER is 'turnstile'"`
 	CUSTOM_CSS                string `toml:"CUSTOM_CSS" comment:"Custom CSS"`
 	CUSTOM_JS                 string `toml:"CUSTOM_JS" comment:"Custom JS"`
+	ALLOW_UPLOAD              string `toml:"ALLOW_UPLOAD" comment:"Allow uploading new images. 'true', '1' or 'yes' to enable"`
+	ALLOW_NEW_USER            string `toml:"ALLOW_NEW_USER" comment:"Allow new user creation. 'true', '1' or 'yes' to enable"`
 }
 
 type StorageBackendItem struct {

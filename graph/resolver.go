@@ -31,4 +31,5 @@ type Resolver struct {
 	GetEmailBackend    func(c context.Context) email.EmailBackend
 	SecretKey          string
 	CaptchaClient      captcha.CaptchaClient
+	AllowNewUser       bool
 }
