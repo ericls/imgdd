@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/ericls/imgdd/buildflag"
 	"github.com/ericls/imgdd/config"
@@ -82,8 +83,8 @@ func main() {
 				httpServerConf.StaticFS = MoutingFS.Static
 				httpServerConf.TemplatesFS = MoutingFS.Templates
 				srv := httpserver.MakeServer(&httpServerConf, &conf.Db, &conf.Storage, &conf.Email)
-				logger.Info().Str("bind", srv.Addr).Msg("Starting server")
-				return srv.ListenAndServe()
+				httpserver.GracefulServe(srv, 5*time.Second)
+				return nil
 			},
 		},
 		{
