@@ -54,6 +54,7 @@ type HTTPServerConfigFileDef struct {
 	RECAPTCHA_SERVER_KEY      string `toml:"RECAPTCHA_SERVER_KEY" comment:"Recaptcha server key. Used if CAPTCHA_PROVIDER is 'recaptcha'"`
 	TURNSTILE_SECRET_KEY      string `toml:"TURNSTILE_SECRET_KEY" comment:"Turnstile secret key. Used if CAPTCHA_PROVIDER is 'turnstile'"`
 	CUSTOM_CSS                string `toml:"CUSTOM_CSS" comment:"Custom CSS"`
+	CUSTOM_JS                 string `toml:"CUSTOM_JS" comment:"Custom JS"`
 }
 
 type StorageBackendItem struct {

@@ -96,6 +96,7 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			RecaptchaServerKey:     configFile.HTTPServer.RECAPTCHA_SERVER_KEY,
 			TurnstileSecretKey:     configFile.HTTPServer.TURNSTILE_SECRET_KEY,
 			CustomCSS:              configFile.HTTPServer.CUSTOM_CSS,
+			CustomJS:               configFile.HTTPServer.CUSTOM_JS,
 		},
 		Storage: storage.StorageConfigDef{
 			StorageDefSource: storage.StorageDefSource(configFile.Storage.STORAGE_BACKEND_SOURCE),
@@ -188,6 +189,9 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		}
 		if config.HttpServer.CustomCSS != "" {
 			merged.HttpServer.CustomCSS = config.HttpServer.CustomCSS
+		}
+		if config.HttpServer.CustomJS != "" {
+			merged.HttpServer.CustomJS = config.HttpServer.CustomJS
 		}
 		if config.Storage.StorageDefSource != "" {
 			merged.Storage.StorageDefSource = config.Storage.StorageDefSource

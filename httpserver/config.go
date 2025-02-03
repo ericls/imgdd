@@ -30,6 +30,7 @@ type HttpServerConfigDef struct {
 	RecaptchaServerKey     string
 	TurnstileSecretKey     string
 	CustomCSS              string
+	CustomJS               string
 }
 
 func ReadServerConfigFromEnv() HttpServerConfigDef {
@@ -51,5 +52,6 @@ func ReadServerConfigFromEnv() HttpServerConfigDef {
 		RecaptchaServerKey:     utils.GetEnv("IMGDD_RECAPTCHA_SERVER_KEY", ""),
 		TurnstileSecretKey:     utils.GetEnv("IMGDD_TURNSTILE_SECRET_KEY", ""),
 		CustomCSS:              utils.GetEnv("IMGDD_CUSTOM_CSS", ""),
+		CustomJS:               utils.GetEnv("IMGDD_CUSTOM_JS", ""),
 	}
 }

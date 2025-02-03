@@ -123,6 +123,7 @@ func MakeServer(
 		withRecaptchaClientKey(conf.RecaptchaClientKey),
 		withTurnstileSiteKey(conf.TurnstileSiteKey),
 		withCustomCSS(conf.CustomCSS),
+		withCustomJS(conf.CustomJS),
 	))
 
 	rootRouter := mux.NewRouter()

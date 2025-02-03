@@ -19,6 +19,7 @@ type appHandlerOptions struct {
 	recaptchaClientKey string
 	turnstileSiteKey   string
 	customCSS          string
+	customJS           string
 }
 
 type appHandlerOption func(*appHandlerOptions)
@@ -80,6 +81,12 @@ func withCustomCSS(css string) func(*appHandlerOptions) {
 	}
 }
 
+func withCustomJS(js string) func(*appHandlerOptions) {
+	return func(o *appHandlerOptions) {
+		o.customJS = js
+	}
+}
+
 func makeAppHandler(
 	options ...appHandlerOption,
 ) http.HandlerFunc {
@@ -111,6 +118,7 @@ func makeAppHandler(
 			RecaptchaClientKey string
 			TurnstileSiteKey   string
 			CustomCSS          template.CSS
+			CustomJS           template.JS
 		}{
 			Version:            buildflag.VersionHash,
 			Debug:              buildflag.IsDebug,
@@ -122,6 +130,7 @@ func makeAppHandler(
 			RecaptchaClientKey: opts.recaptchaClientKey,
 			TurnstileSiteKey:   opts.turnstileSiteKey,
 			CustomCSS:          template.CSS(opts.customCSS),
+			CustomJS:           template.JS(opts.customJS),
 		})
 		if err != nil {
 			w.Write([]byte("Error rendering template"))
