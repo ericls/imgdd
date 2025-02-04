@@ -29,7 +29,7 @@ jobs:
       - name: Extract Git Metadata
         id: git
         run: |
-          echo "GIT_REV=$(git describe --tags --always --dirty)" >> $GITHUB_ENV
+          echo "GIT_REV=$(git describe --tags --dirty)" >> $GITHUB_ENV
           echo "GIT_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Build & Push Image
@@ -39,7 +39,7 @@ jobs:
           push: true
           tags: |
             ${{ vars.DOCKER_HUB_USERNAME }}/imgdd:latest
-            ${{ vars.DOCKER_HUB_USERNAME }}/imgdd:${{ env.VERSION }}
+            ${{ vars.DOCKER_HUB_USERNAME }}/imgdd:${{ env.GIT_REV }}
           build-args: |
             GIT_REV=${{ env.GIT_REV }}
             GIT_HASH=${{ env.GIT_HASH }}
