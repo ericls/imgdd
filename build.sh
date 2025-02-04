@@ -17,6 +17,7 @@ do
     -X 'github.com/ericls/imgdd/buildflag.Debug=false'
     -X 'github.com/ericls/imgdd/buildflag.Dev=false'
     -X github.com/ericls/imgdd/buildflag.VersionHash=`git rev-parse HEAD`
+    -X github.com/ericls/imgdd/buildflag.Version=`git describe --tags --dirty`
   " \
   .
 done

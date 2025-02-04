@@ -24,6 +24,9 @@ docker-compose.yml
 .gitignore
 .github
 tmp
+Dockerfile
+build.sh
+dockerbuild.sh
 
 web_client/node_modules
 web_client/.pnpm

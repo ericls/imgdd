@@ -37,7 +37,7 @@ type HttpServerConfigDef struct {
 
 func ReadServerConfigFromEnv() HttpServerConfigDef {
 	return HttpServerConfigDef{
-		Bind:                   os.Getenv("imgdd_HTTP_BIND"),
+		Bind:                   os.Getenv("IMGDD_HTTP_BIND"),
 		WriteTimeout:           10,
 		ReadTimeout:            10,
 		SessionKey:             utils.GetEnv("IMGDD_SESSION_KEY", "NOT_SECURE_KEY"),

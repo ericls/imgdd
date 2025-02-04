@@ -1,3 +1,5 @@
+ARG GIT_REV="docker-dev"
+ARG GIT_HASH="unset"
 # -----------------------------------------------------
 # 1) FRONTEND BUILD STAGE
 # -----------------------------------------------------
@@ -20,7 +22,8 @@ RUN npm run build
 # 2) BACKEND BUILD STAGE (WITH EMBEDDED FRONTEND FILES)
 # -----------------------------------------------------
 FROM --platform=$BUILDPLATFORM golang:1.23-alpine AS server-build
-
+ARG GIT_REV
+ARG GIT_HASH
 WORKDIR /code/imgdd
 
 # Copy only Go dependency files first for caching
@@ -43,13 +46,24 @@ RUN echo "Building for $TARGETPLATFORM"
 
 RUN GOOS=$(echo $TARGETPLATFORM | cut -d '/' -f1) \
   GOARCH=$(echo $TARGETPLATFORM | cut -d '/' -f2) \
-  go build -o /go/bin/imgdd .
+  go build \
+  -ldflags "-s -w \
+    -X 'github.com/ericls/imgdd/buildflag.Debug=false' \
+    -X 'github.com/ericls/imgdd/buildflag.Dev=false' \
+    -X 'github.com/ericls/imgdd/buildflag.Docker=true' \
+    -X github.com/ericls/imgdd/buildflag.Version=$GIT_REV \
+    -X github.com/ericls/imgdd/buildflag.VersionHash=$GIT_HASH \
+  " \
+  -o /go/bin/imgdd .
 
 # -----------------------------------------------------
 # 3) FINAL IMAGE (Multi-Arch Support)
 # -----------------------------------------------------
 FROM alpine:3.21 AS final
 
+ARG GIT_REV
+ARG GIT_HASH
+LABEL git_commit=$GIT_REV
 # Create user and working directories
 RUN addgroup -S imgdd && adduser -S imgdd -G imgdd
 

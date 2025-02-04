@@ -120,7 +120,7 @@ func makeAppHandler(
 			CustomCSS          template.CSS
 			CustomJS           template.JS
 		}{
-			Version:            buildflag.VersionHash,
+			Version:            buildflag.Version,
 			Debug:              buildflag.IsDebug,
 			SiteName:           opts.siteName,
 			SiteTitle:          opts.siteTitle,

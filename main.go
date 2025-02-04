@@ -16,6 +16,7 @@ import (
 	"github.com/ericls/imgdd/identity"
 	"github.com/ericls/imgdd/logging"
 	"github.com/ericls/imgdd/test_support"
+	"github.com/rs/zerolog"
 
 	"github.com/joho/godotenv"
 	"github.com/urfave/cli/v2"
@@ -23,10 +24,10 @@ import (
 
 var logger = logging.GetLogger("main")
 
-func init() {
+func loadEnv() {
 	err := godotenv.Overload(".env")
 	if err != nil {
-		logger.Warn().Err(err).Msg("Could not load .env file")
+		logger.Debug().Err(err).Msg("No .env file found")
 	}
 }
 
@@ -60,13 +61,19 @@ func main() {
 		}
 		return conf
 	}
+	var defaultBind string
+	if buildflag.IsDocker {
+		defaultBind = "0.0.0.0:8000"
+	} else {
+		defaultBind = "127.0.0.1:8000"
+	}
 	commands := []*cli.Command{
 		{
 			Name: "serve",
 			Flags: []cli.Flag{
 				&cli.StringFlag{
 					Name:  "bind",
-					Value: "127.0.0.1:8000",
+					Value: defaultBind,
 					Usage: "Which address to bind to when starting the server",
 				},
 			},
@@ -74,7 +81,7 @@ func main() {
 				conf := getConfig(ctx)
 				httpServerConf := conf.HttpServer
 				bind := ctx.String("bind")
-				if bind != "" {
+				if httpServerConf.Bind == "" || ctx.IsSet("bind") {
 					httpServerConf.Bind = bind
 				}
 				if buildflag.IsDev {
@@ -247,8 +254,23 @@ func main() {
 				Aliases: []string{"c"},
 				Usage:   "Path to the config file",
 			},
+			&cli.StringFlag{
+				Name:  "log-level",
+				Value: "info",
+				Usage: "Log level",
+			},
 		},
 		Commands: commands,
+		Before: func(ctx *cli.Context) error {
+			logLevelStr := ctx.String("log-level")
+			level, err := zerolog.ParseLevel(strings.ToLower(logLevelStr))
+			if err != nil {
+				return err
+			}
+			zerolog.SetGlobalLevel(level)
+			loadEnv()
+			return nil
+		},
 	}
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
