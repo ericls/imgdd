@@ -1,0 +1,122 @@
+name: Build & Release Binaries
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set Up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install `pnpm`
+        run: npm install -g pnpm
+
+      - name: Import npm Lockfile (if necessary)
+        working-directory: web_client
+        run: pnpm import
+
+      - name: Install Frontend Dependencies
+        working-directory: web_client
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Frontend
+        working-directory: web_client
+        run: npm run build
+
+      - name: Upload Frontend Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: web_client/dist/
+
+  build-backend:
+    name: Build Backend
+    needs: build-frontend
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [linux]
+        arch: [amd64, arm64]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set Up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Extract Git Metadata
+        id: git
+        run: |
+          echo "GIT_REV=$(git describe --tags --dirty)" >> $GITHUB_ENV
+          echo "GIT_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
+
+      - name: Download Frontend Build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: web_client/dist/
+
+      - name: Build Backend with Static Linking
+        run: |
+          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} CGO_ENABLED=0 go build \
+            -o artifacts/dist/imgdd-${{ matrix.os }}-${{ matrix.arch }} \
+            -ldflags "-X github.com/ericls/imgdd/buildflag.Debug=false \
+                      -X github.com/ericls/imgdd/buildflag.Dev=false \
+                      -X github.com/ericls/imgdd/buildflag.Docker=false \
+                      -X github.com/ericls/imgdd/buildflag.Version=${{ env.GIT_REV }} \
+                      -X github.com/ericls/imgdd/buildflag.VersionHash=${{ env.GIT_HASH }} \
+                      -extldflags -static"
+
+      - name: Upload Backend Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: imgdd-${{ matrix.os }}-${{ matrix.arch }}
+          path: artifacts/dist
+
+  release:
+    name: Create GitHub Release
+    needs: build-backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract Git Metadata
+        id: git
+        run: |
+          echo "GIT_REV=$(git describe --tags)" >> $GITHUB_ENV
+          echo "GIT_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
+
+      - name: Download All Binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts/dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/dist/*/imgdd-*
+          tag_name: ${{ env.GIT_REV }}
+          name: Release ${{ env.GIT_REV }}
+          body: "Automated release for version ${{ env.GIT_REV }}."
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -10,7 +10,7 @@ do
   os="${array[0]}"
   arch="${array[1]}"
   echo building ${target}
-  env GOOS=${os} GOARCH=${arch} \
+  env GOOS=${os} GOARCH=${arch} CGO_ENABLED=0 \
   go build \
   -o dist/imgdd_${target} \
   -ldflags "-s -w
@@ -18,6 +18,7 @@ do
     -X 'github.com/ericls/imgdd/buildflag.Dev=false'
     -X github.com/ericls/imgdd/buildflag.VersionHash=`git rev-parse HEAD`
     -X github.com/ericls/imgdd/buildflag.Version=`git describe --tags --dirty`
+    --extldflags -static
   " \
   .
 done
