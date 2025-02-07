@@ -111,11 +111,8 @@ func LoggerMiddleware(next http.Handler) http.Handler {
 			w,
 			r,
 		)
-		remoteHost, _, err := net.SplitHostPort(r.RemoteAddr)
 
-		if err != nil {
-			remoteHost = r.RemoteAddr
-		}
+		remoteHost := ExtractIP(r)
 
 		uri := r.RequestURI
 
