@@ -88,6 +88,7 @@ type loggingEntry struct {
 	Size       int64
 	RemoteIP   string
 	Duration   time.Duration
+	Referer    string
 }
 
 func (l *loggingEntry) Log() {
@@ -98,6 +99,7 @@ func (l *loggingEntry) Log() {
 		Str("host", l.HostName).
 		Str("port", l.Port).
 		Str("url", l.URL).
+		Str("referer", l.Referer).
 		Int("status_code", l.StatusCode).
 		Int64("size", l.Size).
 		Dur("duration", l.Duration).
@@ -140,6 +142,7 @@ func LoggerMiddleware(next http.Handler) http.Handler {
 			StatusCode: metrics.Code,
 			Size:       metrics.Written,
 			Duration:   metrics.Duration,
+			Referer:    r.Referer(),
 			RemoteIP:   remoteHost,
 			HostName:   host,
 			Port:       port,
