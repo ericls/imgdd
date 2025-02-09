@@ -1,3 +1,11 @@
+/**
+ * IMGDD - A simple image hosting program
+ * Copyright (C) 2025 @ericls
+ *
+ * Licensed under the GNU Affero General Public License v3.0.
+ * See https://www.gnu.org/licenses/agpl-3.0.txt for details.
+ */
+
 package main
 
 import (
@@ -55,7 +63,14 @@ func getGoBinPath() string {
 func main() {
 	var migrateVersion uint = 0
 	getConfig := func(ctx *cli.Context) *config.ConfigDef {
-		conf, err := config.GetConfig(ctx.Path("config"))
+		configPath := ctx.Path("config")
+		if configPath == "" && buildflag.IsDocker {
+			defaultPath := "/app/config.toml"
+			if _, err := os.Stat(defaultPath); err == nil {
+				configPath = defaultPath
+			}
+		}
+		conf, err := config.GetConfig(configPath)
 		if err != nil {
 			panic(err)
 		}

@@ -14,6 +14,9 @@ import (
 
 // Authenticate is the resolver for the authenticate field.
 func (r *mutationResolver) Authenticate(ctx context.Context, email string, password string, organizationID *string) (*model.ViewerResult, error) {
+	if email == "" {
+		return nil, fmt.Errorf("email is required")
+	}
 	user := r.IdentityRepo.GetUserByEmail(email)
 	if user == nil {
 		return nil, fmt.Errorf("user not found")
@@ -39,6 +42,9 @@ func (r *mutationResolver) Logout(ctx context.Context) (*model.ViewerResult, err
 func (r *mutationResolver) CreateUserWithOrganization(ctx context.Context, input model.CreateUserWithOrganizationInput) (*model.ViewerResult, error) {
 	if !r.AllowNewUser {
 		return nil, fmt.Errorf("new user creation is disabled")
+	}
+	if input.UserEmail == "" {
+		return nil, fmt.Errorf("user email is required")
 	}
 	orgName := input.OrganizationName
 	if orgName == "" {
