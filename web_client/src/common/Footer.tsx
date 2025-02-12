@@ -10,6 +10,10 @@ const DefaultFooterContent = (
     </li>
     <li className="hidden md:inline select-none">|</li>
     <li>
+      <a href="https://github.com/ericls/imgdd">Github</a>
+    </li>
+    <li className="hidden md:inline select-none">|</li>
+    <li>
       <a href="http://imgdd.com">IMGDD.COM 🇨🇦</a>
     </li>
   </ul>
