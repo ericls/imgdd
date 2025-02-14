@@ -20,4 +20,5 @@ func init() {
 	RegisterBackend("s3", &S3StorageBackend{
 		cache: s3StorageInstanceCache,
 	})
+	RegisterBackend("fs", &FSStorageBackend{})
 }

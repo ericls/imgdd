@@ -15,10 +15,28 @@ type S3StorageConfigData = {
   secret: string;
 };
 
-type StorageProviderConfigData = S3StorageConfigData | { __other: string };
+const EmptyS3Config: S3StorageConfigData = {
+  bucket: "",
+  endpoint: "",
+  access: "",
+  secret: "",
+};
+
+type FSSotrageConfigData = {
+  mediaRoot: string;
+};
+
+const EmptyFSConfig: FSSotrageConfigData = {
+  mediaRoot: "",
+};
+
+type StorageProviderConfigData =
+  | S3StorageConfigData
+  | FSSotrageConfigData
+  | { __other: string };
 
 type StorageConfigData = {
-  storageType: "S3" | "__other";
+  storageType: "S3" | "FS" | "__other";
   identifier: string;
   priority: number;
   isEnabled: boolean;
@@ -66,6 +84,21 @@ function S3ProviderConfigForm({
   );
 }
 
+function FSSotrageConfigForm({
+  form,
+}: {
+  form: ReturnType<typeof useForm<StorageProviderConfigData>>;
+}) {
+  const { t } = useTranslation();
+  return (
+    <InputWithLabel
+      containerClassName="flex flex-col gap-1 max-w-full"
+      label={t("storageConfigForm.mediaRootPath")}
+      {...form.register("mediaRoot", { required: true })}
+    />
+  );
+}
+
 export function StorageConfigForm({
   initialValue,
   id,
@@ -98,6 +131,24 @@ export function StorageConfigForm({
     const commonData = commonFieldsForm.getValues();
     const providerConfigData = providerConfigForm.getValues();
     let task: Promise<{ id?: string }>;
+    const providerConfigDataMask: StorageProviderConfigData = (() => {
+      if (storageTypeValue === "S3") {
+        return EmptyS3Config;
+      } else if (storageTypeValue === "FS") {
+        return EmptyFSConfig;
+      } else {
+        return { __other: "" };
+      }
+    })();
+    const maskedProviderConfigData = Object.keys(providerConfigDataMask).reduce(
+      (acc, key) => {
+        const k = key as keyof StorageProviderConfigData;
+        acc[k] = providerConfigData[k];
+        return acc;
+      },
+      {} as StorageProviderConfigData,
+    );
+    const configJSON = JSON.stringify(maskedProviderConfigData);
     if (id) {
       task = updateStorageDef({
         variables: {
@@ -105,7 +156,7 @@ export function StorageConfigForm({
             identifier: commonData.identifier,
             priority: commonData.priority,
             isEnabled: commonData.isEnabled,
-            configJSON: JSON.stringify(providerConfigData),
+            configJSON,
           },
         },
       }).then((res) => ({ id: res.data?.updateStorageDefinition?.id }));
@@ -117,8 +168,10 @@ export function StorageConfigForm({
             storageType:
               commonData.storageType == "S3"
                 ? StorageTypeEnum.S3
-                : StorageTypeEnum.Other,
-            configJSON: JSON.stringify(providerConfigData),
+                : commonData.storageType == "FS"
+                  ? StorageTypeEnum.Fs
+                  : StorageTypeEnum.Other,
+            configJSON,
             isEnabled: true,
             priority: commonData.priority,
           },
@@ -137,10 +190,21 @@ export function StorageConfigForm({
     commonFieldsForm,
     providerConfigForm,
     id,
+    storageTypeValue,
     updateStorageDef,
     createStorageDef,
     afterSave,
   ]);
+
+  const providerConfigFields = React.useMemo(() => {
+    if (storageTypeValue === "S3") {
+      return <S3ProviderConfigForm form={providerConfigForm} />;
+    }
+    if (storageTypeValue === "FS") {
+      return <FSSotrageConfigForm form={providerConfigForm} />;
+    }
+    return null;
+  }, [storageTypeValue, providerConfigForm]);
   return (
     <div>
       <form>
@@ -155,6 +219,7 @@ export function StorageConfigForm({
             disabled={!!id}
           >
             <option value="S3">S3</option>
+            <option value="FS">{t("storageTypeNameTitle.fs")}</option>
           </SelectWithLabel>
           <InputWithLabel
             containerClassName="flex flex-col gap-1 max-w-full"
@@ -174,9 +239,7 @@ export function StorageConfigForm({
             {...commonFieldsForm.register("priority", { valueAsNumber: true })}
             type="number"
           />
-          {storageTypeValue === "S3" ? (
-            <S3ProviderConfigForm form={providerConfigForm} />
-          ) : null}
+          {providerConfigFields}
         </div>
       </form>
       <Button

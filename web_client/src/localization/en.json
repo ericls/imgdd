@@ -67,6 +67,9 @@
     "listStorageDefPage": {
         "title": "Storage backend"
     },
+    "storageTypeNameTitle": {
+      "fs": "File system"
+    },
     "storageDefTable": {
         "identifier": "Identifier",
         "enabled": "Enabled",
@@ -84,7 +87,8 @@
         "bucket": "Bucket",
         "endpoint": "Endpoint",
         "access": "Access",
-        "secret": "Secret"
+        "secret": "Secret",
+        "mediaRootPath": "Media root path"
     },
     "storageDef": {
         "connection": {

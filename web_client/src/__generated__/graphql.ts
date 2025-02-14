@@ -30,6 +30,11 @@ export type DeleteImageResult = {
   id?: Maybe<Scalars['ID']>;
 };
 
+export type FsStorageConfig = {
+  __typename?: 'FSStorageConfig';
+  mediaRoot: Scalars['String'];
+};
+
 export type Image = {
   __typename?: 'Image';
   MIMEType: Scalars['String'];
@@ -204,7 +209,7 @@ export type SendResetPasswordEmailResult = {
   success: Scalars['Boolean'];
 };
 
-export type StorageConfig = OtherStorageConfig | S3StorageConfig;
+export type StorageConfig = FsStorageConfig | OtherStorageConfig | S3StorageConfig;
 
 export type StorageDefinition = {
   __typename?: 'StorageDefinition';
@@ -223,6 +228,7 @@ export type StorageDefinitionConnectivityResult = {
 };
 
 export enum StorageTypeEnum {
+  Fs = 'FS',
   Other = 'Other',
   S3 = 'S3'
 }
@@ -359,32 +365,32 @@ export type StorageDefTableConnectivityCellMutationMutation = { __typename?: 'Mu
 export type ListStorageDefQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ListStorageDefQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, storageDefinitions: Array<{ __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config: { __typename?: 'OtherStorageConfig' } | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string } }> } };
+export type ListStorageDefQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, storageDefinitions: Array<{ __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config: { __typename?: 'FSStorageConfig', mediaRoot: string } | { __typename?: 'OtherStorageConfig' } | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string } }> } };
 
 export type GetStorageDefQueryVariables = Exact<{
   id: Scalars['ID'];
 }>;
 
 
-export type GetStorageDefQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, getStorageDefinition?: { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config: { __typename?: 'OtherStorageConfig' } | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string } } | null } };
+export type GetStorageDefQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, getStorageDefinition?: { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config: { __typename?: 'FSStorageConfig', mediaRoot: string } | { __typename?: 'OtherStorageConfig' } | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string } } | null } };
 
-export type StorageDefinitionFragmentFragment = { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config: { __typename?: 'OtherStorageConfig' } | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string } };
+export type StorageDefinitionFragmentFragment = { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config: { __typename?: 'FSStorageConfig', mediaRoot: string } | { __typename?: 'OtherStorageConfig' } | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string } };
 
 export type CreateStorageDefMutationVariables = Exact<{
   input: CreateStorageDefinitionInput;
 }>;
 
 
-export type CreateStorageDefMutation = { __typename?: 'Mutation', createStorageDefinition?: { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config: { __typename?: 'OtherStorageConfig' } | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string } } | null };
+export type CreateStorageDefMutation = { __typename?: 'Mutation', createStorageDefinition?: { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config: { __typename?: 'FSStorageConfig', mediaRoot: string } | { __typename?: 'OtherStorageConfig' } | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string } } | null };
 
 export type UpdateStorageDefMutationVariables = Exact<{
   input: UpdateStorageDefinitionInput;
 }>;
 
 
-export type UpdateStorageDefMutation = { __typename?: 'Mutation', updateStorageDefinition?: { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config: { __typename?: 'OtherStorageConfig' } | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string } } | null };
+export type UpdateStorageDefMutation = { __typename?: 'Mutation', updateStorageDefinition?: { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config: { __typename?: 'FSStorageConfig', mediaRoot: string } | { __typename?: 'OtherStorageConfig' } | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string } } | null };
 
-export const StorageDefinitionFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StorageDefinitionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"StorageDefinition"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"identifier"}},{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"isEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"S3StorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bucket"}},{"kind":"Field","name":{"kind":"Name","value":"endpoint"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"secret"}}]}}]}}]}}]} as unknown as DocumentNode<StorageDefinitionFragmentFragment, unknown>;
+export const StorageDefinitionFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StorageDefinitionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"StorageDefinition"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"identifier"}},{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"isEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"S3StorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bucket"}},{"kind":"Field","name":{"kind":"Name","value":"endpoint"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"secret"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"mediaRoot"}}]}}]}}]}}]} as unknown as DocumentNode<StorageDefinitionFragmentFragment, unknown>;
 export const CreateUserWithOrganizationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createUserWithOrganization"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateUserWithOrganizationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createUserWithOrganization"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<CreateUserWithOrganizationMutation, CreateUserWithOrganizationMutationVariables>;
 export const AuthenticateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"authenticate"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"authenticate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<AuthenticateMutation, AuthenticateMutationVariables>;
 export const SendResetPasswordEmailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"sendResetPasswordEmail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SendResetPasswordEmailInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sendResetPasswordEmail"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}}]}}]}}]} as unknown as DocumentNode<SendResetPasswordEmailMutation, SendResetPasswordEmailMutationVariables>;

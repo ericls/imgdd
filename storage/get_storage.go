@@ -11,5 +11,9 @@ func GetStorage(storageDef *domainmodels.StorageDefinition) (Storage, error) {
 		backend := GetBackend("s3")
 		return backend.FromJSONConfig([]byte(storageDef.Config))
 	}
+	if storageDef.StorageType == "fs" {
+		backend := GetBackend("fs")
+		return backend.FromJSONConfig([]byte(storageDef.Config))
+	}
 	return nil, errors.New("invalid storage type")
 }

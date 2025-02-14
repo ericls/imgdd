@@ -86,6 +86,8 @@ models:
     enum_values:
       S3:
         value: ./graph/model.StorageType_S3
+      FS:
+        value: ./graph/model.StorageType_FS
       Other:
         value: ./graph/model.StorageType_Other
   ID:

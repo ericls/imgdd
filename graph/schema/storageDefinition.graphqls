@@ -1,5 +1,6 @@
 enum StorageTypeEnum {
   S3
+  FS
   Other
 }
 
@@ -11,11 +12,15 @@ type S3StorageConfig {
   secret: String!
 }
 
+type FSStorageConfig {
+  mediaRoot: String!
+}
+
 type OtherStorageConfig {
     _empty: String
 }
 
-union StorageConfig = S3StorageConfig | OtherStorageConfig
+union StorageConfig = S3StorageConfig | FSStorageConfig | OtherStorageConfig
 
 type StorageDefinition {
   id: ID!

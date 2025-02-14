@@ -40,7 +40,11 @@ export function UpdateOrCreateStorageDef() {
     const storageDef = data.viewer.getStorageDefinition;
     const providerConfig = storageDef.config;
     const storageType: StorageType =
-      providerConfig.__typename === "S3StorageConfig" ? "S3" : "__other";
+      providerConfig.__typename === "S3StorageConfig"
+        ? "S3"
+        : providerConfig.__typename === "FSStorageConfig"
+          ? "FS"
+          : "__other";
     return {
       storageType,
       identifier: storageDef.identifier,
@@ -54,7 +58,11 @@ export function UpdateOrCreateStorageDef() {
               access: providerConfig.access,
               secret: providerConfig.secret,
             }
-          : { __other: "" },
+          : providerConfig.__typename === "FSStorageConfig"
+            ? {
+                mediaRoot: providerConfig.mediaRoot,
+              }
+            : { __other: "" },
     };
   }, [id, called, loading, data]);
   const navigate = useNavigate();

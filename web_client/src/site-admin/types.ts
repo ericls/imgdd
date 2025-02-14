@@ -15,6 +15,9 @@ const storageDefinitionFragment = gql(/* GraphQL */ `
         access
         secret
       }
+      ... on FSStorageConfig {
+        mediaRoot
+      }
     }
   }
 `);
@@ -35,4 +38,4 @@ export const updateStorageDefMutation = gql(/* GraphQL */ `
   }
 `);
 
-export type StorageType = "S3" | "__other";
+export type StorageType = "S3" | "FS" | "__other";

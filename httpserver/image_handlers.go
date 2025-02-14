@@ -272,6 +272,13 @@ func makeImageHandler(
 			return
 		}
 		storedImageWithStorageDefs, err := sortStoredImages(storedImages, storageDefRepo)
+		if len(storedImageWithStorageDefs) == 0 {
+			http.Error(w, "Not found", http.StatusNotFound)
+			httpLogger.Info().Str(
+				"identifier", identifier,
+			).Msg("No enabled storage definitions found")
+			return
+		}
 		storedImage := storedImageWithStorageDefs[0].StoredImage
 		storageDef := storedImageWithStorageDefs[0].StorageDefinition
 		if err != nil {

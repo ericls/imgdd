@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/ericls/imgdd/domainmodels"
 )
@@ -12,6 +13,7 @@ type StorageTypeEnum string
 
 const (
 	StorageType_S3    StorageTypeEnum = "s3"
+	StorageType_FS    StorageTypeEnum = "fs"
 	StorageType_Other StorageTypeEnum = "other"
 )
 
@@ -33,6 +35,12 @@ type S3StorageConfig struct {
 }
 
 func (S3StorageConfig) IsStorageConfig() {}
+
+type FSStorageConfig struct {
+	MediaRoot string `json:"mediaRoot"`
+}
+
+func (FSStorageConfig) IsStorageConfig() {}
 
 type StorageDefinition struct {
 	Id         string        `json:"id"`
@@ -71,6 +79,14 @@ func FromStorageDefinition(sd *domainmodels.StorageDefinition) (*StorageDefiniti
 	var storageConfig StorageConfig
 	if storageType == StorageType_S3 {
 		var conf S3StorageConfig
+		err := json.Unmarshal([]byte(sd.Config), &conf)
+		if err != nil {
+			return nil, err
+		}
+		storageConfig = conf
+	} else if storageType == StorageType_FS {
+		fmt.Printf("sd.Config: %s\n", sd.Config)
+		var conf FSStorageConfig
 		err := json.Unmarshal([]byte(sd.Config), &conf)
 		if err != nil {
 			return nil, err

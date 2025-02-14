@@ -45,6 +45,8 @@ export function DumbStorageDefTable({
           const storageTypeStr = (() => {
             if (value === "S3StorageConfig") {
               return "S3";
+            } else if (value === "FSStorageConfig") {
+              return t("storageTypeNameTitle.fs");
             } else {
               return "Unknown";
             }
