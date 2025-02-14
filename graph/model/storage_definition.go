@@ -2,7 +2,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/ericls/imgdd/domainmodels"
 )
@@ -85,7 +84,6 @@ func FromStorageDefinition(sd *domainmodels.StorageDefinition) (*StorageDefiniti
 		}
 		storageConfig = conf
 	} else if storageType == StorageType_FS {
-		fmt.Printf("sd.Config: %s\n", sd.Config)
 		var conf FSStorageConfig
 		err := json.Unmarshal([]byte(sd.Config), &conf)
 		if err != nil {

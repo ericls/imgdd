@@ -25,7 +25,6 @@ type WritableRootFs struct {
 
 func (w *WritableRootFs) getWriter(filename string, flag int, perm os.FileMode) (io.WriteCloser, error) {
 	fullPath := w.rootPath + "/" + filename
-	fmt.Fprintln(os.Stderr, "fullPath: ", fullPath)
 	return os.OpenFile(fullPath, flag, perm)
 }
 
