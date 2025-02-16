@@ -61,7 +61,7 @@ type HTTPServerConfigFileDef struct {
 
 type StorageBackendItem struct {
 	ID           string `toml:"ID" comment:"ID for internal references, must be a valid and unique uuid"`
-	IDENTIFIER   string `toml:"IDENTIFIER" comment:"Storage identifier"`
+	IDENTIFIER   string `toml:"IDENTIFIER" comment:"Storage identifier. \nThis value can be exposed to public. \nThis value must be unique. \nThis value is used in the URL format 'direct'"`
 	STORAGE_TYPE string `toml:"STORAGE_TYPE" comment:"Storage type"`
 	CONFIG       string `toml:"CONFIG" comment:"Storage configuration. \nFormat is dependent on STORAGE_TYPE"`
 	IS_ENABLED   bool   `toml:"IS_ENABLED" comment:"Is storage enabled"`
@@ -131,6 +131,14 @@ var EmptyConfig = ConfigFileDef{
 				IDENTIFIER:   "default-fs",
 				STORAGE_TYPE: "fs",
 				CONFIG:       `{"mediaRoot":"/var/www/imgdd/media"}`,
+				IS_ENABLED:   false,
+				PRIORITY:     0,
+			},
+			{
+				ID:           "00000000-0000-0000-0000-000000000002",
+				IDENTIFIER:   "default-webdav",
+				STORAGE_TYPE: "webdav",
+				CONFIG:       `{"endpoint":"http://webdav.home.arpa:8000","username":"user","password":"password"}`,
 				IS_ENABLED:   false,
 				PRIORITY:     0,
 			},

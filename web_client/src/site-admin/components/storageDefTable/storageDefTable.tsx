@@ -47,6 +47,8 @@ export function DumbStorageDefTable({
               return "S3";
             } else if (value === "FSStorageConfig") {
               return t("storageTypeNameTitle.fs");
+            } else if (value === "WebDAVStorageConfig") {
+              return t("storageTypeNameTitle.WebDAV");
             } else {
               return "Unknown";
             }

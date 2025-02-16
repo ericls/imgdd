@@ -7,13 +7,13 @@ import (
 )
 
 func GetStorage(storageDef *domainmodels.StorageDefinition) (Storage, error) {
-	if storageDef.StorageType == domainmodels.S3StorageType {
-		backend := GetBackend("s3")
-		return backend.FromJSONConfig([]byte(storageDef.Config))
+	backend := GetBackend(storageDef.StorageType)
+	if backend == nil {
+		return nil, errors.New("invalid storage type")
 	}
-	if storageDef.StorageType == domainmodels.FSStorageType {
-		backend := GetBackend("fs")
-		return backend.FromJSONConfig([]byte(storageDef.Config))
+	s, err := backend.FromJSONConfig([]byte(storageDef.Config))
+	if err != nil {
+		return nil, err
 	}
-	return nil, errors.New("invalid storage type")
+	return s, nil
 }

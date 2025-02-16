@@ -68,7 +68,8 @@
         "title": "Storage backend"
     },
     "storageTypeNameTitle": {
-      "fs": "File system"
+      "fs": "File system",
+      "WebDAV": "WebDAV"
     },
     "storageDefTable": {
         "identifier": "Identifier",
@@ -88,7 +89,10 @@
         "endpoint": "Endpoint",
         "access": "Access",
         "secret": "Secret",
-        "mediaRootPath": "Media root path"
+        "mediaRootPath": "Media root path",
+        "url": "URL",
+        "username": "Username",
+        "password": "Password"
     },
     "storageDef": {
         "connection": {

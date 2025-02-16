@@ -12,7 +12,7 @@ import {
 } from "~src/ui/classNames";
 import { Footer } from "~src/common/Footer";
 import { LazyRouteFallback } from "~src/common/LazyRouteFallback";
-import { TextLogo, TextLogoSmall } from "../TextLogo";
+import { TextLogoSmall } from "../TextLogo";
 import { Button } from "~src/ui/button";
 
 export type DashboardLayoutMenuItem = {

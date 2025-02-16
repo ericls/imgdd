@@ -5,8 +5,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { gql } from "~src/__generated__";
 import { StorageConfigForm } from "~src/site-admin/components/storageConfigForm";
-import { StorageType } from "~src/site-admin/types";
 import { HEADING_1 } from "~src/ui/classNames";
+import {
+  getStorageTypeFromConfig,
+  StorageProviders,
+} from "~src/site-admin/storageProviderDefs";
 
 const getStorageDefQuery = gql(/* GraphQL */ `
   query GetStorageDef($id: ID!) {
@@ -39,30 +42,13 @@ export function UpdateOrCreateStorageDef() {
     }
     const storageDef = data.viewer.getStorageDefinition;
     const providerConfig = storageDef.config;
-    const storageType: StorageType =
-      providerConfig.__typename === "S3StorageConfig"
-        ? "S3"
-        : providerConfig.__typename === "FSStorageConfig"
-          ? "FS"
-          : "__other";
+    const storageType = getStorageTypeFromConfig(storageDef.config);
     return {
       storageType,
       identifier: storageDef.identifier,
       priority: storageDef.priority,
       isEnabled: storageDef.isEnabled,
-      providerConfig:
-        providerConfig.__typename === "S3StorageConfig"
-          ? {
-              bucket: providerConfig.bucket,
-              endpoint: providerConfig.endpoint,
-              access: providerConfig.access,
-              secret: providerConfig.secret,
-            }
-          : providerConfig.__typename === "FSStorageConfig"
-            ? {
-                mediaRoot: providerConfig.mediaRoot,
-              }
-            : { __other: "" },
+      providerConfig: StorageProviders[storageType].mask(providerConfig),
     };
   }, [id, called, loading, data]);
   const navigate = useNavigate();

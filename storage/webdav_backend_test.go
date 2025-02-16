@@ -15,7 +15,7 @@ func TestWebDAVStorage(t *testing.T) {
 	if backend == nil {
 		t.Fatal("webdav backend not found")
 	}
-	store, err := backend.FromJSONConfig([]byte(`{"url":"` + "http://localhost:" + config.Port + `","username":"` + config.Username + `","password":"` + config.Password + `"}`))
+	store, err := backend.FromJSONConfig([]byte(`{"url":"` + "http://localhost:" + config.Port + `","username":"` + config.Username + `","password":"` + config.Password + `", "pathPrefix":"/foo"}`))
 	if err != nil {
 		t.Fatal(err)
 	}

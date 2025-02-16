@@ -5,6 +5,7 @@ import (
 	"errors"
 	"hash/fnv"
 	"io"
+	"strings"
 
 	"github.com/ericls/imgdd/utils"
 	lru "github.com/hashicorp/golang-lru/v2"
@@ -12,9 +13,10 @@ import (
 )
 
 type WebDAVStorageConfig struct {
-	URL      string `json:"url"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	URL        string `json:"url"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
+	PathPrefix string `json:"pathPrefix"`
 }
 
 func (c *WebDAVStorageConfig) Hash() uint32 {
@@ -48,6 +50,10 @@ func (b *WebDAVBackend) FromJSONConfig(jsonConfig []byte) (Storage, error) {
 			config: config,
 			client: gowebdav.NewClient(config.URL, config.Username, config.Password),
 		}
+		err = storage.client.MkdirAll(storage.config.PathPrefix, 0755)
+		if err != nil {
+			return nil, err
+		}
 		b.cache.Add(hash, storage)
 	}
 
@@ -66,8 +72,18 @@ func (b *WebDAVBackend) ValidateJSONConfig(jsonConfig []byte) error {
 	return nil
 }
 
+func (b *WebDAVStorage) nameWithPrefix(filename string) string {
+	prefix := b.config.PathPrefix
+	if prefix == "" {
+		prefix = "/"
+	} else {
+		prefix = "/" + strings.Trim(prefix, "/") + "/"
+	}
+	return prefix + filename
+}
+
 func (s *WebDAVStorage) GetReader(filename string) io.ReadCloser {
-	reader, err := s.client.ReadStream("/" + filename)
+	reader, err := s.client.ReadStream(s.nameWithPrefix(filename))
 	if err != nil {
 		return nil
 	}
@@ -75,11 +91,11 @@ func (s *WebDAVStorage) GetReader(filename string) io.ReadCloser {
 }
 
 func (s *WebDAVStorage) Save(file utils.SeekerReader, filename string, mimeType string) error {
-	return s.client.WriteStream("/"+filename, file, 0644)
+	return s.client.WriteStream(s.nameWithPrefix(filename), file, 0644)
 }
 
 func (s *WebDAVStorage) GetMeta(filename string) FileMeta {
-	i, err := s.client.Stat("/" + filename)
+	i, err := s.client.Stat(s.nameWithPrefix(filename))
 	info := i.(*gowebdav.File)
 	if err != nil {
 		return FileMeta{}
@@ -92,11 +108,11 @@ func (s *WebDAVStorage) GetMeta(filename string) FileMeta {
 }
 
 func (s *WebDAVStorage) Delete(filename string) error {
-	return s.client.Remove("/" + filename)
+	return s.client.Remove(s.nameWithPrefix(filename))
 }
 
 func (s *WebDAVStorage) CheckConnection() error {
-	info, err := s.client.Stat("/")
+	info, err := s.client.Stat(s.nameWithPrefix(""))
 	if err != nil {
 		return err
 	}

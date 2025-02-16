@@ -3,40 +3,20 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { InputWithLabel } from "~src/ui/input";
 import { SelectWithLabel } from "~src/ui/select";
-import { createStorageDefMutation, updateStorageDefMutation } from "../types";
-import { StorageTypeEnum } from "~src/__generated__/graphql";
+import {
+  createStorageDefMutation,
+  StorageType,
+  updateStorageDefMutation,
+} from "../types";
 import { Button } from "~src/ui/button";
 import { useTranslation } from "react-i18next";
-
-type S3StorageConfigData = {
-  bucket: string;
-  endpoint: string;
-  access: string;
-  secret: string;
-};
-
-const EmptyS3Config: S3StorageConfigData = {
-  bucket: "",
-  endpoint: "",
-  access: "",
-  secret: "",
-};
-
-type FSSotrageConfigData = {
-  mediaRoot: string;
-};
-
-const EmptyFSConfig: FSSotrageConfigData = {
-  mediaRoot: "",
-};
-
-type StorageProviderConfigData =
-  | S3StorageConfigData
-  | FSSotrageConfigData
-  | { __other: string };
+import {
+  StorageProviderConfigData,
+  StorageProviders,
+} from "~src/site-admin/storageProviderDefs";
 
 type StorageConfigData = {
-  storageType: "S3" | "FS" | "__other";
+  storageType: StorageType;
   identifier: string;
   priority: number;
   isEnabled: boolean;
@@ -99,6 +79,34 @@ function FSSotrageConfigForm({
   );
 }
 
+function WebDavProviderConfigForm({
+  form,
+}: {
+  form: ReturnType<typeof useForm<StorageProviderConfigData>>;
+}) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <InputWithLabel
+        containerClassName="flex flex-col gap-1 max-w-full"
+        label={t("storageConfigForm.url")}
+        {...form.register("url", { required: true })}
+      />
+      <InputWithLabel
+        containerClassName="flex flex-col gap-1 max-w-full"
+        label={t("storageConfigForm.username")}
+        {...form.register("username", { required: false })}
+      />
+      <InputWithLabel
+        containerClassName="flex flex-col gap-1 max-w-full"
+        label={t("storageConfigForm.password")}
+        type="password"
+        {...form.register("password", { required: false })}
+      />
+    </>
+  );
+}
+
 export function StorageConfigForm({
   initialValue,
   id,
@@ -109,7 +117,7 @@ export function StorageConfigForm({
     defaultValues: {
       storageType: initialValue?.storageType || "S3",
       identifier: initialValue?.identifier || "",
-      priority: initialValue?.priority || 1,
+      priority: initialValue?.priority ?? 1,
       isEnabled: initialValue?.isEnabled ?? true,
     },
   });
@@ -131,24 +139,9 @@ export function StorageConfigForm({
     const commonData = commonFieldsForm.getValues();
     const providerConfigData = providerConfigForm.getValues();
     let task: Promise<{ id?: string }>;
-    const providerConfigDataMask: StorageProviderConfigData = (() => {
-      if (storageTypeValue === "S3") {
-        return EmptyS3Config;
-      } else if (storageTypeValue === "FS") {
-        return EmptyFSConfig;
-      } else {
-        return { __other: "" };
-      }
-    })();
-    const maskedProviderConfigData = Object.keys(providerConfigDataMask).reduce(
-      (acc, key) => {
-        const k = key as keyof StorageProviderConfigData;
-        acc[k] = providerConfigData[k];
-        return acc;
-      },
-      {} as StorageProviderConfigData,
+    const configJSON = JSON.stringify(
+      StorageProviders[storageTypeValue].mask(providerConfigData),
     );
-    const configJSON = JSON.stringify(maskedProviderConfigData);
     if (id) {
       task = updateStorageDef({
         variables: {
@@ -165,12 +158,7 @@ export function StorageConfigForm({
         variables: {
           input: {
             identifier: commonData.identifier,
-            storageType:
-              commonData.storageType == "S3"
-                ? StorageTypeEnum.S3
-                : commonData.storageType == "FS"
-                  ? StorageTypeEnum.Fs
-                  : StorageTypeEnum.Other,
+            storageType: StorageProviders[storageTypeValue].enum,
             configJSON,
             isEnabled: true,
             priority: commonData.priority,
@@ -203,6 +191,9 @@ export function StorageConfigForm({
     if (storageTypeValue === "FS") {
       return <FSSotrageConfigForm form={providerConfigForm} />;
     }
+    if (storageTypeValue === "WebDAV") {
+      return <WebDavProviderConfigForm form={providerConfigForm} />;
+    }
     return null;
   }, [storageTypeValue, providerConfigForm]);
   return (
@@ -220,6 +211,7 @@ export function StorageConfigForm({
           >
             <option value="S3">S3</option>
             <option value="FS">{t("storageTypeNameTitle.fs")}</option>
+            <option value="WebDAV">{t("storageTypeNameTitle.WebDAV")}</option>
           </SelectWithLabel>
           <InputWithLabel
             containerClassName="flex flex-col gap-1 max-w-full"

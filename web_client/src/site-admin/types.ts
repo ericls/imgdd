@@ -18,6 +18,11 @@ const storageDefinitionFragment = gql(/* GraphQL */ `
       ... on FSStorageConfig {
         mediaRoot
       }
+      ... on WebDAVStorageConfig {
+        url
+        username
+        password
+      }
     }
   }
 `);
@@ -38,4 +43,4 @@ export const updateStorageDefMutation = gql(/* GraphQL */ `
   }
 `);
 
-export type StorageType = "S3" | "FS" | "__other";
+export type StorageType = "S3" | "FS" | "WebDAV" | "__other";
