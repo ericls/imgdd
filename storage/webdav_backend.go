@@ -27,6 +27,16 @@ func (c *WebDAVStorageConfig) Hash() uint32 {
 	return h.Sum32()
 }
 
+func (c *WebDAVStorageConfig) normalizePrefix() {
+	prefix := c.PathPrefix
+	if prefix == "" {
+		prefix = "/"
+	} else {
+		prefix = "/" + strings.Trim(prefix, "/") + "/"
+	}
+	c.PathPrefix = prefix
+}
+
 type WebDAVStorage struct {
 	config WebDAVStorageConfig
 	client *gowebdav.Client
@@ -39,6 +49,7 @@ type WebDAVBackend struct {
 func (b *WebDAVBackend) FromJSONConfig(jsonConfig []byte) (Storage, error) {
 	var config WebDAVStorageConfig
 	err := json.Unmarshal(jsonConfig, &config)
+	config.normalizePrefix()
 	if err != nil {
 		return nil, err
 	}
@@ -73,13 +84,7 @@ func (b *WebDAVBackend) ValidateJSONConfig(jsonConfig []byte) error {
 }
 
 func (b *WebDAVStorage) nameWithPrefix(filename string) string {
-	prefix := b.config.PathPrefix
-	if prefix == "" {
-		prefix = "/"
-	} else {
-		prefix = "/" + strings.Trim(prefix, "/") + "/"
-	}
-	return prefix + filename
+	return b.config.PathPrefix + filename
 }
 
 func (s *WebDAVStorage) GetReader(filename string) io.ReadCloser {

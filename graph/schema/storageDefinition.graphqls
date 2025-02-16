@@ -21,6 +21,7 @@ type WebDAVStorageConfig {
   url: String!
   username: String!
   password: String!
+  pathPrefix: String!
 }
 
 type OtherStorageConfig {

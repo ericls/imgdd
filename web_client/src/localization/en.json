@@ -92,7 +92,8 @@
         "mediaRootPath": "Media root path",
         "url": "URL",
         "username": "Username",
-        "password": "Password"
+        "password": "Password",
+        "pathPrefix": "Path prefix"
     },
     "storageDef": {
         "connection": {

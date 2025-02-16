@@ -43,9 +43,10 @@ type FSStorageConfig struct {
 func (FSStorageConfig) IsStorageConfig() {}
 
 type WebDAVStorageConfig struct {
-	URL      string `json:"url"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	URL        string `json:"url"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
+	PathPrefix string `json:"pathPrefix"`
 }
 
 func (WebDAVStorageConfig) IsStorageConfig() {}

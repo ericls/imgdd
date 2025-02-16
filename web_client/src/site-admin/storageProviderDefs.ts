@@ -34,11 +34,13 @@ type WebDAVStorageConfigData = {
   url: string;
   username: string;
   password: string;
+  pathPrefix: string;
 };
 const EmptyWebDAVConfig: WebDAVStorageConfigData = {
   url: "",
   username: "",
   password: "",
+  pathPrefix: "",
 };
 
 export type StorageProviderConfigData =

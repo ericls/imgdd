@@ -189,9 +189,10 @@ type ComplexityRoot struct {
 	}
 
 	WebDAVStorageConfig struct {
-		Password func(childComplexity int) int
-		URL      func(childComplexity int) int
-		Username func(childComplexity int) int
+		Password   func(childComplexity int) int
+		PathPrefix func(childComplexity int) int
+		URL        func(childComplexity int) int
+		Username   func(childComplexity int) int
 	}
 }
 
@@ -806,6 +807,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.WebDAVStorageConfig.Password(childComplexity), true
+
+	case "WebDAVStorageConfig.pathPrefix":
+		if e.complexity.WebDAVStorageConfig.PathPrefix == nil {
+			break
+		}
+
+		return e.complexity.WebDAVStorageConfig.PathPrefix(childComplexity), true
 
 	case "WebDAVStorageConfig.url":
 		if e.complexity.WebDAVStorageConfig.URL == nil {
@@ -5490,6 +5498,50 @@ func (ec *executionContext) fieldContext_WebDAVStorageConfig_password(_ context.
 	return fc, nil
 }
 
+func (ec *executionContext) _WebDAVStorageConfig_pathPrefix(ctx context.Context, field graphql.CollectedField, obj *model.WebDAVStorageConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WebDAVStorageConfig_pathPrefix(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PathPrefix, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WebDAVStorageConfig_pathPrefix(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WebDAVStorageConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext___Directive_name(ctx, field)
 	if err != nil {
@@ -9287,6 +9339,11 @@ func (ec *executionContext) _WebDAVStorageConfig(ctx context.Context, sel ast.Se
 			}
 		case "password":
 			out.Values[i] = ec._WebDAVStorageConfig_password(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pathPrefix":
+			out.Values[i] = ec._WebDAVStorageConfig_pathPrefix(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

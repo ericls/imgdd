@@ -22,6 +22,7 @@ const storageDefinitionFragment = gql(/* GraphQL */ `
         url
         username
         password
+        pathPrefix
       }
     }
   }

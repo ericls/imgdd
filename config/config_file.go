@@ -138,7 +138,7 @@ var EmptyConfig = ConfigFileDef{
 				ID:           "00000000-0000-0000-0000-000000000002",
 				IDENTIFIER:   "default-webdav",
 				STORAGE_TYPE: "webdav",
-				CONFIG:       `{"endpoint":"http://webdav.home.arpa:8000","username":"user","password":"password"}`,
+				CONFIG:       `{"endpoint":"http://webdav.home.arpa:8000","username":"user","password":"password", "pathPrefix":"/foo"}`,
 				IS_ENABLED:   false,
 				PRIORITY:     0,
 			},

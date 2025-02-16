@@ -103,6 +103,11 @@ function WebDavProviderConfigForm({
         type="password"
         {...form.register("password", { required: false })}
       />
+      <InputWithLabel
+        containerClassName="flex flex-col gap-1 max-w-full"
+        label={t("storageConfigForm.pathPrefix")}
+        {...form.register("pathPrefix", { required: false })}
+      />
     </>
   );
 }
