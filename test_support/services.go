@@ -3,6 +3,7 @@ package test_support
 import (
 	"context"
 	"fmt"
+	"net"
 	"strings"
 	"sync"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
+	"github.com/studio-b12/gowebdav"
 )
 
 type TestS3Config struct {
@@ -87,6 +89,10 @@ func NewTestExternalServiceManager() *TestExternalServiceManager {
 func (ts *TestExternalServiceManager) StartPostgres() {
 	ts.lock.Lock()
 	defer ts.lock.Unlock()
+	if ts.dbResource != nil {
+		ts.logger.Info().Msg("Postgres already started")
+		return
+	}
 	ts.logger.Info().Msg("Starting Postgres")
 	var err error
 	ts.dbResource, err = ts.Pool.Run("postgres", "alpine", ts.dbConfig.EnvLines())
@@ -109,6 +115,10 @@ func (ts *TestExternalServiceManager) StartPostgres() {
 func (ts *TestExternalServiceManager) StartRedis() {
 	ts.lock.Lock()
 	defer ts.lock.Unlock()
+	if ts.redisResource != nil {
+		ts.logger.Info().Msg("Redis already started")
+		return
+	}
 	ts.logger.Info().Msg("Starting Redis")
 	var err error
 	ts.redisResource, err = ts.Pool.Run("redis", "alpine", nil)
@@ -131,6 +141,10 @@ func (ts *TestExternalServiceManager) StartRedis() {
 func (ts *TestExternalServiceManager) StartMinio() {
 	ts.lock.Lock()
 	defer ts.lock.Unlock()
+	if ts.minioResource != nil {
+		ts.logger.Info().Msg("Minio already started")
+		return
+	}
 	ts.logger.Info().Msg("Starting Minio")
 	var err error
 	minioContainer, err := ts.Pool.RunWithOptions(&dockertest.RunOptions{
@@ -151,6 +165,7 @@ func (ts *TestExternalServiceManager) StartMinio() {
 	port := minioContainer.GetPort("9000/tcp")
 	ts.minioResource = minioContainer
 	ts.s3Config.Port = port
+	ts.waitMinio()
 }
 
 func (ts *TestExternalServiceManager) StartWebDav() {
@@ -176,6 +191,76 @@ func (ts *TestExternalServiceManager) StartWebDav() {
 	port := webDavContainer.GetPort("80/tcp")
 	ts.webDavResource = webDavContainer
 	ts.webDavConfig.Port = port
+	ts.waitWebDAV()
+}
+
+func (ts *TestExternalServiceManager) waitMinio() {
+	if err := ts.Pool.Retry(func() error {
+		port := ts.s3Config.Port
+		conn, err := net.Dial("tcp", "localhost:"+port)
+		if err != nil {
+			return err
+		}
+		conn.Close()
+		return nil
+
+	}); err != nil {
+		panic(err)
+	}
+}
+
+func (ts *TestExternalServiceManager) waitWebDAV() {
+	if err := ts.Pool.Retry(func() error {
+		conf := ts.webDavConfig
+		client := gowebdav.NewClient("http://localhost:"+conf.Port, conf.Username, conf.Password)
+		_, err := client.Stat("/")
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		panic(err)
+	}
+}
+
+func (ts *TestExternalServiceManager) StopPostgres() {
+	ts.lock.Lock()
+	defer ts.lock.Unlock()
+	if ts.dbResource != nil {
+		ts.logger.Info().Msg("Stopping Postgres")
+		ts.Pool.Purge(ts.dbResource)
+		ts.dbResource = nil
+	}
+}
+
+func (ts *TestExternalServiceManager) StopRedis() {
+	ts.lock.Lock()
+	defer ts.lock.Unlock()
+	if ts.redisResource != nil {
+		ts.logger.Info().Msg("Stopping Redis")
+		ts.Pool.Purge(ts.redisResource)
+		ts.redisResource = nil
+	}
+}
+
+func (ts *TestExternalServiceManager) StopMinio() {
+	ts.lock.Lock()
+	defer ts.lock.Unlock()
+	if ts.minioResource != nil {
+		ts.logger.Info().Msg("Stopping Minio")
+		ts.Pool.Purge(ts.minioResource)
+		ts.minioResource = nil
+	}
+}
+
+func (ts *TestExternalServiceManager) StopWebDav() {
+	ts.lock.Lock()
+	defer ts.lock.Unlock()
+	if ts.webDavResource != nil {
+		ts.logger.Info().Msg("Stopping WebDav")
+		ts.Pool.Purge(ts.webDavResource)
+		ts.webDavResource = nil
+	}
 }
 
 func (ts *TestExternalServiceManager) Purge() {

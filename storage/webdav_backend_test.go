@@ -2,13 +2,13 @@ package storage_test
 
 import (
 	"bytes"
-	"log"
 	"testing"
 
 	"github.com/ericls/imgdd/storage"
 )
 
 func TestWebDAVStorage(t *testing.T) {
+	TestServiceMan.StartWebDav()
 	data := []byte("test data")
 	config := TestServiceMan.GetWebDavConfig()
 	backend := storage.GetBackend("webdav").(*storage.WebDAVBackend)
@@ -24,11 +24,6 @@ func TestWebDAVStorage(t *testing.T) {
 	}
 	storeWithoutPrefix, err := backend.FromJSONConfig([]byte(`{"url":"` + "http://localhost:" + config.Port + `","username":"` + config.Username + `","password":"` + config.Password + `"}`))
 	testStore := func(store storage.Storage) {
-		if err := TestServiceMan.Pool.Retry(func() error {
-			return store.CheckConnection()
-		}); err != nil {
-			log.Fatalf("Could not connect to webdav: %s", err)
-		}
 		err = store.Save(bytes.NewReader(data), "test.txt", "text/plain")
 		if err != nil {
 			t.Fatal(err)
@@ -63,4 +58,5 @@ func TestWebDAVStorage(t *testing.T) {
 	}
 	testStore(storeWithPrefix)
 	testStore(storeWithoutPrefix)
+	TestServiceMan.StopWebDav()
 }
