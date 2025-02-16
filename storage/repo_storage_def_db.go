@@ -43,7 +43,7 @@ func (repo *DBStorageDefRepo) GetStorageDefinitionById(id string) (*dm.StorageDe
 	return &dm.StorageDefinition{
 		Id:          dest.ID.String(),
 		Identifier:  dest.Identifier,
-		StorageType: dest.StorageType,
+		StorageType: dm.StorageTypeName(dest.StorageType),
 		Config:      dest.Config,
 		IsEnabled:   dest.IsEnabled,
 		Priority:    dest.Priority,
@@ -72,7 +72,7 @@ func (repo *DBStorageDefRepo) GetStorageDefinitionsByIds(ids []string) ([]*dm.St
 		result[i] = &dm.StorageDefinition{
 			Id:          d.ID.String(),
 			Identifier:  d.Identifier,
-			StorageType: d.StorageType,
+			StorageType: dm.StorageTypeName(d.StorageType),
 			Config:      d.Config,
 			IsEnabled:   d.IsEnabled,
 			Priority:    d.Priority,
@@ -95,7 +95,7 @@ func (repo *DBStorageDefRepo) GetStorageDefinitionByIdentifier(identifier string
 	return &dm.StorageDefinition{
 		Id:          dest.ID.String(),
 		Identifier:  dest.Identifier,
-		StorageType: dest.StorageType,
+		StorageType: dm.StorageTypeName(dest.StorageType),
 		Config:      dest.Config,
 		IsEnabled:   dest.IsEnabled,
 		Priority:    dest.Priority,
@@ -118,7 +118,7 @@ func (repo *DBStorageDefRepo) ListStorageDefinitions() ([]*dm.StorageDefinition,
 		result[i] = &dm.StorageDefinition{
 			Id:          d.ID.String(),
 			Identifier:  d.Identifier,
-			StorageType: d.StorageType,
+			StorageType: dm.StorageTypeName(d.StorageType),
 			Config:      d.Config,
 			IsEnabled:   d.IsEnabled,
 			Priority:    d.Priority,
@@ -150,7 +150,7 @@ func (repo *DBStorageDefRepo) CreateStorageDefinition(storageType string, config
 	return &dm.StorageDefinition{
 		Id:          dest.ID.String(),
 		Identifier:  dest.Identifier,
-		StorageType: dest.StorageType,
+		StorageType: dm.StorageTypeName(dest.StorageType),
 		Config:      dest.Config,
 		IsEnabled:   dest.IsEnabled,
 		Priority:    dest.Priority,
@@ -193,7 +193,7 @@ func (repo *DBStorageDefRepo) UpdateStorageDefinition(identifier string, storage
 	return &dm.StorageDefinition{
 		Id:          dest.ID.String(),
 		Identifier:  dest.Identifier,
-		StorageType: dest.StorageType,
+		StorageType: dm.StorageTypeName(dest.StorageType),
 		Config:      dest.Config,
 		IsEnabled:   dest.IsEnabled,
 		Priority:    dest.Priority,

@@ -22,15 +22,23 @@ type TestS3Config struct {
 	Port   string
 }
 
-type TestExternalServiceManager struct {
-	Pool          *dockertest.Pool
-	dbResource    *dockertest.Resource
-	redisResource *dockertest.Resource
-	minioResource *dockertest.Resource
+type TestWebDAVConfig struct {
+	Username string
+	Password string
+	Port     string
+}
 
-	dbConfig *db.DBConfigDef
-	redisURI string
-	s3Config *TestS3Config
+type TestExternalServiceManager struct {
+	Pool           *dockertest.Pool
+	dbResource     *dockertest.Resource
+	redisResource  *dockertest.Resource
+	minioResource  *dockertest.Resource
+	webDavResource *dockertest.Resource
+
+	dbConfig     *db.DBConfigDef
+	redisURI     string
+	s3Config     *TestS3Config
+	webDavConfig *TestWebDAVConfig
 
 	logger zerolog.Logger
 	lock   sync.Mutex
@@ -59,6 +67,11 @@ func NewTestExternalServiceManager() *TestExternalServiceManager {
 		POSTGRES_HOST:     "localhost",
 		POSTGRES_PORT:     "",
 	}
+	webDavConfig := &TestWebDAVConfig{
+		Username: "test",
+		Password: "test",
+		Port:     "",
+	}
 	return &TestExternalServiceManager{
 		Pool:          pool,
 		dbResource:    nil,
@@ -66,6 +79,7 @@ func NewTestExternalServiceManager() *TestExternalServiceManager {
 		minioResource: nil,
 		s3Config:      s3Config,
 		dbConfig:      dbConfig,
+		webDavConfig:  webDavConfig,
 		logger:        logging.GetLogger("TESM"),
 	}
 }
@@ -139,6 +153,31 @@ func (ts *TestExternalServiceManager) StartMinio() {
 	ts.s3Config.Port = port
 }
 
+func (ts *TestExternalServiceManager) StartWebDav() {
+	ts.lock.Lock()
+	defer ts.lock.Unlock()
+	ts.logger.Info().Msg("Starting WebDav")
+	var err error
+	webDavContainer, err := ts.Pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "bytemark/webdav",
+		Tag:        "2.4",
+		Env: []string{
+			"USERNAME=" + ts.webDavConfig.Username,
+			"PASSWORD=" + ts.webDavConfig.Password,
+			"AUTH_TYPE=Digest",
+		},
+		PortBindings: map[docker.Port][]docker.PortBinding{
+			"80/tcp": {{HostIP: "0.0.0.0", HostPort: "0"}},
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
+	port := webDavContainer.GetPort("80/tcp")
+	ts.webDavResource = webDavContainer
+	ts.webDavConfig.Port = port
+}
+
 func (ts *TestExternalServiceManager) Purge() {
 	if ts.dbResource != nil {
 		ts.Pool.Purge(ts.dbResource)
@@ -148,6 +187,9 @@ func (ts *TestExternalServiceManager) Purge() {
 	}
 	if ts.minioResource != nil {
 		ts.Pool.Purge(ts.minioResource)
+	}
+	if ts.webDavResource != nil {
+		ts.Pool.Purge(ts.webDavResource)
 	}
 }
 
@@ -169,4 +211,8 @@ func (ts *TestExternalServiceManager) GetS3ConfigJSON() string {
 		s3Config.Port, s3Config.Bucket, s3Config.Access, s3Config.Secret,
 	)
 	return config
+}
+
+func (ts *TestExternalServiceManager) GetWebDavConfig() *TestWebDAVConfig {
+	return ts.webDavConfig
 }

@@ -43,7 +43,7 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 		storageDefs[i] = dm.StorageDefinition{
 			Id:          storageDef.ID,
 			Identifier:  storageDef.IDENTIFIER,
-			StorageType: storageDef.STORAGE_TYPE,
+			StorageType: dm.StorageTypeName(storageDef.STORAGE_TYPE),
 			Config:      storageDef.CONFIG,
 			IsEnabled:   storageDef.IS_ENABLED,
 			Priority:    storageDef.PRIORITY,

@@ -13,6 +13,7 @@ func TestMain(m *testing.M) {
 
 	TestServiceMan.StartPostgres()
 	TestServiceMan.StartMinio()
+	TestServiceMan.StartWebDav()
 	code := m.Run()
 	TestServiceMan.Purge()
 	os.Exit(code)

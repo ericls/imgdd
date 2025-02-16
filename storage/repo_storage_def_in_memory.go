@@ -77,7 +77,7 @@ func (repo *InMemoryStorageDefRepo) CreateStorageDefinition(storage_type string,
 	storageDef := &dm.StorageDefinition{
 		Id:          uuid.New().String(),
 		Identifier:  identifier,
-		StorageType: storage_type,
+		StorageType: dm.StorageTypeName(storage_type),
 		Config:      config,
 		IsEnabled:   isEnabled,
 		Priority:    int32(priority),
@@ -92,7 +92,7 @@ func (repo *InMemoryStorageDefRepo) UpdateStorageDefinition(identifier string, s
 		return nil, err
 	}
 	if storage_type != nil {
-		storageDef.StorageType = *storage_type
+		storageDef.StorageType = dm.StorageTypeName(*storage_type)
 	}
 	if config != nil {
 		storageDef.Config = *config
