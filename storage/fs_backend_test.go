@@ -13,7 +13,7 @@ func TestFSStoraage(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// defer os.RemoveAll(tempDir)
+	defer os.RemoveAll(tempDir)
 
 	configJSON := []byte(`{"mediaRoot": "` + tempDir + `"}`)
 	backend, err := storage.GetBackend("fs").FromJSONConfig(configJSON)

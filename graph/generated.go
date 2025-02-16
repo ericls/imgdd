@@ -187,6 +187,12 @@ type ComplexityRoot struct {
 	ViewerResult struct {
 		Viewer func(childComplexity int) int
 	}
+
+	WebDAVStorageConfig struct {
+		Password func(childComplexity int) int
+		URL      func(childComplexity int) int
+		Username func(childComplexity int) int
+	}
 }
 
 type ImageResolver interface {
@@ -793,6 +799,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ViewerResult.Viewer(childComplexity), true
+
+	case "WebDAVStorageConfig.password":
+		if e.complexity.WebDAVStorageConfig.Password == nil {
+			break
+		}
+
+		return e.complexity.WebDAVStorageConfig.Password(childComplexity), true
+
+	case "WebDAVStorageConfig.url":
+		if e.complexity.WebDAVStorageConfig.URL == nil {
+			break
+		}
+
+		return e.complexity.WebDAVStorageConfig.URL(childComplexity), true
+
+	case "WebDAVStorageConfig.username":
+		if e.complexity.WebDAVStorageConfig.Username == nil {
+			break
+		}
+
+		return e.complexity.WebDAVStorageConfig.Username(childComplexity), true
 
 	}
 	return 0, false
@@ -5331,6 +5358,138 @@ func (ec *executionContext) fieldContext_ViewerResult_viewer(_ context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _WebDAVStorageConfig_url(ctx context.Context, field graphql.CollectedField, obj *model.WebDAVStorageConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WebDAVStorageConfig_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WebDAVStorageConfig_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WebDAVStorageConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WebDAVStorageConfig_username(ctx context.Context, field graphql.CollectedField, obj *model.WebDAVStorageConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WebDAVStorageConfig_username(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Username, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WebDAVStorageConfig_username(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WebDAVStorageConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WebDAVStorageConfig_password(ctx context.Context, field graphql.CollectedField, obj *model.WebDAVStorageConfig) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WebDAVStorageConfig_password(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Password, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WebDAVStorageConfig_password(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WebDAVStorageConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext___Directive_name(ctx, field)
 	if err != nil {
@@ -7652,6 +7811,13 @@ func (ec *executionContext) _StorageConfig(ctx context.Context, sel ast.Selectio
 			return graphql.Null
 		}
 		return ec._FSStorageConfig(ctx, sel, obj)
+	case model.WebDAVStorageConfig:
+		return ec._WebDAVStorageConfig(ctx, sel, &obj)
+	case *model.WebDAVStorageConfig:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._WebDAVStorageConfig(ctx, sel, obj)
 	case model.OtherStorageConfig:
 		return ec._OtherStorageConfig(ctx, sel, &obj)
 	case *model.OtherStorageConfig:
@@ -9098,6 +9264,55 @@ func (ec *executionContext) _ViewerResult(ctx context.Context, sel ast.Selection
 	return out
 }
 
+var webDAVStorageConfigImplementors = []string{"WebDAVStorageConfig", "StorageConfig"}
+
+func (ec *executionContext) _WebDAVStorageConfig(ctx context.Context, sel ast.SelectionSet, obj *model.WebDAVStorageConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, webDAVStorageConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WebDAVStorageConfig")
+		case "url":
+			out.Values[i] = ec._WebDAVStorageConfig_url(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "username":
+			out.Values[i] = ec._WebDAVStorageConfig_username(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "password":
+			out.Values[i] = ec._WebDAVStorageConfig_password(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var __DirectiveImplementors = []string{"__Directive"}
 
 func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionSet, obj *introspection.Directive) graphql.Marshaler {
@@ -9845,14 +10060,16 @@ func (ec *executionContext) marshalNStorageTypeEnum2githubᚗcomᚋericlsᚋimgd
 
 var (
 	unmarshalNStorageTypeEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageTypeEnum = map[string]model.StorageTypeEnum{
-		"S3":    model.StorageType_S3,
-		"FS":    model.StorageType_FS,
-		"Other": model.StorageType_Other,
+		"S3":     model.StorageType_S3,
+		"FS":     model.StorageType_FS,
+		"WebDAV": model.StorageType_WebDAV,
+		"Other":  model.StorageType_Other,
 	}
 	marshalNStorageTypeEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageTypeEnum = map[model.StorageTypeEnum]string{
-		model.StorageType_S3:    "S3",
-		model.StorageType_FS:    "FS",
-		model.StorageType_Other: "Other",
+		model.StorageType_S3:     "S3",
+		model.StorageType_FS:     "FS",
+		model.StorageType_WebDAV: "WebDAV",
+		model.StorageType_Other:  "Other",
 	}
 )
 

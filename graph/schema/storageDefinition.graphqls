@@ -1,6 +1,7 @@
 enum StorageTypeEnum {
   S3
   FS
+  WebDAV
   Other
 }
 
@@ -16,11 +17,17 @@ type FSStorageConfig {
   mediaRoot: String!
 }
 
+type WebDAVStorageConfig {
+  url: String!
+  username: String!
+  password: String!
+}
+
 type OtherStorageConfig {
     _empty: String
 }
 
-union StorageConfig = S3StorageConfig | FSStorageConfig | OtherStorageConfig
+union StorageConfig = S3StorageConfig | FSStorageConfig | WebDAVStorageConfig | OtherStorageConfig
 
 type StorageDefinition {
   id: ID!

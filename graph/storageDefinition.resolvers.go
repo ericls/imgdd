@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/ericls/imgdd/domainmodels"
 	"github.com/ericls/imgdd/graph/model"
 	"github.com/ericls/imgdd/storage"
 )
@@ -17,7 +18,7 @@ func (r *mutationResolver) CreateStorageDefinition(ctx context.Context, input mo
 	repo := r.StorageDefRepo
 	storageType := input.StorageType
 	config := input.ConfigJSON
-	backend := storage.GetBackend(string(storageType))
+	backend := storage.GetBackend(domainmodels.StorageTypeName(storageType))
 	if backend == nil {
 		return nil, errors.New("invalid storage type")
 	}

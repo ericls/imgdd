@@ -11,9 +11,10 @@ import (
 type StorageTypeEnum string
 
 const (
-	StorageType_S3    StorageTypeEnum = "s3"
-	StorageType_FS    StorageTypeEnum = "fs"
-	StorageType_Other StorageTypeEnum = "other"
+	StorageType_S3     StorageTypeEnum = "s3"
+	StorageType_FS     StorageTypeEnum = "fs"
+	StorageType_WebDAV StorageTypeEnum = "webdav"
+	StorageType_Other  StorageTypeEnum = "other"
 )
 
 type StorageConfig interface {
@@ -40,6 +41,14 @@ type FSStorageConfig struct {
 }
 
 func (FSStorageConfig) IsStorageConfig() {}
+
+type WebDAVStorageConfig struct {
+	URL      string `json:"url"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func (WebDAVStorageConfig) IsStorageConfig() {}
 
 type StorageDefinition struct {
 	Id         string        `json:"id"`
@@ -85,6 +94,13 @@ func FromStorageDefinition(sd *domainmodels.StorageDefinition) (*StorageDefiniti
 		storageConfig = conf
 	} else if storageType == StorageType_FS {
 		var conf FSStorageConfig
+		err := json.Unmarshal([]byte(sd.Config), &conf)
+		if err != nil {
+			return nil, err
+		}
+		storageConfig = conf
+	} else if storageType == StorageType_WebDAV {
+		var conf WebDAVStorageConfig
 		err := json.Unmarshal([]byte(sd.Config), &conf)
 		if err != nil {
 			return nil, err

@@ -88,6 +88,8 @@ models:
         value: ./graph/model.StorageType_S3
       FS:
         value: ./graph/model.StorageType_FS
+      WebDAV:
+        value: ./graph/model.StorageType_WebDAV
       Other:
         value: ./graph/model.StorageType_Other
   ID:

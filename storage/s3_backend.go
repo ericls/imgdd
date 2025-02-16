@@ -35,7 +35,7 @@ type S3StorageConfig struct {
 
 func (conf S3StorageConfig) Hash() uint32 {
 	h := fnv.New32a()
-	s := conf.Endpoint + conf.Bucket + conf.Access + conf.Secret
+	s := conf.Endpoint + "|" + conf.Bucket + "|" + conf.Access + "|" + conf.Secret
 	h.Write([]byte(s))
 	return h.Sum32()
 }

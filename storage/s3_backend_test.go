@@ -9,9 +9,9 @@ import (
 	"github.com/ericls/imgdd/storage"
 )
 
-var data = []byte("test data")
-
 func TestS3Storage(t *testing.T) {
+	data := []byte("test data")
+
 	s3Config := TestServiceMan.GetS3Config()
 	conf := storage.S3StorageConfig{
 		Endpoint: "http://localhost:" + s3Config.Port,

@@ -242,6 +242,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/rbcervilla/redisstore/v9 v9.0.0
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/studio-b12/gowebdav v0.10.0
 	github.com/vikstrous/dataloadgen v0.0.6
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
