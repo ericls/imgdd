@@ -95,7 +95,9 @@ func makeAppHandler(
 		opt(&opts)
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		parsedTemplate, err := template.ParseFS(opts.templatesFS, "*.gotmpl")
+		parsedTemplate, err := template.New("app.gotmpl").Funcs(template.FuncMap{
+			"safe": func(s string) template.HTML { return template.HTML(s) },
+		}).ParseFS(opts.templatesFS, "*.gotmpl")
 		if err != nil {
 			httpLogger.Err(err).Msg("Error parsing template")
 			w.Write([]byte("Error parsing template"))
@@ -107,6 +109,7 @@ func makeAppHandler(
 		} else {
 			sessionHeaderName = opts.sessionHeaderName
 		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		err = parsedTemplate.Execute(w, struct {
 			Version            string
 			VersionHash        string
@@ -133,6 +136,7 @@ func makeAppHandler(
 			CustomJS:           template.JS(opts.customJS),
 		})
 		if err != nil {
+			httpLogger.Err(err).Msg("Error rendering template")
 			w.Write([]byte("Error rendering template"))
 		}
 	}
