@@ -36,6 +36,7 @@ func (repo *DBStoredImageRepo) GetStoredImageByIdentifierAndMimeType(identifier,
 		ImageTable, ImageTable.ID.EQ(StoredImageTable.ImageID),
 	)).WHERE(
 		ImageTable.Identifier.EQ(String(identifier)).
+			AND(ImageTable.DeletedAt.IS_NULL()).
 			AND(
 				StoredImageTable.IsFileDeleted.EQ(Bool(false)),
 			).
