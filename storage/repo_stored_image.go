@@ -57,6 +57,7 @@ func (repo *DBStoredImageRepo) GetStoredImageByIdentifierAndMimeType(identifier,
 			Id:                  d.StoredImageTable.ID.String(),
 			FileIdentifier:      d.StoredImageTable.FileIdentifier,
 			StorageDefinitionId: d.StoredImageTable.StorageDefinitionID.String(),
+			IsFileDeleted:       d.StoredImageTable.IsFileDeleted,
 		}
 	}
 	return result, nil
@@ -85,6 +86,7 @@ func (repo *DBStoredImageRepo) GetStoredImagesByIds(ids []string) ([]*dm.StoredI
 			Id:                  d.StoredImageTable.ID.String(),
 			FileIdentifier:      d.StoredImageTable.FileIdentifier,
 			StorageDefinitionId: d.StoredImageTable.StorageDefinitionID.String(),
+			IsFileDeleted:       d.StoredImageTable.IsFileDeleted,
 		}
 	}
 	return result, nil
@@ -116,4 +118,47 @@ func (repo *DBStoredImageRepo) GetStoredImageIdsByImageIds(imageIds []string) (m
 		result[d.ImageID.String()] = append(result[d.ImageID.String()], d.ID.String())
 	}
 	return result, nil
+}
+
+func (repo *DBStoredImageRepo) GetStoredImagesToDelete() ([]*dm.StoredImage, error) {
+	stmt := SELECT(
+		StoredImageTable.AllColumns,
+	).FROM(
+		StoredImageTable.LEFT_JOIN(ImageTable, StoredImageTable.ImageID.EQ(ImageTable.ID)),
+	).WHERE(
+		StoredImageTable.IsFileDeleted.EQ(Bool(false)).
+			AND(ImageTable.DeletedAt.IS_NOT_NULL()),
+	)
+	dest := []struct {
+		StoredImageTable model.StoredImageTable
+	}{}
+	err := stmt.Query(repo.DB, &dest)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*dm.StoredImage, len(dest))
+	for i, d := range dest {
+		result[i] = &dm.StoredImage{
+			Id:                  d.StoredImageTable.ID.String(),
+			FileIdentifier:      d.StoredImageTable.FileIdentifier,
+			StorageDefinitionId: d.StoredImageTable.StorageDefinitionID.String(),
+			IsFileDeleted:       d.StoredImageTable.IsFileDeleted,
+		}
+	}
+	return result, nil
+}
+
+func (repo *DBStoredImageRepo) MarkStoredImagesAsDeleted(ids []string) error {
+	uuids := make([]Expression, len(ids))
+	for i, id := range ids {
+		uuids[i] = UUID(uuid.MustParse(id))
+	}
+	stmt := StoredImageTable.UPDATE().SET(
+		StoredImageTable.IsFileDeleted.SET(Bool(true)),
+		StoredImageTable.UpdatedAt.SET(TimestampzExp(Func("NOW"))),
+	).WHERE(
+		StoredImageTable.ID.IN(uuids...),
+	)
+	_, err := stmt.Exec(repo.DB)
+	return err
 }

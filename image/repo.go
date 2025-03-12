@@ -170,6 +170,7 @@ func (repo *DBImageRepo) CreateStoredImage(imageId string, storageDefinitionId s
 		FileIdentifier:      dest.FileIdentifier,
 		StorageDefinitionId: dest.StorageDefinitionID.String(),
 		Image:               image,
+		IsFileDeleted:       dest.IsFileDeleted,
 	}, nil
 }
 

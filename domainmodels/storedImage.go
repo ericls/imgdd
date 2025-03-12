@@ -6,6 +6,7 @@ type StoredImage struct {
 	StorageDefinitionId string
 	FileIdentifier      string
 	CopiedFrom          *StoredImage
+	IsFileDeleted       bool
 }
 
 type ExternalImageIdentifier struct {
