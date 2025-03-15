@@ -15,7 +15,6 @@ import (
 )
 
 var logger = logging.GetLogger("cleanup")
-var lockKey = utils.GenerateLockKey("cleanup_stored_image")
 
 type CleanupConfig struct {
 	Enabled  bool
