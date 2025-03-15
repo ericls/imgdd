@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/fs"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/ericls/imgdd/captcha"
@@ -15,6 +16,8 @@ import (
 	"github.com/ericls/imgdd/image"
 	"github.com/ericls/imgdd/ratelimit"
 	"github.com/ericls/imgdd/storage"
+	"github.com/ericls/imgdd/utils"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/99designs/gqlgen/graphql"
 	gqlgenHandler "github.com/99designs/gqlgen/graphql/handler"
@@ -101,7 +104,11 @@ func MakeServer(
 	go uploadLimiter.Cleanup()
 
 	if cleanupConf != nil && cleanupConf.Enabled {
-		go storage.RunCleanupTask(conn, storedImageRepo, storageDefRepo, cleanupConf.Interval)
+		redisClient := redis.NewClient(&redis.Options{
+			Addr: strings.TrimPrefix(conf.RedisURI, "redis://"),
+		})
+		lock := utils.NewRedisLock(redisClient, "cleanup_stored_image", 1200*time.Second)
+		go storage.RunCleanupTask(lock, storedImageRepo, storageDefRepo, cleanupConf.Interval)
 	}
 
 	graphqlServer := captcha.MakeHttpMiddleware()(makeGqlServer(

@@ -95,6 +95,7 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			ReadTimeout:            configFile.HTTPServer.READ_TIMEOUT,
 			SessionKey:             configFile.HTTPServer.SESSION_KEY,
 			RedisURIForSession:     configFile.Redis.GetSessionRedisURI(),
+			RedisURI:               configFile.Redis.REDIS_URI,
 			SiteName:               configFile.HTTPServer.SITE_NAME,
 			SiteTitle:              configFile.HTTPServer.SITE_TITLE,
 			ImageDomain:            configFile.HTTPServer.IMAGE_DOMAIN,
@@ -167,6 +168,9 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		}
 		if config.HttpServer.RedisURIForSession != "" {
 			merged.HttpServer.RedisURIForSession = config.HttpServer.RedisURIForSession
+		}
+		if config.HttpServer.RedisURI != "" {
+			merged.HttpServer.RedisURI = config.HttpServer.RedisURI
 		}
 		if config.HttpServer.SiteName != "" {
 			merged.HttpServer.SiteName = config.HttpServer.SiteName

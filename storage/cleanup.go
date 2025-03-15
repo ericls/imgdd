@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"os"
 	"os/signal"
@@ -47,8 +46,7 @@ func ReadCleanupConfigFromEnv() *CleanupConfig {
 	}
 }
 
-func CleanupStoredImageTask(dbConn *sql.DB, storedImageRepo StoredImageRepo, storageDefRepo StorageDefRepo) error {
-	lock := utils.NewPgAdvisoryLock(dbConn, lockKey)
+func CleanupStoredImageTask(lock utils.MutexLock, storedImageRepo StoredImageRepo, storageDefRepo StorageDefRepo) error {
 	return utils.RunWithLock(lock, func() error {
 		deletedCount, err := CleanupStoredImage(storedImageRepo, storageDefRepo)
 		if err != nil {
@@ -144,7 +142,7 @@ func deleteStoredImage(storedImage *dm.StoredImage, s Storage) error {
 	return nil
 }
 
-func RunCleanupTask(db *sql.DB, storedImageRepo StoredImageRepo, storageDefRepo StorageDefRepo, interval time.Duration) {
+func RunCleanupTask(lock utils.MutexLock, storedImageRepo StoredImageRepo, storageDefRepo StorageDefRepo, interval time.Duration) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	stop := make(chan os.Signal, 1)
@@ -161,7 +159,7 @@ func RunCleanupTask(db *sql.DB, storedImageRepo StoredImageRepo, storageDefRepo 
 		for {
 			select {
 			case <-ticker.C:
-				CleanupStoredImageTask(db, storedImageRepo, storageDefRepo)
+				CleanupStoredImageTask(lock, storedImageRepo, storageDefRepo)
 			case <-ctx.Done():
 				logger.Info().Msg("Cleanup task shutting down gracefully...")
 				return
