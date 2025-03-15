@@ -55,6 +55,7 @@ func MakeServer(
 	dbConf *db.DBConfigDef,
 	storageConf *storage.StorageConfigDef,
 	emailConf *email.EmailConfigDef,
+	cleanupConf *storage.CleanupConfig,
 ) *http.Server {
 
 	conn := db.GetConnection(dbConf)
@@ -98,6 +99,10 @@ func MakeServer(
 
 	uploadLimiter := ratelimit.NewRateLimiter(5, 5)
 	go uploadLimiter.Cleanup()
+
+	if cleanupConf != nil && cleanupConf.Enabled {
+		go storage.RunCleanupTask(conn, storedImageRepo, storageDefRepo, cleanupConf.Interval)
+	}
 
 	graphqlServer := captcha.MakeHttpMiddleware()(makeGqlServer(
 		graph.NewExecutableSchema(

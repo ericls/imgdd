@@ -86,12 +86,18 @@ type EmailConfigFileDef struct {
 	SMTP *SMTPConfigFileDef `toml:"SMTP" comment:"SMTP configuration. Used if TYPE is 'smtp'"`
 }
 
+type CleanupTaskConfigFileDef struct {
+	ENABLED  bool `toml:"ENABLED" comment:"Enable cleanup task"`
+	INTERVAL int  `toml:"INTERVAL" comment:"Cleanup task interval in seconds"`
+}
+
 type ConfigFileDef struct {
-	DB         *DBConfigFileDef         `toml:"DBConfig" comment:"Database configuration"`
-	Redis      *RedisConfigFileDef      `toml:"RedisConfig" comment:"Redis configuration"`
-	HTTPServer *HTTPServerConfigFileDef `toml:"HTTPServerConfig" comment:"HTTP server configuration"`
-	Storage    *StorageConfigFileDef    `toml:"StorageConfig" comment:"Storage configuration"`
-	Email      *EmailConfigFileDef      `toml:"EmailConfig" comment:"Email configuration"`
+	DB         *DBConfigFileDef          `toml:"DBConfig" comment:"Database configuration"`
+	Redis      *RedisConfigFileDef       `toml:"RedisConfig" comment:"Redis configuration"`
+	HTTPServer *HTTPServerConfigFileDef  `toml:"HTTPServerConfig" comment:"HTTP server configuration"`
+	Storage    *StorageConfigFileDef     `toml:"StorageConfig" comment:"Storage configuration"`
+	Email      *EmailConfigFileDef       `toml:"EmailConfig" comment:"Email configuration"`
+	Cleanup    *CleanupTaskConfigFileDef `toml:"CleanupTaskConfig" comment:"Cleanup task configuration"`
 }
 
 func (cfd *ConfigFileDef) Clone() ConfigFileDef {
@@ -153,6 +159,10 @@ var EmptyConfig = ConfigFileDef{
 			PASSOWRD: "password",
 			FROM:     "noreply@imgdd.com",
 		},
+	},
+	Cleanup: &CleanupTaskConfigFileDef{
+		ENABLED:  true,
+		INTERVAL: 300,
 	},
 }
 

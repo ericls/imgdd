@@ -3,6 +3,7 @@ package config
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/ericls/imgdd/captcha"
 	"github.com/ericls/imgdd/db"
@@ -19,14 +20,16 @@ type ConfigDef struct {
 	HttpServer    httpserver.HttpServerConfigDef
 	Storage       storage.StorageConfigDef
 	Email         email.EmailConfigDef
+	CleanupConfig *storage.CleanupConfig
 	configFileDef *ConfigFileDef
 }
 
 func ConfigFromEnv() (*ConfigDef, error) {
 	return &ConfigDef{
-		Db:         db.ReadConfigFromEnv(),
-		HttpServer: httpserver.ReadServerConfigFromEnv(),
-		Email:      email.ReadEmailConfigFromEnv(),
+		Db:            db.ReadConfigFromEnv(),
+		HttpServer:    httpserver.ReadServerConfigFromEnv(),
+		Email:         email.ReadEmailConfigFromEnv(),
+		CleanupConfig: storage.ReadCleanupConfigFromEnv(),
 	}, nil
 }
 
@@ -69,6 +72,14 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			From:     SMTPConfigFormFile.FROM,
 		}
 	}
+	var cleanupConfig *storage.CleanupConfig
+	if configFile.Cleanup != nil {
+		cleanupConfig = &storage.CleanupConfig{
+			Enabled:  configFile.Cleanup.ENABLED,
+			Interval: time.Duration(configFile.Cleanup.INTERVAL) * time.Second,
+		}
+	}
+
 	return &ConfigDef{
 		Db: db.DBConfigDef{
 			POSTGRES_DB:       configFile.DB.POSTGRES_DB,
@@ -108,6 +119,7 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			Type: emailBackendType,
 			SMTP: SMTPConfig,
 		},
+		CleanupConfig: cleanupConfig,
 		configFileDef: configFile,
 	}, nil
 }
@@ -212,6 +224,9 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		}
 		if config.Email.SMTP != nil && config.Email.SMTP.Host != "" {
 			merged.Email.SMTP = config.Email.SMTP
+		}
+		if config.CleanupConfig != nil {
+			merged.CleanupConfig = config.CleanupConfig
 		}
 	}
 	if merged.Storage.StorageDefSource == storage.StorageDefSourceDB {

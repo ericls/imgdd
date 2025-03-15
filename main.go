@@ -104,7 +104,7 @@ func main() {
 				}
 				httpServerConf.StaticFS = MoutingFS.Static
 				httpServerConf.TemplatesFS = MoutingFS.Templates
-				srv := httpserver.MakeServer(&httpServerConf, &conf.Db, &conf.Storage, &conf.Email)
+				srv := httpserver.MakeServer(&httpServerConf, &conf.Db, &conf.Storage, &conf.Email, conf.CleanupConfig)
 				httpserver.GracefulServe(srv, 5*time.Second)
 				return nil
 			},
