@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS user_table(
 ALTER TABLE
     user_table
 ADD
-    CONSTRAINT unique_user_email UNIQUE (email) IF NOT EXISTS;
+    CONSTRAINT unique_user_email UNIQUE (email);
 
 CREATE TABLE IF NOT EXISTS role_table(
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
