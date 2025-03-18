@@ -43,7 +43,7 @@ func ReadServerConfigFromEnv() HttpServerConfigDef {
 		ReadTimeout:            10,
 		SessionKey:             utils.GetEnv("IMGDD_SESSION_KEY", "NOT_SECURE_KEY"),
 		RedisURIForSession:     utils.GetEnv("IMGDD_REDIS_URI_FOR_SESSION", "redis://localhost:30102"),
-		RedisURI:               utils.GetEnv("IMGDD_REDIS_URI_FOR_SESSION", "redis://localhost:30102"),
+		RedisURI:               utils.GetEnv("IMGDD_REDIS_URI", "redis://localhost:30102"),
 		SiteName:               utils.GetEnv("IMGDD_SITE_NAME", ""),
 		SiteTitle:              utils.GetEnv("IMGDD_SITE_TITLE", "IMGDD - Image Direct Delivery"),
 		ImageDomain:            utils.GetEnv("IMGDD_IMAGE_DOMAIN", ""),
