@@ -91,9 +91,18 @@ func main() {
 					Value: defaultBind,
 					Usage: "Which address to bind to when starting the server",
 				},
+				&cli.BoolFlag{
+					Name:    "migrate",
+					Usage:   "Run migrations before starting the server",
+					EnvVars: []string{"MIGRATE_ON_SERVE"},
+				},
 			},
 			Action: func(ctx *cli.Context) error {
 				conf := getConfig(ctx)
+				shouldMigrate := ctx.Bool("migrate")
+				if shouldMigrate {
+					db.RunMigrationUp(&conf.Db)
+				}
 				httpServerConf := conf.HttpServer
 				bind := ctx.String("bind")
 				if httpServerConf.Bind == "" || ctx.IsSet("bind") {
