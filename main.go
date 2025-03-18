@@ -148,6 +148,41 @@ func main() {
 			},
 		},
 		{
+			Name: "create-user",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "email",
+					Usage:    "Email of the user",
+					Required: true,
+				},
+				&cli.StringFlag{
+					Name:     "password",
+					Usage:    "Password of the user",
+					Required: true,
+				},
+				&cli.BoolFlag{
+					Name:  "is-site-owner",
+					Usage: "Whether the user is a site owner. Site owner can access all data and configurations",
+				},
+			},
+			Action: func(ctx *cli.Context) error {
+				dbConf := getConfig(ctx).Db
+				db.PopulateBuiltInRoles(&dbConf)
+				identityRepo := identity.NewDBIdentityRepo(db.GetConnection(&dbConf))
+				ou, err := identityRepo.CreateUserWithOrganization(ctx.String("email"), "org:"+ctx.String("email"), ctx.String("password"))
+				if err != nil {
+					return err
+				}
+				if ctx.Bool("is-site-owner") {
+					err := identity.AddUserToGroup("site_owner", ou.User.Email, &dbConf)
+					if err != nil {
+						return err
+					}
+				}
+				return nil
+			},
+		},
+		{
 			Name: "add-user-to-group",
 			Flags: []cli.Flag{
 				&cli.StringFlag{
