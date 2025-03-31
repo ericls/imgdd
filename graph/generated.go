@@ -7849,20 +7849,6 @@ func (ec *executionContext) _StorageConfig(ctx context.Context, sel ast.Selectio
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
-	case model.S3StorageConfig:
-		return ec._S3StorageConfig(ctx, sel, &obj)
-	case *model.S3StorageConfig:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._S3StorageConfig(ctx, sel, obj)
-	case model.FSStorageConfig:
-		return ec._FSStorageConfig(ctx, sel, &obj)
-	case *model.FSStorageConfig:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._FSStorageConfig(ctx, sel, obj)
 	case model.WebDAVStorageConfig:
 		return ec._WebDAVStorageConfig(ctx, sel, &obj)
 	case *model.WebDAVStorageConfig:
@@ -7870,6 +7856,13 @@ func (ec *executionContext) _StorageConfig(ctx context.Context, sel ast.Selectio
 			return graphql.Null
 		}
 		return ec._WebDAVStorageConfig(ctx, sel, obj)
+	case model.S3StorageConfig:
+		return ec._S3StorageConfig(ctx, sel, &obj)
+	case *model.S3StorageConfig:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._S3StorageConfig(ctx, sel, obj)
 	case model.OtherStorageConfig:
 		return ec._OtherStorageConfig(ctx, sel, &obj)
 	case *model.OtherStorageConfig:
@@ -7877,6 +7870,13 @@ func (ec *executionContext) _StorageConfig(ctx context.Context, sel ast.Selectio
 			return graphql.Null
 		}
 		return ec._OtherStorageConfig(ctx, sel, obj)
+	case model.FSStorageConfig:
+		return ec._FSStorageConfig(ctx, sel, &obj)
+	case *model.FSStorageConfig:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._FSStorageConfig(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}

@@ -36,12 +36,19 @@ export function StorageDefTableConnectivityCell({ id }: { id: string }) {
           id,
         },
       },
-    }).then((res) => {
-      const errorStr = res.data?.checkStorageDefinitionConnectivity?.error;
-      if (errorStr) {
-        notice(t("storageDef.connection.error"), <>{errorStr}</>);
-      }
-    });
+    })
+      .then((res) => {
+        const errorStr = res.data?.checkStorageDefinitionConnectivity?.error;
+        if (errorStr) {
+          notice(t("storageDef.connection.error"), <>{errorStr}</>);
+        }
+      })
+      .catch(() => {
+        notice(
+          t("storageDef.connection.error"),
+          <>{t("storageDef.connection.unknown")}</>,
+        );
+      });
   }, [id, mutate, t]);
   const buttonIcon =
     resultOk === undefined ? (
