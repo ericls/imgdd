@@ -20,9 +20,8 @@ import (
 const defaultRegion = "us-east-1"
 
 type S3Client struct {
-	uploader   *s3manager.Uploader
-	downloader *s3manager.Downloader
-	s3         *s3.S3
+	uploader *s3manager.Uploader
+	s3       *s3.S3
 }
 
 // JSON config of S3 storage
@@ -115,38 +114,24 @@ func (s *S3Storage) ensureClient() {
 		sess := session.Must(session.NewSession(&cfg))
 
 		uploader := s3manager.NewUploader(sess)
-		downloader := s3manager.NewDownloader(sess, func(d *s3manager.Downloader) {
-			d.Concurrency = 10
-		})
 		s3Client := s3.New(sess)
 		return &S3Client{
-			downloader: downloader,
-			uploader:   uploader,
-			s3:         s3Client,
+			uploader: uploader,
+			s3:       s3Client,
 		}
 	})
 }
 
-type FakeWriterAt struct {
-	w io.Writer
-}
-
-func (fw FakeWriterAt) WriteAt(p []byte, offset int64) (n int, err error) {
-	return fw.w.Write(p)
-}
-
 func (s *S3Storage) GetReader(filename string) io.ReadCloser {
-	downloader := s.client.Value().downloader
-	r, w := io.Pipe()
-	go func() {
-		defer w.Close()
-		downloader.Download(FakeWriterAt{w},
-			&s3.GetObjectInput{
-				Bucket: aws.String(s.bucket),
-				Key:    aws.String(filename),
-			})
-	}()
-	return r
+	service := s.client.Value().s3
+	res, err := service.GetObject(&s3.GetObjectInput{
+		Bucket: aws.String(s.bucket),
+		Key:    aws.String(filename),
+	})
+	if err != nil {
+		return nil
+	}
+	return res.Body
 }
 
 func (s *S3Storage) Save(file utils.SeekerReader, filename string, mimeType string) error {
