@@ -32,7 +32,21 @@ jobs:
           echo "GIT_REV=$(git describe --tags --dirty)" >> $GITHUB_ENV
           echo "GIT_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
-      - name: Build & Push Image
+      - name: Build & Push (alpha/beta)
+        if: ${{ contains(env.GIT_REV, 'alpha') || contains(env.GIT_REV, 'beta') }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ vars.DOCKER_HUB_USERNAME }}/imgdd:${{ env.GIT_REV }}
+          build-args: |
+            GIT_REV=${{ env.GIT_REV }}
+            GIT_HASH=${{ env.GIT_HASH }}
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build & Push (regular)
+        if: ${{ !contains(env.GIT_REV, 'alpha') && !contains(env.GIT_REV, 'beta') }}
         uses: docker/build-push-action@v5
         with:
           context: .
