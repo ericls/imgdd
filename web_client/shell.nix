@@ -4,6 +4,7 @@
 pkgs.mkShell {
   buildInputs = [
     pkgs.nodejs_20
+    pkgs.pnpm_10
   ];
 
   shellHook = ''

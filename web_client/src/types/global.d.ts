@@ -22,4 +22,5 @@ interface Window {
   TURNSTILE_SITE_KEY?: string;
   // plugins
   IMGDD_PLUGINS?: IMGDDPlugin[];
+  turnstile?: Turnstile.Turnstile;
 }

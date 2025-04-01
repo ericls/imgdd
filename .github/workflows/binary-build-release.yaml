@@ -22,17 +22,13 @@ jobs:
       - name: Install `pnpm`
         run: npm install -g pnpm
 
-      - name: Import npm Lockfile (if necessary)
-        working-directory: web_client
-        run: pnpm import
-
       - name: Install Frontend Dependencies
         working-directory: web_client
         run: pnpm install --frozen-lockfile
 
       - name: Build Frontend
         working-directory: web_client
-        run: npm run build
+        run: pnpm run build
 
       - name: Upload Frontend Build
         uses: actions/upload-artifact@v4

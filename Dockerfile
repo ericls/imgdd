@@ -11,12 +11,12 @@ WORKDIR /code
 
 # Install dependencies first (leveraging Docker cache)
 COPY ./web_client/package*.json ./
-RUN pnpm import
+COPY ./web_client/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # Copy the rest of the frontend source code and build it
 COPY web_client ./
-RUN npm run build
+RUN pnpm run build
 
 # -----------------------------------------------------
 # 2) BACKEND BUILD STAGE (WITH EMBEDDED FRONTEND FILES)
