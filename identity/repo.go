@@ -32,9 +32,11 @@ func NewDBIdentityRepo(conn *sql.DB) *DBIdentityRepo {
 	}
 }
 
-var userSelect = SELECT(
-	UserTable.AllColumns,
-).FROM(UserTable)
+func newUserSelect() SelectStatement {
+	return SELECT(
+		UserTable.AllColumns,
+	).FROM(UserTable)
+}
 
 type userSelectResult struct {
 	model.UserTable
@@ -80,13 +82,15 @@ var organizationUserSelectFrom = OrganizationUserTable.LEFT_JOIN(
 		RoleTable, RoleTable.ID.EQ(OrganizationUserRoleTable.RoleID),
 	)
 
-var organizationUserSelect = SELECT(
-	OrganizationUserTable.AllColumns,
-	UserTable.AllColumns,
-	OrganizationTable.AllColumns,
-	OrganizationUserRoleTable.AllColumns,
-	RoleTable.AllColumns,
-).FROM(organizationUserSelectFrom)
+func newOrganizationUserSelect() SelectStatement {
+	return SELECT(
+		OrganizationUserTable.AllColumns,
+		UserTable.AllColumns,
+		OrganizationTable.AllColumns,
+		OrganizationUserRoleTable.AllColumns,
+		RoleTable.AllColumns,
+	).FROM(organizationUserSelectFrom)
+}
 
 type organizationUserSelectResult struct {
 	model.OrganizationUserTable
@@ -106,7 +110,7 @@ func convertOrganizationUser(jetOU *organizationUserSelectResult) *dm.Organizati
 
 func (repo *DBIdentityRepo) GetUserById(id string) *dm.User {
 	dest := userSelectResult{}
-	stmt := userSelect.WHERE(UserTable.ID.EQ(UUID(uuid.MustParse(id))))
+	stmt := newUserSelect().WHERE(UserTable.ID.EQ(UUID(uuid.MustParse(id))))
 	err := stmt.Query(repo.DB, &dest)
 	if err != nil {
 		return nil
@@ -116,7 +120,7 @@ func (repo *DBIdentityRepo) GetUserById(id string) *dm.User {
 
 func (repo *DBIdentityRepo) GetUserByEmail(email string) *dm.User {
 	dest := userSelectResult{}
-	stmt := userSelect.WHERE(UserTable.Email.EQ(String(email)))
+	stmt := newUserSelect().WHERE(UserTable.Email.EQ(String(email)))
 	err := stmt.Query(repo.DB, &dest)
 	if err != nil {
 		return nil
@@ -152,7 +156,7 @@ func (repo *DBIdentityRepo) GetUsersByIds(ids []string) []*dm.User {
 	for i, id := range ids {
 		uuids[i] = UUID(uuid.MustParse(id))
 	}
-	stmt := userSelect.WHERE(UserTable.ID.IN(uuids...))
+	stmt := newUserSelect().WHERE(UserTable.ID.IN(uuids...))
 	err := stmt.Query(repo.DB, &dest)
 	if err != nil {
 		return nil
@@ -198,7 +202,7 @@ func (repo *DBIdentityRepo) GetOrganizationsByIds(ids []string) []*dm.Organizati
 
 func (repo *DBIdentityRepo) GetOrganizationUserById(id string) *dm.OrganizationUser {
 	dest := organizationUserSelectResult{}
-	stmt := organizationUserSelect.WHERE(OrganizationUserTable.ID.EQ(UUID(uuid.MustParse(id)))).DISTINCT()
+	stmt := newOrganizationUserSelect().WHERE(OrganizationUserTable.ID.EQ(UUID(uuid.MustParse(id)))).DISTINCT()
 	err := stmt.Query(repo.DB, &dest)
 	if err != nil {
 		return nil
@@ -212,7 +216,7 @@ func (repo *DBIdentityRepo) GetOrganizationUsersByIds(ids []string) []*dm.Organi
 	for i, id := range ids {
 		uuids[i] = UUID(uuid.MustParse(id))
 	}
-	stmt := organizationUserSelect.WHERE(OrganizationUserTable.ID.IN(uuids...))
+	stmt := newOrganizationUserSelect().WHERE(OrganizationUserTable.ID.IN(uuids...))
 	err := stmt.Query(repo.DB, &dest)
 	if err != nil {
 		return nil
@@ -234,7 +238,7 @@ func (repo *DBIdentityRepo) createOrganizationUser(organizationId string, userId
 	if err != nil {
 		return nil, err
 	}
-	queryStmt := organizationUserSelect.WHERE(OrganizationUserTable.ID.EQ(UUID(dest.ID)))
+	queryStmt := newOrganizationUserSelect().WHERE(OrganizationUserTable.ID.EQ(UUID(dest.ID)))
 	queryDest := organizationUserSelectResult{}
 	err = queryStmt.Query(repo.DB, &queryDest)
 	if err != nil {
@@ -262,7 +266,7 @@ func (repo *DBIdentityRepo) CreateUser(email string, password string) (*dm.User,
 			return nil, err
 		}
 		dest := userSelectResult{}
-		queryStmt := userSelect.WHERE(UserTable.ID.EQ(UUID(insertDest.ID)))
+		queryStmt := newUserSelect().WHERE(UserTable.ID.EQ(UUID(insertDest.ID)))
 		err = queryStmt.Query(txRepo.GetDB(), &dest)
 		if err != nil {
 			return nil, err
@@ -397,4 +401,27 @@ func (repo *DBIdentityRepo) GetOrganizationForUser(userId string, maybeOrganizat
 		return nil, nil
 	}
 	return convertOrganization(&dest.OrganizationTable), repo.GetOrganizationUserById(dest.OrganizationUser.ID.String())
+}
+
+func (repo *DBIdentityRepo) GetAllUsers(limit int, offset int, search *string) []*dm.User {
+	dest := []userSelectResult{}
+
+	stmt := newUserSelect().LIMIT(int64(limit)).OFFSET(int64(offset))
+
+	if search != nil && *search != "" {
+		searchTerm := UPPER(String("%" + *search + "%"))
+		stmt = stmt.WHERE(UPPER(UserTable.Email).LIKE(searchTerm))
+	}
+
+	err := stmt.Query(repo.DB, &dest)
+	if err != nil {
+		return nil
+	}
+
+	users := make([]*dm.User, len(dest))
+	for i, d := range dest {
+		users[i] = convertUser(&d)
+	}
+
+	return users
 }

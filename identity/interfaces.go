@@ -26,6 +26,9 @@ type IdentityRepo interface {
 
 	GetUserPassword(id string) string
 	UpdateUserPassword(id string, password string) error
+
+	// GetAllUsers returns a paginated list of users with optional search criteria.
+	GetAllUsers(limit int, offset int, search *string) []*dm.User
 }
 
 type ContextUserManager interface {

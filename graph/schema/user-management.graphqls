@@ -1,0 +1,6 @@
+# Schema for site-wide user management
+
+extend type Viewer {
+  # List all users in the system, with optional pagination and search functionality
+  allUsers(limit: Int, offset: Int, search: String): [User!]! @isSiteOwner
+}

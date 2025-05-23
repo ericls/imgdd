@@ -5,6 +5,7 @@ import (
 
 	"github.com/ericls/imgdd/db"
 	dm "github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/test_support"
 )
 
 func TestIdentityRepo(t *testing.T) {
@@ -41,5 +42,41 @@ func TestIdentityRepo(t *testing.T) {
 	orgUser = identityRepo.GetOrganizationUserById(orgUser.Id)
 	if len(orgUser.Roles) != 2 {
 		t.Errorf("Expected user to have 2 roles, got %d", len(orgUser.Roles))
+	}
+}
+
+func TestGetAllUsers(t *testing.T) {
+	dbConfig := TestServiceMan.GetDBConfig()
+	test_support.ResetDatabase(dbConfig)
+
+	conn := db.GetConnection(dbConfig)
+	identityRepo := NewDBIdentityRepo(conn)
+
+	// Create test users
+	emails := []string{"alice@example.com", "bob@example.com", "test1@example.com", "test2@example.com"}
+	for _, email := range emails {
+		_, err := identityRepo.CreateUser(email, "password123")
+		if err != nil {
+			t.Errorf("Failed to create user with email %s: %s", email, err)
+		}
+	}
+
+	// Test fetching all users without filters
+	allUsers := identityRepo.GetAllUsers(10, 0, nil)
+	if len(allUsers) != len(emails) {
+		t.Errorf("Expected %d users, got %d", len(emails), len(allUsers))
+	}
+
+	// Test fetching users with a search filter
+	searchTerm := "test"
+	filteredUsers := identityRepo.GetAllUsers(10, 0, &searchTerm)
+	if len(filteredUsers) != 2 {
+		t.Errorf("Expected 2 users matching '%s', got %d", searchTerm, len(filteredUsers))
+	}
+
+	// Test pagination
+	paginatedUsers := identityRepo.GetAllUsers(2, 0, nil)
+	if len(paginatedUsers) != 2 {
+		t.Errorf("Expected 2 users in paginated result, got %d", len(paginatedUsers))
 	}
 }
