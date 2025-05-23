@@ -9,6 +9,7 @@ import { ListUsersQuery } from "~src/__generated__/graphql";
 import classNames from "classnames";
 import { SECONDARY_TEXT_COLOR_DIM, SECOND_LAYER } from "~src/ui/classNames";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 type User = ListUsersQuery["viewer"]["paginatedAllUsers"]["nodes"][number];
 
@@ -25,6 +26,18 @@ export function UsersTable({ data }: { data: User[] }) {
       columnHelper.accessor("email", {
         header: t("usersTable.email", "Email"),
         cell: (info) => info.getValue(),
+      }),
+      columnHelper.display({
+        id: "viewImages",
+        header: t("usersTable.viewImages", "View Images"),
+        cell: ({ row }) => (
+          <Link
+            to={`${row.original.id}/images`}
+            className="text-blue-500 hover:underline"
+          >
+            {t("usersTable.viewImagesButton", "View Images")}
+          </Link>
+        ),
       }),
     ],
     [t],
