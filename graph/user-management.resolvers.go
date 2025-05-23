@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ericls/imgdd/domainmodels"
 	"github.com/ericls/imgdd/graph/model"
 )
 
@@ -36,7 +37,7 @@ func (r *viewerResolver) AllUsers(ctx context.Context, obj *model.Viewer, limit 
 	}
 
 	// Get users from repository
-	domainUsers := r.IdentityRepo.GetAllUsers(*limit, *offset, search)
+	domainUsers, _ := r.IdentityRepo.GetAllUsers(*limit, *offset, search)
 	if domainUsers == nil {
 		return []*model.User{}, nil
 	}
@@ -48,4 +49,54 @@ func (r *viewerResolver) AllUsers(ctx context.Context, obj *model.Viewer, limit 
 	}
 
 	return users, nil
+}
+
+// PaginatedAllUsers is the resolver for the paginatedAllUsers field.
+func (r *viewerResolver) PaginatedAllUsers(ctx context.Context, obj *model.Viewer, limit *int, offset *int, search *string) (*model.PaginatedUsers, error) {
+	// Set default values for pagination
+	defaultLimit := 100
+	defaultOffset := 0
+
+	if limit == nil {
+		limit = &defaultLimit
+	}
+	if offset == nil {
+		offset = &defaultOffset
+	}
+
+	// Validate limit to prevent excessive queries
+	if *limit > 1000 {
+		return nil, fmt.Errorf("limit cannot exceed 1000")
+	}
+	if *limit < 0 {
+		return nil, fmt.Errorf("limit must be non-negative")
+	}
+	if *offset < 0 {
+		return nil, fmt.Errorf("offset must be non-negative")
+	}
+
+	// Get users from repository
+	domainUsers, totalCount := r.IdentityRepo.GetAllUsers(*limit, *offset, search)
+	if domainUsers == nil {
+		domainUsers = []*domainmodels.User{} // Return empty slice instead of nil
+	}
+
+	// Convert domain models to GraphQL models
+	users := make([]*model.User, len(domainUsers))
+	for i, domainUser := range domainUsers {
+		users[i] = model.FromIdentityUser(domainUser)
+	}
+
+	// Calculate pagination info
+	hasNextPage := (*offset + *limit) < totalCount
+	hasPreviousPage := *offset > 0
+
+	return &model.PaginatedUsers{
+		Nodes: users,
+		PageInfo: &model.PageInfo{
+			TotalCount:      totalCount,
+			HasNextPage:     hasNextPage,
+			HasPreviousPage: hasPreviousPage,
+		},
+	}, nil
 }

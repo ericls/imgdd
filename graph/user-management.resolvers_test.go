@@ -378,6 +378,266 @@ func tAllUsersEmptyResults(t *testing.T, tc *TestContext) {
 	require.Len(t, resp.Viewer.AllUsers, 0)
 }
 
+func tPaginatedAllUsersBasicFunctionality(t *testing.T, tc *TestContext) {
+	var resp struct {
+		Viewer *struct {
+			PaginatedAllUsers *model.PaginatedUsers
+		}
+	}
+
+	// Authenticate as site owner
+	orgUser := tc.forceAuthenticate(asSiteOwner)
+
+	// Create additional test users
+	testEmails := []string{
+		"alice@paginated.com",
+		"bob@paginated.com", 
+		"charlie@paginated.com",
+	}
+	
+	for _, email := range testEmails {
+		_, err := tc.identityRepo.CreateUser(email, "password123")
+		require.NoError(t, err)
+	}
+
+	// Test basic query
+	err := tc.client.Post(`
+	query {
+		viewer {
+			paginatedAllUsers {
+				nodes {
+					id
+					email
+					name
+				}
+				pageInfo {
+					totalCount
+					hasNextPage
+					hasPreviousPage
+				}
+			}
+		}
+	}`, &resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp.Viewer)
+	require.NotNil(t, resp.Viewer.PaginatedAllUsers)
+	require.NotNil(t, resp.Viewer.PaginatedAllUsers.Nodes)
+	require.NotNil(t, resp.Viewer.PaginatedAllUsers.PageInfo)
+	
+	// Should have at least 4 users (site owner + 3 test users)
+	require.GreaterOrEqual(t, len(resp.Viewer.PaginatedAllUsers.Nodes), 4)
+	require.GreaterOrEqual(t, resp.Viewer.PaginatedAllUsers.PageInfo.TotalCount, 4)
+	
+	// Verify the site owner is in the results
+	var foundSiteOwner bool
+	for _, user := range resp.Viewer.PaginatedAllUsers.Nodes {
+		require.NotEmpty(t, user.ID)
+		require.NotEmpty(t, user.Email)
+		require.NotEmpty(t, user.Name)
+		if user.Email == orgUser.User.Email {
+			foundSiteOwner = true
+		}
+	}
+	require.True(t, foundSiteOwner, "Site owner should be in the results")
+}
+
+func tPaginatedAllUsersPagination(t *testing.T, tc *TestContext) {
+	var resp struct {
+		Viewer *struct {
+			PaginatedAllUsers *model.PaginatedUsers
+		}
+	}
+
+	// Authenticate as site owner
+	tc.forceAuthenticate(asSiteOwner)
+
+	// Create multiple test users
+	for i := 0; i < 10; i++ {
+		email := uuid.NewString() + "@pagination.com"
+		_, err := tc.identityRepo.CreateUser(email, "password123")
+		require.NoError(t, err)
+	}
+
+	// Test first page
+	err := tc.client.Post(`
+	query {
+		viewer {
+			paginatedAllUsers(limit: 5, offset: 0) {
+				nodes {
+					id
+					email
+				}
+				pageInfo {
+					totalCount
+					hasNextPage
+					hasPreviousPage
+				}
+			}
+		}
+	}`, &resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp.Viewer)
+	require.NotNil(t, resp.Viewer.PaginatedAllUsers)
+	require.Len(t, resp.Viewer.PaginatedAllUsers.Nodes, 5)
+	require.True(t, resp.Viewer.PaginatedAllUsers.PageInfo.HasNextPage)
+	require.False(t, resp.Viewer.PaginatedAllUsers.PageInfo.HasPreviousPage)
+	totalCount := resp.Viewer.PaginatedAllUsers.PageInfo.TotalCount
+
+	// Test middle page
+	var resp2 struct {
+		Viewer *struct {
+			PaginatedAllUsers *model.PaginatedUsers
+		}
+	}
+	err = tc.client.Post(`
+	query {
+		viewer {
+			paginatedAllUsers(limit: 5, offset: 5) {
+				nodes {
+					id
+					email
+				}
+				pageInfo {
+					totalCount
+					hasNextPage
+					hasPreviousPage
+				}
+			}
+		}
+	}`, &resp2)
+	require.NoError(t, err)
+	require.NotNil(t, resp2.Viewer)
+	require.NotNil(t, resp2.Viewer.PaginatedAllUsers)
+	require.LessOrEqual(t, len(resp2.Viewer.PaginatedAllUsers.Nodes), 5)
+	require.True(t, resp2.Viewer.PaginatedAllUsers.PageInfo.HasPreviousPage)
+	require.Equal(t, totalCount, resp2.Viewer.PaginatedAllUsers.PageInfo.TotalCount)
+
+	// Verify no overlap between pages
+	firstPageEmails := make(map[string]bool)
+	for _, user := range resp.Viewer.PaginatedAllUsers.Nodes {
+		firstPageEmails[user.Email] = true
+	}
+	
+	for _, user := range resp2.Viewer.PaginatedAllUsers.Nodes {
+		require.False(t, firstPageEmails[user.Email], "User should not appear in both pages")
+	}
+
+	// Test last page behavior
+	var resp3 struct {
+		Viewer *struct {
+			PaginatedAllUsers *model.PaginatedUsers
+		}
+	}
+	lastPageOffset := (totalCount / 5) * 5
+	err = tc.client.Post(`
+	query ($offset: Int) {
+		viewer {
+			paginatedAllUsers(limit: 5, offset: $offset) {
+				nodes {
+					id
+					email
+				}
+				pageInfo {
+					totalCount
+					hasNextPage
+					hasPreviousPage
+				}
+			}
+		}
+	}`, &resp3, client.Var("offset", lastPageOffset))
+	require.NoError(t, err)
+	require.NotNil(t, resp3.Viewer)
+	require.NotNil(t, resp3.Viewer.PaginatedAllUsers)
+	require.False(t, resp3.Viewer.PaginatedAllUsers.PageInfo.HasNextPage)
+	require.True(t, resp3.Viewer.PaginatedAllUsers.PageInfo.HasPreviousPage)
+}
+
+func tPaginatedAllUsersSearch(t *testing.T, tc *TestContext) {
+	var resp struct {
+		Viewer *struct {
+			PaginatedAllUsers *model.PaginatedUsers
+		}
+	}
+
+	// Authenticate as site owner
+	tc.forceAuthenticate(asSiteOwner)
+
+	// Create test users with specific emails
+	testUsers := []string{
+		"john.doe@paginated.com",
+		"jane.smith@paginated.com",
+		"alice.jones@different.org",
+		"bob.wilson@another.net",
+	}
+	
+	for _, email := range testUsers {
+		_, err := tc.identityRepo.CreateUser(email, "password123")
+		require.NoError(t, err)
+	}
+
+	// Test search by domain
+	err := tc.client.Post(`
+	query {
+		viewer {
+			paginatedAllUsers(search: "paginated.com") {
+				nodes {
+					id
+					email
+					name
+				}
+				pageInfo {
+					totalCount
+					hasNextPage
+					hasPreviousPage
+				}
+			}
+		}
+	}`, &resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp.Viewer)
+	require.NotNil(t, resp.Viewer.PaginatedAllUsers)
+	require.Len(t, resp.Viewer.PaginatedAllUsers.Nodes, 2)
+	require.Equal(t, 2, resp.Viewer.PaginatedAllUsers.PageInfo.TotalCount)
+	require.False(t, resp.Viewer.PaginatedAllUsers.PageInfo.HasNextPage)
+	require.False(t, resp.Viewer.PaginatedAllUsers.PageInfo.HasPreviousPage)
+	
+	// Verify all results contain the search term
+	for _, user := range resp.Viewer.PaginatedAllUsers.Nodes {
+		require.Contains(t, user.Email, "paginated.com")
+	}
+
+	// Test empty search results
+	var resp2 struct {
+		Viewer *struct {
+			PaginatedAllUsers *model.PaginatedUsers
+		}
+	}
+	err = tc.client.Post(`
+	query {
+		viewer {
+			paginatedAllUsers(search: "nonexistent-domain-xyz.com") {
+				nodes {
+					id
+					email
+					name
+				}
+				pageInfo {
+					totalCount
+					hasNextPage
+					hasPreviousPage
+				}
+			}
+		}
+	}`, &resp2)
+	require.NoError(t, err)
+	require.NotNil(t, resp2.Viewer)
+	require.NotNil(t, resp2.Viewer.PaginatedAllUsers)
+	require.Len(t, resp2.Viewer.PaginatedAllUsers.Nodes, 0)
+	require.Equal(t, 0, resp2.Viewer.PaginatedAllUsers.PageInfo.TotalCount)
+	require.False(t, resp2.Viewer.PaginatedAllUsers.PageInfo.HasNextPage)
+	require.False(t, resp2.Viewer.PaginatedAllUsers.PageInfo.HasPreviousPage)
+}
+
 func TestUserManagementResolvers(t *testing.T) {
 	tc := newTestContext(t)
 	tc.runTestCases(
@@ -388,5 +648,9 @@ func TestUserManagementResolvers(t *testing.T) {
 		tAllUsersParameterValidation,
 		tAllUsersWithVariables,
 		tAllUsersEmptyResults,
+		// PaginatedAllUsers tests
+		tPaginatedAllUsersBasicFunctionality,
+		tPaginatedAllUsersPagination,
+		tPaginatedAllUsersSearch,
 	)
 }

@@ -114,7 +114,25 @@
         "list": {
           "title": "Manage images"
         }
+      },
+      "users": {
+        "list": {
+          "title": "Manage users"
+        }
       }
+    },
+    "usersList": {
+      "title": "Users",
+      "searchPlaceholder": "Search by email...",
+      "showingResults": "Showing {{from}} to {{to}} of {{total}} results",
+      "previous": "Previous",
+      "next": "Next",
+      "pageInfo": "Page {{current}} of {{total}}"
+    },
+    "usersTable": {
+      "name": "Name",
+      "email": "Email",
+      "noUsers": "No users found"
     },
     "imageItem": {
       "copyURL": "Copy URL",

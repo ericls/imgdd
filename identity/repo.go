@@ -403,25 +403,46 @@ func (repo *DBIdentityRepo) GetOrganizationForUser(userId string, maybeOrganizat
 	return convertOrganization(&dest.OrganizationTable), repo.GetOrganizationUserById(dest.OrganizationUser.ID.String())
 }
 
-func (repo *DBIdentityRepo) GetAllUsers(limit int, offset int, search *string) []*dm.User {
+func (repo *DBIdentityRepo) GetAllUsers(limit int, offset int, search *string) ([]*dm.User, int) {
 	dest := []userSelectResult{}
 
-	stmt := newUserSelect().LIMIT(int64(limit)).OFFSET(int64(offset))
+	// Create base query
+	baseQuery := newUserSelect()
 
+	// Add search condition if provided
+	var searchCondition BoolExpression
 	if search != nil && *search != "" {
 		searchTerm := UPPER(String("%" + *search + "%"))
-		stmt = stmt.WHERE(UPPER(UserTable.Email).LIKE(searchTerm))
+		searchCondition = UPPER(UserTable.Email).LIKE(searchTerm)
+		baseQuery = baseQuery.WHERE(searchCondition)
 	}
 
-	err := stmt.Query(repo.DB, &dest)
+	// Clone the base query for count
+	countQuery := SELECT(COUNT(UserTable.ID)).FROM(UserTable)
+	if searchCondition != nil {
+		countQuery = countQuery.WHERE(searchCondition)
+	}
+
+	// Get the total count
+	var totalCount struct {
+		Count int
+	}
+	err := countQuery.Query(repo.DB, &totalCount)
 	if err != nil {
-		return nil
+		return nil, 0
 	}
 
+	// Execute the main query with pagination
+	err = baseQuery.LIMIT(int64(limit)).OFFSET(int64(offset)).Query(repo.DB, &dest)
+	if err != nil {
+		return nil, 0
+	}
+
+	// Convert results to domain models
 	users := make([]*dm.User, len(dest))
 	for i, d := range dest {
 		users[i] = convertUser(&d)
 	}
 
-	return users
+	return users, totalCount.Count
 }

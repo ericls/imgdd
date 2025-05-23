@@ -62,21 +62,37 @@ func TestGetAllUsers(t *testing.T) {
 	}
 
 	// Test fetching all users without filters
-	allUsers := identityRepo.GetAllUsers(10, 0, nil)
+	allUsers, totalCount := identityRepo.GetAllUsers(10, 0, nil)
 	if len(allUsers) != len(emails) {
 		t.Errorf("Expected %d users, got %d", len(emails), len(allUsers))
+	}
+	if totalCount != len(emails) {
+		t.Errorf("Expected total count %d, got %d", len(emails), totalCount)
 	}
 
 	// Test fetching users with a search filter
 	searchTerm := "test"
-	filteredUsers := identityRepo.GetAllUsers(10, 0, &searchTerm)
+	filteredUsers, filteredCount := identityRepo.GetAllUsers(10, 0, &searchTerm)
 	if len(filteredUsers) != 2 {
 		t.Errorf("Expected 2 users matching '%s', got %d", searchTerm, len(filteredUsers))
 	}
+	if filteredCount != 2 {
+		t.Errorf("Expected filtered count 2, got %d", filteredCount)
+	}
 
 	// Test pagination
-	paginatedUsers := identityRepo.GetAllUsers(2, 0, nil)
+	paginatedUsers, _ := identityRepo.GetAllUsers(2, 0, nil)
 	if len(paginatedUsers) != 2 {
 		t.Errorf("Expected 2 users in paginated result, got %d", len(paginatedUsers))
+	}
+	
+	// Test pagination offset
+	paginatedUsersPage2, _ := identityRepo.GetAllUsers(2, 2, nil)
+	if len(paginatedUsersPage2) != 2 {
+		t.Errorf("Expected 2 users in second page, got %d", len(paginatedUsersPage2))
+	}
+	// Ensure we got different results on different pages
+	if paginatedUsers[0].Id == paginatedUsersPage2[0].Id {
+		t.Errorf("Expected different users on different pages")
 	}
 }

@@ -24,6 +24,7 @@ const documents = {
     "\nmutation StorageDefTableConnectivityCellMutation(\n    $input: checkStorageDefinitionConnectivityInput!\n  ) {\n    checkStorageDefinitionConnectivity(input: $input) {\n      ok\n      error\n    }\n  }\n": types.StorageDefTableConnectivityCellMutationDocument,
     "\n  query ListStorageDef {\n    viewer {\n      id\n      storageDefinitions {\n        ...StorageDefinitionFragment\n      }\n    }\n  }\n": types.ListStorageDefDocument,
     "\n  query GetStorageDef($id: ID!) {\n    viewer {\n      id\n      getStorageDefinition(id: $id) {\n        ...StorageDefinitionFragment\n      }\n    }\n  }\n": types.GetStorageDefDocument,
+    "\n  query ListUsers($limit: Int, $offset: Int, $search: String) {\n    viewer {\n      id\n      paginatedAllUsers(limit: $limit, offset: $offset, search: $search) {\n        nodes {\n          id\n          email\n        }\n        pageInfo {\n          totalCount\n          hasNextPage\n          hasPreviousPage\n        }\n      }\n    }\n  }\n": types.ListUsersDocument,
     "\n  fragment StorageDefinitionFragment on StorageDefinition {\n    id\n    identifier\n    __typename\n    isEnabled\n    priority\n    config {\n      ... on S3StorageConfig {\n        bucket\n        endpoint\n        access\n        secret\n      }\n      ... on FSStorageConfig {\n        mediaRoot\n      }\n      ... on WebDAVStorageConfig {\n        url\n        username\n        password\n        pathPrefix\n      }\n    }\n  }\n": types.StorageDefinitionFragmentFragmentDoc,
     "\n  mutation CreateStorageDef($input: createStorageDefinitionInput!) {\n    createStorageDefinition(input: $input) {\n      ...StorageDefinitionFragment\n    }\n  }\n": types.CreateStorageDefDocument,
     "\n  mutation UpdateStorageDef($input: updateStorageDefinitionInput!) {\n    updateStorageDefinition(input: $input) {\n      ...StorageDefinitionFragment\n    }\n  }\n": types.UpdateStorageDefDocument,
@@ -87,6 +88,10 @@ export function gql(source: "\n  query ListStorageDef {\n    viewer {\n      id\
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\n  query GetStorageDef($id: ID!) {\n    viewer {\n      id\n      getStorageDefinition(id: $id) {\n        ...StorageDefinitionFragment\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetStorageDef($id: ID!) {\n    viewer {\n      id\n      getStorageDefinition(id: $id) {\n        ...StorageDefinitionFragment\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query ListUsers($limit: Int, $offset: Int, $search: String) {\n    viewer {\n      id\n      paginatedAllUsers(limit: $limit, offset: $offset, search: $search) {\n        nodes {\n          id\n          email\n        }\n        pageInfo {\n          totalCount\n          hasNextPage\n          hasPreviousPage\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query ListUsers($limit: Int, $offset: Int, $search: String) {\n    viewer {\n      id\n      paginatedAllUsers(limit: $limit, offset: $offset, search: $search) {\n        nodes {\n          id\n          email\n        }\n        pageInfo {\n          totalCount\n          hasNextPage\n          hasPreviousPage\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

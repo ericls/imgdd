@@ -1,6 +1,20 @@
 # Schema for site-wide user management
 
+type PageInfo {
+  totalCount: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+}
+
+type PaginatedUsers {
+  nodes: [User!]!
+  pageInfo: PageInfo!
+}
+
 extend type Viewer {
-  # List all users in the system, with optional pagination and search functionality
+  # List all users in the system, with optional pagination and search functionality (deprecated, use paginatedAllUsers)
   allUsers(limit: Int, offset: Int, search: String): [User!]! @isSiteOwner
+
+  # List all users in the system with pagination information
+  paginatedAllUsers(limit: Int, offset: Int, search: String): PaginatedUsers! @isSiteOwner
 }
