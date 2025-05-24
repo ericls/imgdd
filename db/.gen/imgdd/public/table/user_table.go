@@ -26,6 +26,7 @@ type userTableTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type UserTableTable struct {
@@ -71,6 +72,7 @@ func newUserTableTableImpl(schemaName, tableName, alias string) userTableTable {
 		UpdatedAtColumn  = postgres.TimestampzColumn("updated_at")
 		allColumns       = postgres.ColumnList{IDColumn, PasswordColumn, EmailColumn, ExtraAttrsColumn, CreatedAtColumn, UpdatedAtColumn}
 		mutableColumns   = postgres.ColumnList{PasswordColumn, EmailColumn, ExtraAttrsColumn, CreatedAtColumn, UpdatedAtColumn}
+		defaultColumns   = postgres.ColumnList{IDColumn, ExtraAttrsColumn, CreatedAtColumn, UpdatedAtColumn}
 	)
 
 	return userTableTable{
@@ -86,5 +88,6 @@ func newUserTableTableImpl(schemaName, tableName, alias string) userTableTable {
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

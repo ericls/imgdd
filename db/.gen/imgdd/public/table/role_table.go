@@ -27,6 +27,7 @@ type roleTableTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type RoleTableTable struct {
@@ -73,6 +74,7 @@ func newRoleTableTableImpl(schemaName, tableName, alias string) roleTableTable {
 		UpdatedAtColumn      = postgres.TimestampzColumn("updated_at")
 		allColumns           = postgres.ColumnList{IDColumn, KeyColumn, OrganizationIDColumn, DisplayNameColumn, ExtraAttrsColumn, CreatedAtColumn, UpdatedAtColumn}
 		mutableColumns       = postgres.ColumnList{KeyColumn, OrganizationIDColumn, DisplayNameColumn, ExtraAttrsColumn, CreatedAtColumn, UpdatedAtColumn}
+		defaultColumns       = postgres.ColumnList{IDColumn, ExtraAttrsColumn, CreatedAtColumn, UpdatedAtColumn}
 	)
 
 	return roleTableTable{
@@ -89,5 +91,6 @@ func newRoleTableTableImpl(schemaName, tableName, alias string) roleTableTable {
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

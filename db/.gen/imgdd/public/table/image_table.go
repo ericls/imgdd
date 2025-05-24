@@ -35,6 +35,7 @@ type imageTableTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type ImageTableTable struct {
@@ -89,6 +90,7 @@ func newImageTableTableImpl(schemaName, tableName, alias string) imageTableTable
 		DeletedAtColumn       = postgres.TimestampzColumn("deleted_at")
 		allColumns            = postgres.ColumnList{IDColumn, CreatedByIDColumn, NameColumn, IdentifierColumn, RootIDColumn, ParentIDColumn, ChangesColumn, UploaderIPColumn, MimeTypeColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn}
 		mutableColumns        = postgres.ColumnList{CreatedByIDColumn, NameColumn, IdentifierColumn, RootIDColumn, ParentIDColumn, ChangesColumn, UploaderIPColumn, MimeTypeColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn}
+		defaultColumns        = postgres.ColumnList{IDColumn, ChangesColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn}
 	)
 
 	return imageTableTable{
@@ -113,5 +115,6 @@ func newImageTableTableImpl(schemaName, tableName, alias string) imageTableTable
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

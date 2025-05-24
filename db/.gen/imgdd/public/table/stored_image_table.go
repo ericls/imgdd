@@ -28,6 +28,7 @@ type storedImageTableTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type StoredImageTableTable struct {
@@ -75,6 +76,7 @@ func newStoredImageTableTableImpl(schemaName, tableName, alias string) storedIma
 		IsFileDeletedColumn       = postgres.BoolColumn("is_file_deleted")
 		allColumns                = postgres.ColumnList{IDColumn, ImageIDColumn, StorageDefinitionIDColumn, FileIdentifierColumn, CopiedFromIDColumn, CreatedAtColumn, UpdatedAtColumn, IsFileDeletedColumn}
 		mutableColumns            = postgres.ColumnList{ImageIDColumn, StorageDefinitionIDColumn, FileIdentifierColumn, CopiedFromIDColumn, CreatedAtColumn, UpdatedAtColumn, IsFileDeletedColumn}
+		defaultColumns            = postgres.ColumnList{IDColumn, CreatedAtColumn, UpdatedAtColumn, IsFileDeletedColumn}
 	)
 
 	return storedImageTableTable{
@@ -92,5 +94,6 @@ func newStoredImageTableTableImpl(schemaName, tableName, alias string) storedIma
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

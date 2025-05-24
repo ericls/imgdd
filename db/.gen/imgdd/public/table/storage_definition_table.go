@@ -28,6 +28,7 @@ type storageDefinitionTableTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type StorageDefinitionTableTable struct {
@@ -75,6 +76,7 @@ func newStorageDefinitionTableTableImpl(schemaName, tableName, alias string) sto
 		PriorityColumn    = postgres.IntegerColumn("priority")
 		allColumns        = postgres.ColumnList{IDColumn, StorageTypeColumn, IdentifierColumn, ConfigColumn, CreatedAtColumn, UpdatedAtColumn, IsEnabledColumn, PriorityColumn}
 		mutableColumns    = postgres.ColumnList{StorageTypeColumn, IdentifierColumn, ConfigColumn, CreatedAtColumn, UpdatedAtColumn, IsEnabledColumn, PriorityColumn}
+		defaultColumns    = postgres.ColumnList{IDColumn, ConfigColumn, CreatedAtColumn, UpdatedAtColumn, IsEnabledColumn, PriorityColumn}
 	)
 
 	return storageDefinitionTableTable{
@@ -92,5 +94,6 @@ func newStorageDefinitionTableTableImpl(schemaName, tableName, alias string) sto
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }

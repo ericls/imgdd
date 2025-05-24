@@ -26,6 +26,7 @@ type organizationTableTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type OrganizationTableTable struct {
@@ -71,6 +72,7 @@ func newOrganizationTableTableImpl(schemaName, tableName, alias string) organiza
 		UpdatedAtColumn   = postgres.TimestampzColumn("updated_at")
 		allColumns        = postgres.ColumnList{IDColumn, SlugColumn, DisplayNameColumn, ExtraAttrsColumn, CreatedAtColumn, UpdatedAtColumn}
 		mutableColumns    = postgres.ColumnList{SlugColumn, DisplayNameColumn, ExtraAttrsColumn, CreatedAtColumn, UpdatedAtColumn}
+		defaultColumns    = postgres.ColumnList{IDColumn, ExtraAttrsColumn, CreatedAtColumn, UpdatedAtColumn}
 	)
 
 	return organizationTableTable{
@@ -86,5 +88,6 @@ func newOrganizationTableTableImpl(schemaName, tableName, alias string) organiza
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }
