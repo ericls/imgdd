@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 type User = ListUsersQuery["viewer"]["paginatedAllUsers"]["nodes"][number];
+type OrganizationUser = User["organizationUsers"][number];
 
 const columnHelper = createColumnHelper<User>();
 
@@ -28,15 +29,43 @@ export function UsersTable({ data }: { data: User[] }) {
         cell: (info) => info.getValue(),
       }),
       columnHelper.display({
-        id: "viewImages",
-        header: t("usersTable.viewImages", "View Images"),
+        id: "organizationUsers",
+        header: t("usersTable.organizationUsers", "Organization Users"),
         cell: ({ row }) => (
-          <Link
-            to={`${row.original.id}/images`}
-            className="text-blue-500 hover:underline"
-          >
-            {t("usersTable.viewImagesButton", "View Images")}
-          </Link>
+          <div className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr>
+                  <th className="text-left px-2 py-1">
+                    {t("organizationUsers.name", "Organization Name")}
+                  </th>
+                  <th className="text-left px-2 py-1">
+                    {t("organizationUsers.actions", "Actions")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {row.original.organizationUsers.map(
+                  (orgUser: OrganizationUser) => (
+                    <tr
+                      key={orgUser.id}
+                      className="border-t border-neutral-200 dark:border-neutral-700"
+                    >
+                      <td className="px-2 py-1">{orgUser.organization.name}</td>
+                      <td className="px-2 py-1">
+                        <Link
+                          to={`${orgUser.id}/images`}
+                          className="text-blue-500 hover:underline text-sm"
+                        >
+                          {t("usersTable.viewImagesButton", "View Images")}
+                        </Link>
+                      </td>
+                    </tr>
+                  ),
+                )}
+              </tbody>
+            </table>
+          </div>
         ),
       }),
     ],
@@ -47,6 +76,7 @@ export function UsersTable({ data }: { data: User[] }) {
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
+
   return (
     <div className="relative overflow-x-auto">
       <table className="w-full text-sm text-left rounded-md overflow-hidden">

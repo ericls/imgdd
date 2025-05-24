@@ -19,6 +19,10 @@ const listUsersQuery = gql(`
           email
           organizationUsers {
             id
+            organization {
+              id
+              name
+            }
           }
         }
         pageInfo {
