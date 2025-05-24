@@ -23,10 +23,7 @@ type PageInfo struct {
 	HasPreviousPage bool `json:"hasPreviousPage"`
 }
 
-type PaginatedUsers struct {
-	Nodes    []*User   `json:"nodes"`
-	PageInfo *PageInfo `json:"pageInfo"`
-}
+
 
 type Query struct {
 }

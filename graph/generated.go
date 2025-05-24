@@ -186,6 +186,12 @@ type ComplexityRoot struct {
 		Name  func(childComplexity int) int
 	}
 
+	UserWithOrganizationUsers struct {
+		Email             func(childComplexity int) int
+		ID                func(childComplexity int) int
+		OrganizationUsers func(childComplexity int) int
+	}
+
 	Viewer struct {
 		AllUsers             func(childComplexity int, limit *int, offset *int, search *string) int
 		GetStorageDefinition func(childComplexity int, id string) int
@@ -786,6 +792,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Name(childComplexity), true
+
+	case "UserWithOrganizationUsers.email":
+		if e.complexity.UserWithOrganizationUsers.Email == nil {
+			break
+		}
+
+		return e.complexity.UserWithOrganizationUsers.Email(childComplexity), true
+
+	case "UserWithOrganizationUsers.id":
+		if e.complexity.UserWithOrganizationUsers.ID == nil {
+			break
+		}
+
+		return e.complexity.UserWithOrganizationUsers.ID(childComplexity), true
+
+	case "UserWithOrganizationUsers.organizationUsers":
+		if e.complexity.UserWithOrganizationUsers.OrganizationUsers == nil {
+			break
+		}
+
+		return e.complexity.UserWithOrganizationUsers.OrganizationUsers(childComplexity), true
 
 	case "Viewer.allUsers":
 		if e.complexity.Viewer.AllUsers == nil {
@@ -4142,9 +4169,9 @@ func (ec *executionContext) _PaginatedUsers_nodes(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.User)
+	res := resTmp.([]*model.UserWithOrganizationUsers)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNUserWithOrganizationUsers2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐUserWithOrganizationUsersᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_PaginatedUsers_nodes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4156,13 +4183,13 @@ func (ec *executionContext) fieldContext_PaginatedUsers_nodes(_ context.Context,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
+				return ec.fieldContext_UserWithOrganizationUsers_id(ctx, field)
 			case "email":
-				return ec.fieldContext_User_email(ctx, field)
+				return ec.fieldContext_UserWithOrganizationUsers_email(ctx, field)
+			case "organizationUsers":
+				return ec.fieldContext_UserWithOrganizationUsers_organizationUsers(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type UserWithOrganizationUsers", field.Name)
 		},
 	}
 	return fc, nil
@@ -5387,6 +5414,148 @@ func (ec *executionContext) fieldContext_User_email(_ context.Context, field gra
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithOrganizationUsers_id(ctx context.Context, field graphql.CollectedField, obj *model.UserWithOrganizationUsers) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithOrganizationUsers_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithOrganizationUsers_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithOrganizationUsers",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithOrganizationUsers_email(ctx context.Context, field graphql.CollectedField, obj *model.UserWithOrganizationUsers) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithOrganizationUsers_email(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithOrganizationUsers_email(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithOrganizationUsers",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithOrganizationUsers_organizationUsers(ctx context.Context, field graphql.CollectedField, obj *model.UserWithOrganizationUsers) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithOrganizationUsers_organizationUsers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrganizationUsers, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.OrganizationUser)
+	fc.Result = res
+	return ec.marshalNOrganizationUser2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐOrganizationUserᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithOrganizationUsers_organizationUsers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithOrganizationUsers",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_OrganizationUser_id(ctx, field)
+			case "organization":
+				return ec.fieldContext_OrganizationUser_organization(ctx, field)
+			case "user":
+				return ec.fieldContext_OrganizationUser_user(ctx, field)
+			case "roles":
+				return ec.fieldContext_OrganizationUser_roles(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OrganizationUser", field.Name)
 		},
 	}
 	return fc, nil
@@ -9761,6 +9930,55 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
+var userWithOrganizationUsersImplementors = []string{"UserWithOrganizationUsers"}
+
+func (ec *executionContext) _UserWithOrganizationUsers(ctx context.Context, sel ast.SelectionSet, obj *model.UserWithOrganizationUsers) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userWithOrganizationUsersImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserWithOrganizationUsers")
+		case "id":
+			out.Values[i] = ec._UserWithOrganizationUsers_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "email":
+			out.Values[i] = ec._UserWithOrganizationUsers_email(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "organizationUsers":
+			out.Values[i] = ec._UserWithOrganizationUsers_organizationUsers(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var viewerImplementors = []string{"Viewer"}
 
 func (ec *executionContext) _Viewer(ctx context.Context, sel ast.SelectionSet, obj *model.Viewer) graphql.Marshaler {
@@ -10716,6 +10934,60 @@ func (ec *executionContext) marshalNOrganization2ᚖgithubᚗcomᚋericlsᚋimgd
 	return ec._Organization(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNOrganizationUser2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐOrganizationUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.OrganizationUser) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNOrganizationUser2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐOrganizationUser(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNOrganizationUser2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐOrganizationUser(ctx context.Context, sel ast.SelectionSet, v *model.OrganizationUser) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._OrganizationUser(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.PageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -11090,6 +11362,60 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋericlsᚋimgddᚋgrap
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUserWithOrganizationUsers2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐUserWithOrganizationUsersᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.UserWithOrganizationUsers) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUserWithOrganizationUsers2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐUserWithOrganizationUsers(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNUserWithOrganizationUsers2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐUserWithOrganizationUsers(ctx context.Context, sel ast.SelectionSet, v *model.UserWithOrganizationUsers) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._UserWithOrganizationUsers(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNViewer2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐViewer(ctx context.Context, sel ast.SelectionSet, v model.Viewer) graphql.Marshaler {

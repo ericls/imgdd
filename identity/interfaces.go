@@ -21,6 +21,8 @@ type IdentityRepo interface {
 	// If the user is a member of multiple organizations, the implementation should return nil.
 	GetOrganizationForUser(userId string, maybeOrganizationId string) (*dm.Organization, *dm.OrganizationUser)
 
+	GetOrganizationUsersForUsers(userIds []string) (map[string]*dm.UserWithOrganizationUsers, error)
+
 	GetOrganizationUsersByIds(ids []string) []*dm.OrganizationUser
 	GetOrganizationUserById(id string) *dm.OrganizationUser
 

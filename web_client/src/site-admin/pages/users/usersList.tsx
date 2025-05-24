@@ -17,6 +17,9 @@ const listUsersQuery = gql(`
         nodes {
           id
           email
+          organizationUsers {
+            id
+          }
         }
         pageInfo {
           totalCount

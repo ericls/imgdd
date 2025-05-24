@@ -81,10 +81,31 @@ func (r *viewerResolver) PaginatedAllUsers(ctx context.Context, obj *model.Viewe
 		domainUsers = []*domainmodels.User{} // Return empty slice instead of nil
 	}
 
-	// Convert domain models to GraphQL models
-	users := make([]*model.User, len(domainUsers))
+	userIds := make([]string, len(domainUsers))
 	for i, domainUser := range domainUsers {
-		users[i] = model.FromIdentityUser(domainUser)
+		userIds[i] = domainUser.Id
+	}
+
+	// Get UserWithOrganizationUser from repository
+	orgUserTupleByUserId, err := r.IdentityRepo.GetOrganizationUsersForUsers(userIds)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get organization users: %w", err)
+	}
+	gqlNodes := make([]*model.UserWithOrganizationUsers, len(domainUsers))
+	for i, domainUser := range domainUsers {
+		orgUserTuple, ok := orgUserTupleByUserId[domainUser.Id]
+		if !ok {
+			continue
+		}
+		orgUsersNodes := make([]*model.OrganizationUser, len(orgUserTuple.OrganizationUsers))
+		for j, orgUser := range orgUserTuple.OrganizationUsers {
+			orgUsersNodes[j] = model.FromIdentityOrganizationUser(orgUser)
+		}
+		gqlNodes[i] = &model.UserWithOrganizationUsers{
+			Email:             domainUser.Email,
+			ID:                domainUser.Id,
+			OrganizationUsers: orgUsersNodes,
+		}
 	}
 
 	// Calculate pagination info
@@ -92,7 +113,7 @@ func (r *viewerResolver) PaginatedAllUsers(ctx context.Context, obj *model.Viewe
 	hasPreviousPage := *offset > 0
 
 	return &model.PaginatedUsers{
-		Nodes: users,
+		Nodes: gqlNodes,
 		PageInfo: &model.PageInfo{
 			TotalCount:      totalCount,
 			HasNextPage:     hasNextPage,

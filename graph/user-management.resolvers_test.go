@@ -1,6 +1,7 @@
 package graph_test
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
@@ -24,7 +25,6 @@ func tAllUsersUnauthorizedAccess(t *testing.T, tc *TestContext) {
 			allUsers {
 				id
 				email
-				name
 			}
 		}
 	}`, &resp)
@@ -39,7 +39,6 @@ func tAllUsersUnauthorizedAccess(t *testing.T, tc *TestContext) {
 			allUsers {
 				id
 				email
-				name
 			}
 		}
 	}`, &resp)
@@ -59,12 +58,12 @@ func tAllUsersBasicFunctionality(t *testing.T, tc *TestContext) {
 	// Create additional test users
 	testEmails := []string{
 		"alice@example.com",
-		"bob@example.com", 
+		"bob@example.com",
 		"charlie@example.com",
 	}
-	
+
 	for _, email := range testEmails {
-		_, err := tc.identityRepo.CreateUser(email, "password123")
+		_, err := tc.identityRepo.CreateUserWithOrganization(email, email, "password123")
 		require.NoError(t, err)
 	}
 
@@ -75,23 +74,21 @@ func tAllUsersBasicFunctionality(t *testing.T, tc *TestContext) {
 			allUsers {
 				id
 				email
-				name
 			}
 		}
 	}`, &resp)
 	require.NoError(t, err)
 	require.NotNil(t, resp.Viewer)
 	require.NotNil(t, resp.Viewer.AllUsers)
-	
+
 	// Should have at least 4 users (site owner + 3 test users)
 	require.GreaterOrEqual(t, len(resp.Viewer.AllUsers), 4)
-	
+
 	// Verify the site owner is in the results
 	var foundSiteOwner bool
 	for _, user := range resp.Viewer.AllUsers {
 		require.NotEmpty(t, user.ID)
 		require.NotEmpty(t, user.Email)
-		require.NotEmpty(t, user.Name)
 		if user.Email == orgUser.User.Email {
 			foundSiteOwner = true
 		}
@@ -112,7 +109,7 @@ func tAllUsersPagination(t *testing.T, tc *TestContext) {
 	// Create multiple test users
 	for i := 0; i < 10; i++ {
 		email := uuid.NewString() + "@example.com"
-		_, err := tc.identityRepo.CreateUser(email, "password123")
+		_, err := tc.identityRepo.CreateUserWithOrganization(email, email, "password123")
 		require.NoError(t, err)
 	}
 
@@ -154,7 +151,7 @@ func tAllUsersPagination(t *testing.T, tc *TestContext) {
 	for _, user := range resp.Viewer.AllUsers {
 		firstPageEmails[user.Email] = true
 	}
-	
+
 	for _, user := range resp2.Viewer.AllUsers {
 		require.False(t, firstPageEmails[user.Email], "User should not appear in both pages")
 	}
@@ -177,9 +174,9 @@ func tAllUsersSearch(t *testing.T, tc *TestContext) {
 		"alice.jones@different.org",
 		"bob.wilson@another.net",
 	}
-	
+
 	for _, email := range testUsers {
-		_, err := tc.identityRepo.CreateUser(email, "password123")
+		_, err := tc.identityRepo.CreateUserWithOrganization(email, email, "password123")
 		require.NoError(t, err)
 	}
 
@@ -190,20 +187,19 @@ func tAllUsersSearch(t *testing.T, tc *TestContext) {
 			allUsers(search: "company.com") {
 				id
 				email
-				name
 			}
 		}
 	}`, &resp)
 	require.NoError(t, err)
 	require.NotNil(t, resp.Viewer)
 	require.Len(t, resp.Viewer.AllUsers, 2)
-	
+
 	// Verify all results contain the search term
 	for _, user := range resp.Viewer.AllUsers {
 		require.Contains(t, user.Email, "company.com")
 	}
 
-	// Test search by name prefix
+	// Test search by email prefix
 	var resp2 struct {
 		Viewer *struct {
 			AllUsers []*model.User
@@ -215,7 +211,6 @@ func tAllUsersSearch(t *testing.T, tc *TestContext) {
 			allUsers(search: "john") {
 				id
 				email
-				name
 			}
 		}
 	}`, &resp2)
@@ -236,7 +231,6 @@ func tAllUsersSearch(t *testing.T, tc *TestContext) {
 			allUsers(search: "ALICE") {
 				id
 				email
-				name
 			}
 		}
 	}`, &resp3)
@@ -318,7 +312,7 @@ func tAllUsersWithVariables(t *testing.T, tc *TestContext) {
 	// Create test users
 	for i := 0; i < 3; i++ {
 		email := uuid.NewString() + "@test.com"
-		_, err := tc.identityRepo.CreateUser(email, "password123")
+		_, err := tc.identityRepo.CreateUserWithOrganization(email, email, "password123")
 		require.NoError(t, err)
 	}
 
@@ -326,17 +320,16 @@ func tAllUsersWithVariables(t *testing.T, tc *TestContext) {
 	limit := 2
 	offset := 0
 	search := "test.com"
-	
+
 	err := tc.client.Post(`
 	query GetUsers($limit: Int, $offset: Int, $search: String) {
 		viewer {
 			allUsers(limit: $limit, offset: $offset, search: $search) {
 				id
 				email
-				name
 			}
 		}
-	}`, &resp, 
+	}`, &resp,
 		client.Var("limit", limit),
 		client.Var("offset", offset),
 		client.Var("search", search),
@@ -344,7 +337,7 @@ func tAllUsersWithVariables(t *testing.T, tc *TestContext) {
 	require.NoError(t, err)
 	require.NotNil(t, resp.Viewer)
 	require.LessOrEqual(t, len(resp.Viewer.AllUsers), 2)
-	
+
 	// Verify all results contain the search term
 	for _, user := range resp.Viewer.AllUsers {
 		require.Contains(t, user.Email, "test.com")
@@ -368,7 +361,6 @@ func tAllUsersEmptyResults(t *testing.T, tc *TestContext) {
 			allUsers(search: "nonexistent-domain-12345.com") {
 				id
 				email
-				name
 			}
 		}
 	}`, &resp)
@@ -391,12 +383,12 @@ func tPaginatedAllUsersBasicFunctionality(t *testing.T, tc *TestContext) {
 	// Create additional test users
 	testEmails := []string{
 		"alice@paginated.com",
-		"bob@paginated.com", 
+		"bob@paginated.com",
 		"charlie@paginated.com",
 	}
-	
+
 	for _, email := range testEmails {
-		_, err := tc.identityRepo.CreateUser(email, "password123")
+		_, err := tc.identityRepo.CreateUserWithOrganization(email, email, "password123")
 		require.NoError(t, err)
 	}
 
@@ -408,7 +400,6 @@ func tPaginatedAllUsersBasicFunctionality(t *testing.T, tc *TestContext) {
 				nodes {
 					id
 					email
-					name
 				}
 				pageInfo {
 					totalCount
@@ -423,17 +414,16 @@ func tPaginatedAllUsersBasicFunctionality(t *testing.T, tc *TestContext) {
 	require.NotNil(t, resp.Viewer.PaginatedAllUsers)
 	require.NotNil(t, resp.Viewer.PaginatedAllUsers.Nodes)
 	require.NotNil(t, resp.Viewer.PaginatedAllUsers.PageInfo)
-	
+
 	// Should have at least 4 users (site owner + 3 test users)
 	require.GreaterOrEqual(t, len(resp.Viewer.PaginatedAllUsers.Nodes), 4)
 	require.GreaterOrEqual(t, resp.Viewer.PaginatedAllUsers.PageInfo.TotalCount, 4)
-	
+
 	// Verify the site owner is in the results
 	var foundSiteOwner bool
 	for _, user := range resp.Viewer.PaginatedAllUsers.Nodes {
 		require.NotEmpty(t, user.ID)
 		require.NotEmpty(t, user.Email)
-		require.NotEmpty(t, user.Name)
 		if user.Email == orgUser.User.Email {
 			foundSiteOwner = true
 		}
@@ -451,10 +441,9 @@ func tPaginatedAllUsersPagination(t *testing.T, tc *TestContext) {
 	// Authenticate as site owner
 	tc.forceAuthenticate(asSiteOwner)
 
-	// Create multiple test users
 	for i := 0; i < 10; i++ {
 		email := uuid.NewString() + "@pagination.com"
-		_, err := tc.identityRepo.CreateUser(email, "password123")
+		_, err := tc.identityRepo.CreateUserWithOrganization(email, "test"+strconv.Itoa(i), "password123")
 		require.NoError(t, err)
 	}
 
@@ -517,7 +506,7 @@ func tPaginatedAllUsersPagination(t *testing.T, tc *TestContext) {
 	for _, user := range resp.Viewer.PaginatedAllUsers.Nodes {
 		firstPageEmails[user.Email] = true
 	}
-	
+
 	for _, user := range resp2.Viewer.PaginatedAllUsers.Nodes {
 		require.False(t, firstPageEmails[user.Email], "User should not appear in both pages")
 	}
@@ -569,9 +558,9 @@ func tPaginatedAllUsersSearch(t *testing.T, tc *TestContext) {
 		"alice.jones@different.org",
 		"bob.wilson@another.net",
 	}
-	
+
 	for _, email := range testUsers {
-		_, err := tc.identityRepo.CreateUser(email, "password123")
+		_, err := tc.identityRepo.CreateUserWithOrganization(email, email, "password123")
 		require.NoError(t, err)
 	}
 
@@ -583,7 +572,6 @@ func tPaginatedAllUsersSearch(t *testing.T, tc *TestContext) {
 				nodes {
 					id
 					email
-					name
 				}
 				pageInfo {
 					totalCount
@@ -600,7 +588,7 @@ func tPaginatedAllUsersSearch(t *testing.T, tc *TestContext) {
 	require.Equal(t, 2, resp.Viewer.PaginatedAllUsers.PageInfo.TotalCount)
 	require.False(t, resp.Viewer.PaginatedAllUsers.PageInfo.HasNextPage)
 	require.False(t, resp.Viewer.PaginatedAllUsers.PageInfo.HasPreviousPage)
-	
+
 	// Verify all results contain the search term
 	for _, user := range resp.Viewer.PaginatedAllUsers.Nodes {
 		require.Contains(t, user.Email, "paginated.com")
@@ -619,7 +607,6 @@ func tPaginatedAllUsersSearch(t *testing.T, tc *TestContext) {
 				nodes {
 					id
 					email
-					name
 				}
 				pageInfo {
 					totalCount

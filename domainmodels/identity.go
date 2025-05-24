@@ -59,6 +59,6 @@ type Organization struct {
 }
 
 type UserWithOrganizationUsers struct {
-	User
+	User              *User
 	OrganizationUsers []*OrganizationUser
 }

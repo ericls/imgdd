@@ -7,8 +7,15 @@ type PageInfo {
 }
 
 type PaginatedUsers {
-  nodes: [User!]!
+  nodes: [UserWithOrganizationUsers!]!
   pageInfo: PageInfo!
+}
+
+# Wrapper type for User and associated OrganizationUsers
+ type UserWithOrganizationUsers {
+  id: ID!
+  email: String!
+  organizationUsers: [OrganizationUser!]!
 }
 
 extend type Viewer {

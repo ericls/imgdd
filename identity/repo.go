@@ -156,6 +156,9 @@ func (repo *DBIdentityRepo) GetUsersByIds(ids []string) []*dm.User {
 	for i, id := range ids {
 		uuids[i] = UUID(uuid.MustParse(id))
 	}
+	if len(uuids) == 0 {
+		return nil
+	}
 	stmt := newUserSelect().WHERE(UserTable.ID.IN(uuids...))
 	err := stmt.Query(repo.DB, &dest)
 	if err != nil {
@@ -445,4 +448,43 @@ func (repo *DBIdentityRepo) GetAllUsers(limit int, offset int, search *string) (
 	}
 
 	return users, totalCount.Count
+}
+
+func (repo *DBIdentityRepo) GetOrganizationUsersForUsers(userIds []string) (
+	userIdToOrgUser map[string]*dm.UserWithOrganizationUsers,
+	err error,
+) {
+	dest := []organizationUserSelectResult{}
+	uuids := make([]Expression, len(userIds))
+	for i, id := range userIds {
+		uuids[i] = UUID(uuid.MustParse(id))
+	}
+	if len(uuids) == 0 {
+		return nil, nil
+	}
+	stmt := newOrganizationUserSelect().WHERE(UserTable.ID.IN(uuids...))
+	err = stmt.Query(repo.DB, &dest)
+	if err != nil {
+		return nil, err
+	}
+	userIdToTuple := make(map[string]dm.UserWithOrganizationUsers)
+	for _, d := range dest {
+		orgUser := convertOrganizationUser(&d)
+		userId := d.User.ID.String()
+		if _, ok := userIdToTuple[userId]; !ok {
+			userIdToTuple[userId] = dm.UserWithOrganizationUsers{
+				User:              orgUser.User,
+				OrganizationUsers: []*dm.OrganizationUser{orgUser},
+			}
+		} else {
+			tuple := userIdToTuple[userId]
+			tuple.OrganizationUsers = append(tuple.OrganizationUsers, orgUser)
+			userIdToTuple[userId] = tuple
+		}
+	}
+	userIdToOrgUser = make(map[string]*dm.UserWithOrganizationUsers)
+	for k, v := range userIdToTuple {
+		userIdToOrgUser[k] = &v
+	}
+	return userIdToOrgUser, nil
 }
