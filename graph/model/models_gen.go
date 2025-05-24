@@ -17,6 +17,14 @@ type CreateUserWithOrganizationInput struct {
 type Mutation struct {
 }
 
+type PageInfo struct {
+	TotalCount      int  `json:"totalCount"`
+	HasNextPage     bool `json:"hasNextPage"`
+	HasPreviousPage bool `json:"hasPreviousPage"`
+}
+
+
+
 type Query struct {
 }
 

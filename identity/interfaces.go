@@ -21,11 +21,16 @@ type IdentityRepo interface {
 	// If the user is a member of multiple organizations, the implementation should return nil.
 	GetOrganizationForUser(userId string, maybeOrganizationId string) (*dm.Organization, *dm.OrganizationUser)
 
+	GetOrganizationUsersForUsers(userIds []string) (map[string]*dm.UserWithOrganizationUsers, error)
+
 	GetOrganizationUsersByIds(ids []string) []*dm.OrganizationUser
 	GetOrganizationUserById(id string) *dm.OrganizationUser
 
 	GetUserPassword(id string) string
 	UpdateUserPassword(id string, password string) error
+
+	// GetAllUsers returns a paginated list of users with optional search criteria.
+	GetAllUsers(limit int, offset int, search *string) ([]*dm.User, int)
 }
 
 type ContextUserManager interface {

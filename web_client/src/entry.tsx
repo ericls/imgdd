@@ -40,7 +40,7 @@ function AutoDarkToastContainer() {
 }
 
 function ErrorPage() {
-  return <div>Error</div>;
+  return <div>Something went wrong</div>;
 }
 
 const router = createBrowserRouter([

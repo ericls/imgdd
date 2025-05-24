@@ -36,3 +36,13 @@ func FromIdentityUser(identityUser *domainmodels.User) *User {
 	u.Email = identityUser.Email
 	return &u
 }
+
+type UserWithOrganizationUsers struct {
+	ID                string              `json:"id"`
+	Email             string              `json:"email"`
+	OrganizationUsers []*OrganizationUser `json:"organizationUsers"`
+}
+type PaginatedUsers struct {
+	Nodes    []*UserWithOrganizationUsers `json:"nodes"`
+	PageInfo *PageInfo                    `json:"pageInfo"`
+}
