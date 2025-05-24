@@ -132,7 +132,9 @@
     "usersTable": {
       "name": "Name",
       "email": "Email",
-      "noUsers": "No users found"
+      "noUsers": "No users found",
+      "organizationUsers": "Organization Users",
+      "viewImagesButton": "View Images"
     },
     "imageItem": {
       "copyURL": "Copy URL",
@@ -149,5 +151,8 @@
           "title": "My images"
         }
       }
+    },
+    "userImageGallery": {
+      "title": "User Images"
     }
 }
