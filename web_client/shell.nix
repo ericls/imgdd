@@ -4,10 +4,10 @@
 pkgs.mkShell {
   buildInputs = [
     pkgs.nodejs_20
-    pkgs.pnpm_10
+    pkgs.corepack_20
   ];
 
   shellHook = ''
-    echo "Node.js version $(node -v) is available"
+    echo "Node.js version $(node -v) is available. Use corepack to install pnpm"
   '';
 }
