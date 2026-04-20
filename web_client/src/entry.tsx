@@ -61,9 +61,8 @@ const router = createBrowserRouter([
       {
         path: "users/*",
         lazy: async () => {
-          const { Users } = await import(
-            "~src/site-admin/pages/users/usersIndex"
-          );
+          const { Users } =
+            await import("~src/site-admin/pages/users/usersIndex");
           return {
             element: <Users />,
           };
@@ -72,9 +71,8 @@ const router = createBrowserRouter([
       {
         path: "images/*",
         lazy: async () => {
-          const { Images } = await import(
-            "~src/site-admin/pages/images/imagesIndex"
-          );
+          const { Images } =
+            await import("~src/site-admin/pages/images/imagesIndex");
           return {
             element: <Images />,
           };
@@ -84,9 +82,8 @@ const router = createBrowserRouter([
         path: "storage/*",
         index: true,
         lazy: async () => {
-          const { StorageConfig } = await import(
-            "~src/site-admin/pages/storageConfig/storageConfigIndex"
-          );
+          const { StorageConfig } =
+            await import("~src/site-admin/pages/storageConfig/storageConfigIndex");
           return {
             element: <StorageConfig />,
           };
@@ -110,9 +107,8 @@ const router = createBrowserRouter([
       {
         path: "images/*",
         lazy: async () => {
-          const { Images } = await import(
-            "~src/profile/pages/images/imagesIndex"
-          );
+          const { Images } =
+            await import("~src/profile/pages/images/imagesIndex");
           return {
             element: <Images />,
           };
@@ -133,9 +129,8 @@ const router = createBrowserRouter([
       {
         path: "/auth/forgot-password",
         lazy: async () => {
-          const { ForgotPasswordPage } = await import(
-            "./app/pages/forgotPassword"
-          );
+          const { ForgotPasswordPage } =
+            await import("./app/pages/forgotPassword");
           return {
             element: <ForgotPasswordPage />,
           };
@@ -144,9 +139,8 @@ const router = createBrowserRouter([
       {
         path: "/auth/reset-password",
         lazy: async () => {
-          const { ResetPasswordPage } = await import(
-            "./app/pages/resetPassword"
-          );
+          const { ResetPasswordPage } =
+            await import("./app/pages/resetPassword");
           return {
             element: <ResetPasswordPage />,
           };
