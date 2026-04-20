@@ -5,6 +5,28 @@ on:
   pull_request:
 
 jobs:
+  check-generated-gql:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+
+      - name: Regenerate GraphQL code
+        run: go run . gql
+
+      - name: Check for uncommitted changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Generated GraphQL files are out of date. Run 'go run . gql' and commit the changes."
+            git diff
+            exit 1
+          fi
+
   backend-test:
     runs-on: ubuntu-latest
     services:
@@ -19,7 +41,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
+          go-version: "1.25"
 
       - name: Run tests with Docker
         run: go test -v ./...
