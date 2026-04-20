@@ -35,3 +35,25 @@ jobs:
             git diff
             exit 1
           fi
+
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: web_client/.nvmrc
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: web_client
+
+      - name: Lint and type-check
+        run: pnpm run check
+        working-directory: web_client
