@@ -1,0 +1,37 @@
+name: Web client check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check-generated-graphql-client:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: web_client/.nvmrc
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: web_client
+
+      - name: Regenerate GraphQL client code
+        run: pnpm gen
+        working-directory: web_client
+
+      - name: Check for uncommitted changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Generated GraphQL client files are out of date. Run 'cd web_client && pnpm gen' and commit the changes."
+            git diff
+            exit 1
+          fi
