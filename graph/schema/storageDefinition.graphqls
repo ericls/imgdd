@@ -2,6 +2,7 @@ enum StorageTypeEnum {
   S3
   FS
   WebDAV
+  IpfsMfs
   Other
 }
 
@@ -24,11 +25,17 @@ type WebDAVStorageConfig {
   pathPrefix: String!
 }
 
+type IPFSMFSStorageConfig {
+  apiUrl: String!
+  pathPrefix: String!
+  pin: Boolean!
+}
+
 type OtherStorageConfig {
     _empty: String
 }
 
-union StorageConfig = S3StorageConfig | FSStorageConfig | WebDAVStorageConfig | OtherStorageConfig
+union StorageConfig = S3StorageConfig | FSStorageConfig | WebDAVStorageConfig | IPFSMFSStorageConfig | OtherStorageConfig
 
 type StorageDefinition {
   id: ID!

@@ -90,6 +90,8 @@ models:
         value: ./graph/model.StorageType_FS
       WebDAV:
         value: ./graph/model.StorageType_WebDAV
+      IpfsMfs:
+        value: ./graph/model.StorageType_IPFSMFS
       Other:
         value: ./graph/model.StorageType_Other
   ID:

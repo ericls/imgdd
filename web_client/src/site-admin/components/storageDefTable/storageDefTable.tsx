@@ -49,6 +49,8 @@ export function DumbStorageDefTable({
               return t("storageTypeNameTitle.fs");
             } else if (value === "WebDAVStorageConfig") {
               return t("storageTypeNameTitle.WebDAV");
+            } else if (value === "IPFSMFSStorageConfig") {
+              return t("storageTypeNameTitle.ipfsMfs");
             } else {
               return "Unknown";
             }

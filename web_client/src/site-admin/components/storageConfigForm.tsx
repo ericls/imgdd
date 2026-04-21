@@ -112,6 +112,34 @@ function WebDavProviderConfigForm({
   );
 }
 
+function IPFSMFSProviderConfigForm({
+  form,
+}: {
+  form: ReturnType<typeof useForm<StorageProviderConfigData>>;
+}) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <InputWithLabel
+        containerClassName="flex flex-col gap-1 max-w-full"
+        label={t("storageConfigForm.apiUrl")}
+        {...form.register("apiUrl", { required: true })}
+      />
+      <InputWithLabel
+        containerClassName="flex flex-col gap-1 max-w-full"
+        label={t("storageConfigForm.pathPrefix")}
+        {...form.register("pathPrefix", { required: false })}
+      />
+      <InputWithLabel
+        containerClassName="flex flex-col gap-1 max-w-full"
+        label={t("storageConfigForm.pin")}
+        type="checkbox"
+        {...form.register("pin")}
+      />
+    </>
+  );
+}
+
 export function StorageConfigForm({
   initialValue,
   id,
@@ -199,6 +227,9 @@ export function StorageConfigForm({
     if (storageTypeValue === "WebDAV") {
       return <WebDavProviderConfigForm form={providerConfigForm} />;
     }
+    if (storageTypeValue === "IPFSMFS") {
+      return <IPFSMFSProviderConfigForm form={providerConfigForm} />;
+    }
     return null;
   }, [storageTypeValue, providerConfigForm]);
   return (
@@ -217,6 +248,7 @@ export function StorageConfigForm({
             <option value="S3">S3</option>
             <option value="FS">{t("storageTypeNameTitle.fs")}</option>
             <option value="WebDAV">{t("storageTypeNameTitle.WebDAV")}</option>
+            <option value="IPFSMFS">{t("storageTypeNameTitle.ipfsMfs")}</option>
           </SelectWithLabel>
           <InputWithLabel
             containerClassName="flex flex-col gap-1 max-w-full"

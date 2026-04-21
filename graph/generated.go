@@ -51,6 +51,12 @@ type ComplexityRoot struct {
 		MediaRoot func(childComplexity int) int
 	}
 
+	IPFSMFSStorageConfig struct {
+		ApiUrl     func(childComplexity int) int
+		PathPrefix func(childComplexity int) int
+		Pin        func(childComplexity int) int
+	}
+
 	Image struct {
 		CreatedAt       func(childComplexity int) int
 		ID              func(childComplexity int) int
@@ -267,6 +273,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.FSStorageConfig.MediaRoot(childComplexity), true
+
+	case "IPFSMFSStorageConfig.apiUrl":
+		if e.ComplexityRoot.IPFSMFSStorageConfig.ApiUrl == nil {
+			break
+		}
+
+		return e.ComplexityRoot.IPFSMFSStorageConfig.ApiUrl(childComplexity), true
+	case "IPFSMFSStorageConfig.pathPrefix":
+		if e.ComplexityRoot.IPFSMFSStorageConfig.PathPrefix == nil {
+			break
+		}
+
+		return e.ComplexityRoot.IPFSMFSStorageConfig.PathPrefix(childComplexity), true
+	case "IPFSMFSStorageConfig.pin":
+		if e.ComplexityRoot.IPFSMFSStorageConfig.Pin == nil {
+			break
+		}
+
+		return e.ComplexityRoot.IPFSMFSStorageConfig.Pin(childComplexity), true
 
 	case "Image.createdAt":
 		if e.ComplexityRoot.Image.CreatedAt == nil {
@@ -1291,6 +1316,93 @@ func (ec *executionContext) fieldContext_FSStorageConfig_mediaRoot(_ context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IPFSMFSStorageConfig_apiUrl(ctx context.Context, field graphql.CollectedField, obj *model.IPFSMFSStorageConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IPFSMFSStorageConfig_apiUrl,
+		func(ctx context.Context) (any, error) {
+			return obj.ApiUrl, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IPFSMFSStorageConfig_apiUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IPFSMFSStorageConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IPFSMFSStorageConfig_pathPrefix(ctx context.Context, field graphql.CollectedField, obj *model.IPFSMFSStorageConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IPFSMFSStorageConfig_pathPrefix,
+		func(ctx context.Context) (any, error) {
+			return obj.PathPrefix, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IPFSMFSStorageConfig_pathPrefix(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IPFSMFSStorageConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _IPFSMFSStorageConfig_pin(ctx context.Context, field graphql.CollectedField, obj *model.IPFSMFSStorageConfig) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_IPFSMFSStorageConfig_pin,
+		func(ctx context.Context) (any, error) {
+			return obj.Pin, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_IPFSMFSStorageConfig_pin(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "IPFSMFSStorageConfig",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6277,6 +6389,13 @@ func (ec *executionContext) _StorageConfig(ctx context.Context, sel ast.Selectio
 			return graphql.Null
 		}
 		return ec._OtherStorageConfig(ctx, sel, obj)
+	case model.IPFSMFSStorageConfig:
+		return ec._IPFSMFSStorageConfig(ctx, sel, &obj)
+	case *model.IPFSMFSStorageConfig:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._IPFSMFSStorageConfig(ctx, sel, obj)
 	case model.FSStorageConfig:
 		return ec._FSStorageConfig(ctx, sel, &obj)
 	case *model.FSStorageConfig:
@@ -6346,6 +6465,55 @@ func (ec *executionContext) _FSStorageConfig(ctx context.Context, sel ast.Select
 			out.Values[i] = graphql.MarshalString("FSStorageConfig")
 		case "mediaRoot":
 			out.Values[i] = ec._FSStorageConfig_mediaRoot(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var iPFSMFSStorageConfigImplementors = []string{"IPFSMFSStorageConfig", "StorageConfig"}
+
+func (ec *executionContext) _IPFSMFSStorageConfig(ctx context.Context, sel ast.SelectionSet, obj *model.IPFSMFSStorageConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, iPFSMFSStorageConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IPFSMFSStorageConfig")
+		case "apiUrl":
+			out.Values[i] = ec._IPFSMFSStorageConfig_apiUrl(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pathPrefix":
+			out.Values[i] = ec._IPFSMFSStorageConfig_pathPrefix(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pin":
+			out.Values[i] = ec._IPFSMFSStorageConfig_pin(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -8685,16 +8853,18 @@ func (ec *executionContext) marshalNStorageTypeEnum2githubᚗcomᚋericlsᚋimgd
 
 var (
 	unmarshalNStorageTypeEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageTypeEnum = map[string]model.StorageTypeEnum{
-		"S3":     model.StorageType_S3,
-		"FS":     model.StorageType_FS,
-		"WebDAV": model.StorageType_WebDAV,
-		"Other":  model.StorageType_Other,
+		"S3":      model.StorageType_S3,
+		"FS":      model.StorageType_FS,
+		"WebDAV":  model.StorageType_WebDAV,
+		"IpfsMfs": model.StorageType_IPFSMFS,
+		"Other":   model.StorageType_Other,
 	}
 	marshalNStorageTypeEnum2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageTypeEnum = map[model.StorageTypeEnum]string{
-		model.StorageType_S3:     "S3",
-		model.StorageType_FS:     "FS",
-		model.StorageType_WebDAV: "WebDAV",
-		model.StorageType_Other:  "Other",
+		model.StorageType_S3:      "S3",
+		model.StorageType_FS:      "FS",
+		model.StorageType_WebDAV:  "WebDAV",
+		model.StorageType_IPFSMFS: "IpfsMfs",
+		model.StorageType_Other:   "Other",
 	}
 )
 

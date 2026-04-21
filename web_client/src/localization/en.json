@@ -69,7 +69,8 @@
     },
     "storageTypeNameTitle": {
       "fs": "File system",
-      "WebDAV": "WebDAV"
+      "WebDAV": "WebDAV",
+      "ipfsMfs": "IPFS (MFS)"
     },
     "storageDefTable": {
         "identifier": "Identifier",
@@ -93,7 +94,9 @@
         "url": "URL",
         "username": "Username",
         "password": "Password",
-        "pathPrefix": "Path prefix"
+        "pathPrefix": "Path prefix",
+        "apiUrl": "API URL",
+        "pin": "Pin on write"
     },
     "storageDef": {
         "connection": {

@@ -43,16 +43,29 @@ const EmptyWebDAVConfig: WebDAVStorageConfigData = {
   pathPrefix: "",
 };
 
+type IPFSMFSStorageConfigData = {
+  apiUrl: string;
+  pathPrefix: string;
+  pin: boolean;
+};
+const EmptyIPFSMFSConfig: IPFSMFSStorageConfigData = {
+  apiUrl: "",
+  pathPrefix: "",
+  pin: true,
+};
+
 export type StorageProviderConfigData =
   | S3StorageConfigData
   | FSSotrageConfigData
   | WebDAVStorageConfigData
+  | IPFSMFSStorageConfigData
   | { __other: string };
 
 const EmptyConfigs = {
   S3: EmptyS3Config,
   FS: EmptyFSConfig,
   WebDAV: EmptyWebDAVConfig,
+  IPFSMFS: EmptyIPFSMFSConfig,
   __other: { __other: "" },
 } as const;
 export const StorageProviders: {
@@ -78,6 +91,11 @@ export const StorageProviders: {
     emptyConfig: EmptyConfigs.WebDAV,
     enum: StorageTypeEnum.WebDav,
     mask: maskStorageProviderConfigData("WebDAV"),
+  },
+  IPFSMFS: {
+    emptyConfig: EmptyConfigs.IPFSMFS,
+    enum: StorageTypeEnum.IpfsMfs,
+    mask: maskStorageProviderConfigData("IPFSMFS"),
   },
   __other: {
     emptyConfig: { __other: "" },
@@ -112,6 +130,9 @@ export function getStorageTypeFromConfig(config: ProviderConfig): StorageType {
   }
   if (config.__typename === "WebDAVStorageConfig") {
     return "WebDAV";
+  }
+  if (config.__typename === "IPFSMFSStorageConfig") {
+    return "IPFSMFS";
   }
   return "__other";
 }

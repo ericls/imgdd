@@ -24,6 +24,11 @@ const storageDefinitionFragment = gql(/* GraphQL */ `
         password
         pathPrefix
       }
+      ... on IPFSMFSStorageConfig {
+        apiUrl
+        pathPrefix
+        pin
+      }
     }
   }
 `);
@@ -44,4 +49,4 @@ export const updateStorageDefMutation = gql(/* GraphQL */ `
   }
 `);
 
-export type StorageType = "S3" | "FS" | "WebDAV" | "__other";
+export type StorageType = "S3" | "FS" | "WebDAV" | "IPFSMFS" | "__other";
