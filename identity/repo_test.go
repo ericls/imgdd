@@ -85,7 +85,7 @@ func TestGetAllUsers(t *testing.T) {
 	if len(paginatedUsers) != 2 {
 		t.Errorf("Expected 2 users in paginated result, got %d", len(paginatedUsers))
 	}
-	
+
 	// Test pagination offset
 	paginatedUsersPage2, _ := identityRepo.GetAllUsers(2, 2, nil)
 	if len(paginatedUsersPage2) != 2 {
