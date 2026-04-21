@@ -24,11 +24,18 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	ipfsMfsStorageInstanceCache, err := lru.New2Q[uint32, *IPFSMFSStorage](0x20)
+	if err != nil {
+		panic(err)
+	}
 	RegisterBackend(domainmodels.S3StorageType, &S3StorageBackend{
 		cache: s3StorageInstanceCache,
 	})
 	RegisterBackend(domainmodels.FSStorageType, &FSStorageBackend{})
 	RegisterBackend(domainmodels.WebDavStorageType, &WebDAVBackend{
 		cache: webDavStorageInstanceCache,
+	})
+	RegisterBackend(domainmodels.IPFSMFSStorageType, &IPFSMFSStorageBackend{
+		cache: ipfsMfsStorageInstanceCache,
 	})
 }

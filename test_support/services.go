@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -30,17 +31,23 @@ type TestWebDAVConfig struct {
 	Port     string
 }
 
+type TestIPFSMFSConfig struct {
+	ApiPort string
+}
+
 type TestExternalServiceManager struct {
 	Pool           *dockertest.Pool
 	dbResource     *dockertest.Resource
 	redisResource  *dockertest.Resource
 	minioResource  *dockertest.Resource
 	webDavResource *dockertest.Resource
+	ipfsResource   *dockertest.Resource
 
-	dbConfig     *db.DBConfigDef
-	redisURI     string
-	s3Config     *TestS3Config
-	webDavConfig *TestWebDAVConfig
+	dbConfig      *db.DBConfigDef
+	redisURI      string
+	s3Config      *TestS3Config
+	webDavConfig  *TestWebDAVConfig
+	ipfsMfsConfig *TestIPFSMFSConfig
 
 	logger zerolog.Logger
 	lock   sync.Mutex
@@ -74,6 +81,9 @@ func NewTestExternalServiceManager() *TestExternalServiceManager {
 		Password: "test",
 		Port:     "",
 	}
+	ipfsMfsConfig := &TestIPFSMFSConfig{
+		ApiPort: "",
+	}
 	return &TestExternalServiceManager{
 		Pool:          pool,
 		dbResource:    nil,
@@ -82,6 +92,7 @@ func NewTestExternalServiceManager() *TestExternalServiceManager {
 		s3Config:      s3Config,
 		dbConfig:      dbConfig,
 		webDavConfig:  webDavConfig,
+		ipfsMfsConfig: ipfsMfsConfig,
 		logger:        logging.GetLogger("TESM"),
 	}
 }
@@ -194,6 +205,49 @@ func (ts *TestExternalServiceManager) StartWebDav() {
 	ts.waitWebDAV()
 }
 
+func (ts *TestExternalServiceManager) StartIPFS() {
+	ts.lock.Lock()
+	defer ts.lock.Unlock()
+	if ts.ipfsResource != nil {
+		ts.logger.Info().Msg("IPFS already started")
+		return
+	}
+	ts.logger.Info().Msg("Starting IPFS")
+	ipfsContainer, err := ts.Pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "ipfs/kubo",
+		Tag:        "v0.32.1",
+		Env: []string{
+			"IPFS_PROFILE=test",
+		},
+		PortBindings: map[docker.Port][]docker.PortBinding{
+			"5001/tcp": {{HostIP: "0.0.0.0", HostPort: "0"}},
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
+	port := ipfsContainer.GetPort("5001/tcp")
+	ts.ipfsResource = ipfsContainer
+	ts.ipfsMfsConfig.ApiPort = port
+	ts.waitIPFS()
+}
+
+func (ts *TestExternalServiceManager) waitIPFS() {
+	if err := ts.Pool.Retry(func() error {
+		resp, err := http.Post("http://localhost:"+ts.ipfsMfsConfig.ApiPort+"/api/v0/id", "", nil)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("ipfs not ready: status %d", resp.StatusCode)
+		}
+		return nil
+	}); err != nil {
+		panic(err)
+	}
+}
+
 func (ts *TestExternalServiceManager) waitMinio() {
 	if err := ts.Pool.Retry(func() error {
 		port := ts.s3Config.Port
@@ -263,6 +317,16 @@ func (ts *TestExternalServiceManager) StopWebDav() {
 	}
 }
 
+func (ts *TestExternalServiceManager) StopIPFS() {
+	ts.lock.Lock()
+	defer ts.lock.Unlock()
+	if ts.ipfsResource != nil {
+		ts.logger.Info().Msg("Stopping IPFS")
+		ts.Pool.Purge(ts.ipfsResource)
+		ts.ipfsResource = nil
+	}
+}
+
 func (ts *TestExternalServiceManager) Purge() {
 	if ts.dbResource != nil {
 		ts.Pool.Purge(ts.dbResource)
@@ -275,6 +339,9 @@ func (ts *TestExternalServiceManager) Purge() {
 	}
 	if ts.webDavResource != nil {
 		ts.Pool.Purge(ts.webDavResource)
+	}
+	if ts.ipfsResource != nil {
+		ts.Pool.Purge(ts.ipfsResource)
 	}
 }
 
@@ -300,4 +367,13 @@ func (ts *TestExternalServiceManager) GetS3ConfigJSON() string {
 
 func (ts *TestExternalServiceManager) GetWebDavConfig() *TestWebDAVConfig {
 	return ts.webDavConfig
+}
+
+func (ts *TestExternalServiceManager) GetIPFSMFSConfig() *TestIPFSMFSConfig {
+	return ts.ipfsMfsConfig
+}
+
+func (ts *TestExternalServiceManager) GetIPFSMFSConfigJSON() string {
+	cfg := ts.GetIPFSMFSConfig()
+	return fmt.Sprintf(`{"apiUrl":"http://localhost:%s","pathPrefix":"/test","pin":true}`, cfg.ApiPort)
 }

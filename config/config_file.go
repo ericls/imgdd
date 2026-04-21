@@ -148,6 +148,14 @@ var EmptyConfig = ConfigFileDef{
 				IS_ENABLED:   false,
 				PRIORITY:     0,
 			},
+			{
+				ID:           "00000000-0000-0000-0000-000000000003",
+				IDENTIFIER:   "default-ipfs-mfs",
+				STORAGE_TYPE: "ipfs_mfs",
+				CONFIG:       `{"apiUrl":"http://localhost:5001","pathPrefix":"/imgdd","pin":true}`,
+				IS_ENABLED:   false,
+				PRIORITY:     0,
+			},
 		},
 	},
 	Email: &EmailConfigFileDef{
