@@ -22,6 +22,8 @@ As of February 2025, the project handles over 1 TB of traffic and 4.2 million re
 - Node.js 20 (for the frontend)
 - Docker & Docker Compose (for local services)
 
+> If you use nix, you can just do `nix develop`.
+
 ### Setup
 
 1. Copy the environment file and adjust if needed:
