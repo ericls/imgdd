@@ -14,6 +14,24 @@ As of February 2025, the project handles over 1 TB of traffic and 4.2 million re
 ## Live Instances
 - [imgdd.com](https://imgdd.com)
 
+## Features
+- **Pluggable storage backends**: S3 (and S3-compatible services like MinIO), local filesystem, WebDAV, and IPFS MFS. Multiple backends can be enabled at once with configurable priority, defined in the database or the config file.
+- **Flexible URL formats**: `canonical` (proxied from the best available backend) and `direct` (routed through a specific backend); per-image delivery chooses the highest-priority enabled backend.
+- **Upload pipeline**: automatic EXIF stripping, MIME-type detection with declared/detected mismatch rejection, size limits, and deduplication across stored images. Revisions are linked back to a root image.
+- **Optional safe-image check**: delegate NSFW/abuse screening to an external HTTP endpoint.
+- **Captcha protection**: Google reCAPTCHA or Cloudflare Turnstile, wired into GraphQL via an `@captchaProtected` directive.
+- **Rate limiting** on uploads and other sensitive endpoints.
+- **Identity & access control**: email/password auth, organizations, role/permission system with built-in roles, site-owner privilege, and password reset via email.
+- **Email backends**: SMTP or a dummy backend for development, with templated messages.
+- **GraphQL API** (gqlgen) covering images, viewer, users, organizations, roles/permissions, and storage definitions, with `@isAuthenticated` / `@isSiteOwner` directives.
+- **Web client**: React + Tailwind admin & user UI, including a site-admin area for managing users, roles, and storage definitions.
+- **Client plugin hooks**: a lightweight `window.registerPlugin` API lets custom JS inject content into named UI slots without rebuilding the frontend.
+- **Low resource usage**: a single Go binary serves the API, web client, and image proxying; Instance with 256M memory has comfortably handled 1 TB of traffic and 4.2 M requests per day in production.
+- **Operational toggles**: disable new uploads (`ALLOW_UPLOAD`) or new user signups (`ALLOW_NEW_USER`) at runtime.
+- **Background cleanup** of orphaned stored images across backends.
+- **Deployment-friendly**: single Go binary, official Docker image, TOML + env configuration, optional migrate-on-start, Nix flake for reproducible dev.
+- **CLI tooling**: migrations, user/role management, config generation, test email, and dev helpers (`gql`, `jet`, `reset-db`, `dev-server` with hot reload).
+
 ## Development
 
 ### Prerequisites
