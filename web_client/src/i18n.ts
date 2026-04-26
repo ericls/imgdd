@@ -19,7 +19,9 @@ export async function loadLanguage(lang: SupportedLanguage) {
 
 const initialLanguage = getInitialLanguage();
 
-export const i18nReady = i18n
+const INITIAL_LANGUAGE_TIMEOUT_MS = 1_000;
+
+const init = i18n
   .use(initReactI18next)
   .init({
     resources: { en: { translation: EN } },
@@ -31,10 +33,25 @@ export const i18nReady = i18n
     },
   })
   .then(async () => {
-    if (initialLanguage !== "en") {
-      await loadLanguage(initialLanguage);
-      await i18n.changeLanguage(initialLanguage);
-    }
+    if (initialLanguage === "en") return;
+    await loadLanguage(initialLanguage);
+    await i18n.changeLanguage(initialLanguage);
   });
+
+const timeout = new Promise<void>((_, reject) =>
+  setTimeout(
+    () =>
+      reject(
+        new Error(
+          `i18n initial language load timed out after ${INITIAL_LANGUAGE_TIMEOUT_MS}ms`,
+        ),
+      ),
+    INITIAL_LANGUAGE_TIMEOUT_MS,
+  ),
+);
+
+export const i18nReady = Promise.race([init, timeout]).catch((e) => {
+  console.warn("i18n init failed, falling back to en", e);
+});
 
 export default i18n;

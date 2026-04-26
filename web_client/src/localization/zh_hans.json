@@ -23,10 +23,10 @@
         "signOut": "登出"
     },
     "home": {
-        "tagLine": "全球快速分发图片,完全免费。"
+        "tagLine": "图片分享, 一访即达, 完全免费"
     },
     "uploader": {
-        "mainHelpText": "拖放或点击以选择文件",
+        "mainHelpText": "拖放 或 点击以选择文件",
         "copyAllURLs": "复制全部链接",
         "copyFormat": "复制 {{format}}"
     },
