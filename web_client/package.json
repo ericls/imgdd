@@ -5,14 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently \"npm:dev:*\"",
+    "dev": "concurrently \"pnpm:dev:*\"",
     "dev:js": "parcel watch --public-url=/static/web/ --port=8081",
     "build": "NODE_ENV=production parcel build --public-url=/static/web/ --no-source-maps",
     "build-with-report": "pnpm run build -- --reporter @parcel/reporter-bundle-analyzer",
     "lint": "eslint src",
     "gen": "graphql-codegen",
     "type-check": "tsc --noEmit",
-    "check": "npm run lint && npm run type-check"
+    "check": "pnpm run lint && pnpm run type-check"
   },
   "engines": {
     "node": ">=24.15.0 <25",
