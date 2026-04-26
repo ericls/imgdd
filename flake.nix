@@ -22,8 +22,8 @@
           buildInputs = with pkgs; [
             go_1_25
 
-            nodejs_20
-            corepack_20
+            nodejs_24
+            corepack_24
 
             git
           ];
