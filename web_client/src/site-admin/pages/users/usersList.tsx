@@ -41,6 +41,12 @@ export function UsersList() {
   const [currentPage, setCurrentPage] = useState(0);
   const pageSize = 10;
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [prevDebouncedSearchTerm, setPrevDebouncedSearchTerm] =
+    useState(debouncedSearchTerm);
+  if (prevDebouncedSearchTerm !== debouncedSearchTerm) {
+    setPrevDebouncedSearchTerm(debouncedSearchTerm);
+    setCurrentPage(0);
+  }
 
   const { data: usersData, loading } = useQuery(listUsersQuery, {
     fetchPolicy: "cache-and-network",
@@ -50,11 +56,6 @@ export function UsersList() {
       search: debouncedSearchTerm || undefined,
     },
   });
-
-  // Reset to first page when search term changes
-  React.useEffect(() => {
-    setCurrentPage(0);
-  }, [debouncedSearchTerm]);
 
   const users = usersData?.viewer.paginatedAllUsers.nodes || [];
   const pageInfo = usersData?.viewer.paginatedAllUsers.pageInfo;

@@ -15,7 +15,14 @@ import { noop } from "lodash-es";
 export function DarkModeSettings() {
   const { t } = useTranslation();
   const { theme, setTheme, isDarkMode } = React.useContext(DarkModeContext);
-  const [checkbox, setCheckbox] = React.useState<HTMLInputElement | null>(null);
+  const setCheckbox = React.useCallback(
+    (el: HTMLInputElement | null) => {
+      if (el) {
+        el.indeterminate = theme === "system";
+      }
+    },
+    [theme],
+  );
   const onToggleUseSystem = React.useCallback(() => {
     let newValue: DarkModeTheme = "system";
     if (theme === "system") {
@@ -26,15 +33,6 @@ export function DarkModeSettings() {
   const onToggleDarkMode = React.useCallback(() => {
     setTheme(isDarkMode ? "light" : "dark");
   }, [isDarkMode, setTheme]);
-  React.useEffect(() => {
-    const current = checkbox;
-    if (!current) return;
-    if (theme === "system") {
-      current.indeterminate = true;
-    } else {
-      current.indeterminate = false;
-    }
-  }, [theme, checkbox]);
   return (
     <MenuWithTrigger
       placement="top-start"

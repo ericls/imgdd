@@ -36,13 +36,16 @@ export function UploaderItem({
   const lastCopyTs = React.useRef<number>(0);
   const [justCopied, setJustCopied] = React.useState(false);
   const scheduleSetNotJustCopied = React.useCallback(() => {
-    setTimeout(() => {
-      if (new Date().getTime() - lastCopyTs.current < 1000) {
-        scheduleSetNotJustCopied();
-        return;
-      }
-      setJustCopied(false);
-    }, 1000);
+    const tick = () => {
+      setTimeout(() => {
+        if (new Date().getTime() - lastCopyTs.current < 1000) {
+          tick();
+          return;
+        }
+        setJustCopied(false);
+      }, 1000);
+    };
+    tick();
   }, [setJustCopied]);
   const colorClass = React.useMemo(() => {
     if (errored || aborted) return "bg-red-600 dark:bg-red-500";

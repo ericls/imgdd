@@ -41,6 +41,7 @@ export function MenuWithTrigger({
     strategy:
       breakpointName == "2xs" && bottomFixedOnMobile ? "fixed" : "absolute",
   });
+  const { setReference, setFloating } = refs;
   let finalStyle: React.CSSProperties = {
     ...style,
     position: strategy,
@@ -72,7 +73,7 @@ export function MenuWithTrigger({
   return (
     <>
       <div
-        ref={refs.setReference}
+        ref={setReference}
         className={classNames("trigger-container w-min", containerClassName)}
         onClick={toggleOpen}
       >
@@ -109,7 +110,7 @@ export function MenuWithTrigger({
         show={open}
       >
         <Menu
-          ref={refs.setFloating}
+          ref={setFloating}
           menuSections={menuSections}
           {...props}
           style={finalStyle}

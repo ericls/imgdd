@@ -23,13 +23,13 @@ function getTokenTurnstile(
       const id = turnstile.render(elementId, {
         action: action,
         sitekey: key,
-        callback: (token) => {
+        callback: (token: string) => {
           resolve({
             token,
             cleanup,
           });
         },
-        ["error-callback"]: (error) => {
+        ["error-callback"]: (error: unknown) => {
           console.error(error);
           resolve(EMPTY_RESULT);
         },
@@ -56,7 +56,7 @@ function getTokenRecaptcha(
       resolve(EMPTY_RESULT);
     } else {
       grecaptcha.ready(function () {
-        grecaptcha.execute(key, { action }).then(function (token) {
+        grecaptcha.execute(key, { action }).then(function (token: string) {
           resolve({
             token,
             cleanup: undefined,

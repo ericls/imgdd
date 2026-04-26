@@ -23,4 +23,5 @@ interface Window {
   // plugins
   IMGDD_PLUGINS?: IMGDDPlugin[];
   turnstile?: Turnstile.Turnstile;
+  grecaptcha?: ReCaptchaV2.ReCaptcha;
 }

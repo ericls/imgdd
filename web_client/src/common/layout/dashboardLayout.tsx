@@ -38,13 +38,15 @@ export function DashboardLayout({
 }) {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+  const [prevLocation, setPrevLocation] = React.useState(location);
+  if (prevLocation !== location) {
+    setPrevLocation(location);
+    setIsSidebarOpen(false);
+  }
   const toggleSidebar = React.useCallback(
     () => setIsSidebarOpen((prev) => !prev),
     [setIsSidebarOpen],
   );
-  React.useEffect(() => {
-    setIsSidebarOpen(false);
-  }, [location, setIsSidebarOpen]);
   const sidebarToggle = React.useMemo(() => {
     return (
       <Button
