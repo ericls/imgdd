@@ -7,14 +7,19 @@ export function isChinese() {
   return lang === "zh" || lang.startsWith("zh-");
 }
 
-export type SupportedLanguage = "en" | "zh_hans";
+export function isThai() {
+  const lang = getUserLocaleLower();
+  return lang === "th" || lang.startsWith("th-");
+}
+
+export type SupportedLanguage = "en" | "zh_hans" | "th";
 
 const LANGUAGE_STORAGE_KEY = "imgdd.language";
 
 export function getStoredLanguage(): SupportedLanguage | null {
   try {
     const v = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (v === "en" || v === "zh_hans") return v;
+    if (v === "en" || v === "zh_hans" || v === "th") return v;
   } catch {
     // localStorage may be unavailable (SSR, privacy mode)
   }
@@ -34,7 +39,11 @@ export function setStoredLanguage(lang: SupportedLanguage | null) {
 }
 
 export function getInitialLanguage(): SupportedLanguage {
-  return getStoredLanguage() ?? (isChinese() ? "zh_hans" : "en");
+  const stored = getStoredLanguage();
+  if (stored) return stored;
+  if (isChinese()) return "zh_hans";
+  if (isThai()) return "th";
+  return "en";
 }
 
 export function isChinaTimezone() {

@@ -1,0 +1,161 @@
+{
+    "common": {
+        "buttonLabel": {
+            "edit": "แก้ไข",
+            "save": "บันทึก",
+            "cancel": "ยกเลิก",
+            "delete": "ลบ",
+            "deleteWithConfirm": "ลบ…"
+        },
+        "toast": {
+          "copied": "คัดลอกแล้ว",
+          "deleted": "ลบแล้ว"
+        }
+    },
+    "darkModeToggle": {
+        "dark": "มืด",
+        "useSystem": "อัตโนมัติ"
+    },
+    "topNav": {
+        "signIn": "เข้าสู่ระบบ",
+        "siteSettings": "การตั้งค่าเว็บไซต์",
+        "profile": "อัปโหลดของฉัน",
+        "signOut": "ออกจากระบบ"
+    },
+    "home": {
+        "tagLine": "ส่งภาพรวดเร็วทั่วโลก ฟรี"
+    },
+    "uploader": {
+        "mainHelpText": "ลากและวาง หรือคลิกเพื่อเลือกไฟล์",
+        "copyAllURLs": "คัดลอก URL ทั้งหมด",
+        "copyFormat": "คัดลอก {{format}}"
+    },
+    "auth": {
+        "authenticationFailed": "การพิสูจน์ตัวตนล้มเหลว โปรดตรวจสอบข้อมูลและลองอีกครั้ง",
+        "passwordsDoNotMatch": "รหัสผ่านไม่ตรงกัน",
+        "passwordCannotBeEmpty": "รหัสผ่านต้องไม่ว่าง",
+        "userCreationFailed": "สร้างผู้ใช้ไม่สำเร็จ โปรดลองอีกครั้งหรือติดต่อฝ่ายสนับสนุน",
+        "titleSignIn": "เข้าสู่ระบบบัญชีของคุณ",
+        "titleCreateAccount": "สร้างบัญชีใหม่",
+        "orCreateAccount": "หรือ<2>สร้างบัญชีใหม่</2>",
+        "orSignIn": "หรือ<2>เข้าสู่ระบบ</2>",
+        "fieldEmail": "อีเมล",
+        "fieldPassword": "รหัสผ่าน",
+        "fieldRepeatPassword": "ยืนยันรหัสผ่าน",
+        "fieldEmailPlaceholder": "อีเมล",
+        "fieldPasswordPlaceholder": "รหัสผ่าน",
+        "fieldRepeatPasswordPlaceholder": "ยืนยันรหัสผ่าน",
+        "forgotPasswordLink": "ลืมรหัสผ่าน?",
+        "buttonSignIn": "เข้าสู่ระบบ",
+        "buttonCreateAccount": "สร้างบัญชี",
+        "buttonSubmit": "ส่ง",
+        "forgotPassword": {
+          "title": "ลืมรหัสผ่าน?",
+          "backToSignInLink": "กลับไปหน้าเข้าสู่ระบบ",
+          "description": "กรอกอีเมลของคุณ แล้วเราจะส่งลิงก์รีเซ็ตรหัสผ่านให้",
+          "success": "ส่งอีเมลพร้อมลิงก์รีเซ็ตรหัสผ่านให้คุณแล้ว",
+          "error": "เกิดข้อผิดพลาดในการส่งอีเมล โปรดลองอีกครั้ง"
+        },
+        "resetPassword": {
+          "title": "รีเซ็ตรหัสผ่าน",
+          "success": "รีเซ็ตรหัสผ่านสำเร็จแล้ว",
+          "error": "เกิดข้อผิดพลาดในการรีเซ็ตรหัสผ่าน โปรดลองอีกครั้ง",
+          "newPasswordPlaceholder": "รหัสผ่านใหม่",
+          "newPasswordConfirmPlaceholder": "ยืนยันรหัสผ่านใหม่"
+        }
+    },
+    "listStorageDefPage": {
+        "title": "ที่จัดเก็บข้อมูล"
+    },
+    "storageTypeNameTitle": {
+      "fs": "ระบบไฟล์",
+      "WebDAV": "WebDAV",
+      "ipfsMfs": "IPFS (MFS)"
+    },
+    "storageDefTable": {
+        "identifier": "ตัวระบุ",
+        "enabled": "เปิดใช้งาน",
+        "storageType": "ประเภทที่จัดเก็บ",
+        "actions": "การดำเนินการ",
+        "priority": "ลำดับความสำคัญ",
+        "addNew": "เพิ่มใหม่",
+        "connectivity": "การเชื่อมต่อ"
+    },
+    "storageConfigForm": {
+        "storageType":"ประเภทที่จัดเก็บ",
+        "identifier": "ตัวระบุ",
+        "enabled": "เปิดใช้งาน",
+        "priority": "ลำดับความสำคัญ",
+        "bucket": "บัคเก็ต",
+        "endpoint": "ปลายทาง",
+        "access": "Access Key",
+        "secret": "Secret Key",
+        "mediaRootPath": "พาธรากของสื่อ",
+        "url": "URL",
+        "username": "ชื่อผู้ใช้",
+        "password": "รหัสผ่าน",
+        "pathPrefix": "คำนำหน้าพาธ",
+        "apiUrl": "API URL",
+        "pin": "ปักหมุดเมื่อเขียน"
+    },
+    "storageDef": {
+        "connection": {
+            "success": "เชื่อมต่อสำเร็จ",
+            "error": "เชื่อมต่อล้มเหลว",
+            "unknown": "ไม่ทราบสถานะการเชื่อมต่อ"
+        }
+    },
+    "siteadmin": {
+      "nav": {
+        "general": "ทั่วไป",
+        "users": "ผู้ใช้",
+        "images": "ภาพ",
+        "storage": "ที่จัดเก็บ",
+        "storageBackend": "ที่จัดเก็บข้อมูล"
+      },
+      "images": {
+        "list": {
+          "title": "จัดการภาพ"
+        }
+      },
+      "users": {
+        "list": {
+          "title": "จัดการผู้ใช้"
+        }
+      }
+    },
+    "usersList": {
+      "title": "ผู้ใช้",
+      "searchPlaceholder": "ค้นหาด้วยอีเมล…",
+      "showingResults": "แสดง {{from}} ถึง {{to}} จากทั้งหมด {{total}} รายการ",
+      "previous": "ก่อนหน้า",
+      "next": "ถัดไป",
+      "pageInfo": "หน้า {{current}} จาก {{total}}"
+    },
+    "usersTable": {
+      "name": "ชื่อ",
+      "email": "อีเมล",
+      "noUsers": "ไม่พบผู้ใช้",
+      "organizationUsers": "ผู้ใช้ในองค์กร",
+      "viewImagesButton": "ดูภาพ"
+    },
+    "imageItem": {
+      "copyURL": "คัดลอก URL",
+      "download": "ดาวน์โหลด",
+      "confirmDelete": "คุณแน่ใจหรือไม่ว่าต้องการลบภาพนี้?<br/><b>{{name}}</b>"
+    },
+    "profile": {
+      "nav": {
+        "general": "ทั่วไป",
+        "images": "ภาพ"
+      },
+      "images": {
+        "list": {
+          "title": "ภาพของฉัน"
+        }
+      }
+    },
+    "userImageGallery": {
+      "title": "ภาพของผู้ใช้"
+    }
+}
