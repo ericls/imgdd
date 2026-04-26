@@ -154,6 +154,7 @@ export function StorageConfigForm({
       isEnabled: initialValue?.isEnabled ?? true,
     },
   });
+  // eslint-disable-next-line react-hooks/incompatible-library
   const storageTypeValue = commonFieldsForm.watch("storageType");
   const providerConfigForm = useForm<StorageProviderConfigData>({
     defaultValues: initialValue?.providerConfig,

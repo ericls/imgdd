@@ -78,6 +78,7 @@ export function UsersTable({ data }: { data: User[] }) {
     [t, expandedRows],
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
