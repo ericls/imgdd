@@ -21,7 +21,7 @@ import "./entry.css";
 import "../node_modules/react-toastify/dist/ReactToastify.css";
 import { DarkModeContext, DarkModeProvider } from "./lib/darkMode";
 
-import "./i18n";
+import { i18nReady } from "./i18n";
 import { apolloClient } from "./apollo";
 import { AuthProvider } from "./lib/auth";
 import { AppLayout } from "./app/layout";
@@ -180,7 +180,9 @@ function Root() {
 const appRoot = document.getElementById("app");
 if (appRoot) {
   const domRoot = createRoot(appRoot);
-  domRoot.render(<Root />);
+  i18nReady.finally(() => {
+    domRoot.render(<Root />);
+  });
 } else {
   console.error("Failed to load dom");
 }

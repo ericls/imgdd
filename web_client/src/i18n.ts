@@ -1,23 +1,40 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import { getInitialLanguage, SupportedLanguage } from "./lib/locale";
 import EN from "./localization/en.json";
 
-i18n
-  .use(initReactI18next) // passes i18n down to react-i18next
-  .init({
-    resources: {
-      en: { translation: EN },
-    },
-    lng: "en", // language to use, more information here: https://www.i18next.com/overview/configuration-options#languages-namespaces-resources
-    // you can use the i18n.changeLanguage function to change the language manually: https://www.i18next.com/overview/api#changelanguage
-    // if you're using a language detector, do not define the lng option
+type AsyncLoader = () => Promise<{ default: Record<string, unknown> }>;
 
-    interpolation: {
-      escapeValue: false, // react already safes from xss
-    },
+const LAZY_LOADERS: Partial<Record<SupportedLanguage, AsyncLoader>> = {
+  zh_hans: () => import("./localization/zh_hans.json"),
+};
+
+export async function loadLanguage(lang: SupportedLanguage) {
+  if (i18n.hasResourceBundle(lang, "translation")) return;
+  const loader = LAZY_LOADERS[lang];
+  if (!loader) return;
+  const mod = await loader();
+  i18n.addResourceBundle(lang, "translation", mod);
+}
+
+const initialLanguage = getInitialLanguage();
+
+export const i18nReady = i18n
+  .use(initReactI18next)
+  .init({
+    resources: { en: { translation: EN } },
+    lng: "en",
+    fallbackLng: "en",
+    interpolation: { escapeValue: false },
     react: {
       transKeepBasicHtmlNodesFor: ["br", "strong", "i", "p", "em", "b"],
     },
+  })
+  .then(async () => {
+    if (initialLanguage !== "en") {
+      await loadLanguage(initialLanguage);
+      await i18n.changeLanguage(initialLanguage);
+    }
   });
 
 export default i18n;

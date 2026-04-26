@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { TextLogoSmall } from "./TextLogo";
 import { DarkModeSettings } from "~src/ui/darkModeToggle";
+import { LanguageSettings } from "~src/ui/languageToggle";
 import { useAuth } from "~src/lib/auth";
 import { HiOutlineUser } from "react-icons/hi2";
 import { Button } from "~src/ui/button";
@@ -102,6 +103,7 @@ export function TopNav({ hideLogo, leftContent }: TopNavProps) {
         {/* right */}
         <div className="flex items-center">
           <TopNavAuthInfo />
+          <LanguageSettings />
           <DarkModeSettings />
         </div>
       </div>
