@@ -3,7 +3,7 @@ ARG GIT_HASH="unset"
 # -----------------------------------------------------
 # 1) FRONTEND BUILD STAGE
 # -----------------------------------------------------
-FROM --platform=$BUILDPLATFORM node:20-alpine AS ui-build
+FROM --platform=$BUILDPLATFORM node:24-alpine AS ui-build
 RUN npm install -g pnpm
 
 RUN mkdir /code
@@ -21,7 +21,7 @@ RUN pnpm run build
 # -----------------------------------------------------
 # 2) BACKEND BUILD STAGE (WITH EMBEDDED FRONTEND FILES)
 # -----------------------------------------------------
-FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS server-build
+FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS server-build
 ARG GIT_REV
 ARG GIT_HASH
 WORKDIR /code/imgdd
