@@ -237,7 +237,7 @@ export function Uplodaer() {
   }, [scheduleSetNotJustCopied, uploadingFiles]);
   return (
     <div
-      className="uploader max-w-[96%] min-[500px]:max-w-[480px] focus:outline-none focus:ring-0"
+      className="uploader max-w-[96%] min-[500px]:max-w-[480px] focus:outline-hidden focus:ring-0"
       tabIndex={-1}
     >
       <div
@@ -246,7 +246,7 @@ export function Uplodaer() {
           "rounded-md mb-6 duration-200",
           "uploding-area cursor-pointer p-10",
           "bg-neutral-50 dark:bg-neutral-800",
-          "hover:bg-neutral-100 hover:dark:bg-neutral-900",
+          "hover:bg-neutral-100 dark:hover:bg-neutral-900",
           "border border-dashed border-neutral-300",
           { ["blur-[1px]"]: dragActive },
         )}

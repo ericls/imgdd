@@ -70,7 +70,7 @@ export function DashboardLayout({
             },
             "md:hidden",
             "fixed top-0 left-0 bottom-0 right-0 z-10",
-            "bg-black bg-opacity-50",
+            "bg-black/50",
           )}
           onClick={toggleSidebar}
         ></div>
@@ -123,11 +123,11 @@ export function DashboardLayout({
                             aria-label={item.title}
                             className={classNames(
                               "w-full flex py-1 pl-2 border-l-4 items-center transition-colors duration-200 ease-in-out",
-                              "hover:text-neutral-800 hover:dark:text-neutral-100",
+                              "hover:text-neutral-800 dark:hover:text-neutral-100",
                               {
                                 [PRIMARY_BORDER_COLOR]: isActive,
                                 "border-transparent": !isActive,
-                                "hover:border-neutral-400 hover:dark:border-neutral-500":
+                                "hover:border-neutral-400 dark:hover:border-neutral-500":
                                   !isActive,
                               },
                             )}

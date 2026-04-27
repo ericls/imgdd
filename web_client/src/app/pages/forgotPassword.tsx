@@ -72,7 +72,7 @@ export function ForgotPasswordPage() {
         </p>
       </div>
       <form className="mt-8 space-y-6">
-        <div className="-space-y-px rounded-md shadow-sm">
+        <div className="-space-y-px rounded-md shadow-xs">
           <div>
             <label
               htmlFor="user-identifier"

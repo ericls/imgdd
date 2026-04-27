@@ -64,7 +64,7 @@ export function DarkModeSettings() {
                       disabled={theme === "system"}
                       type="checkbox"
                       className={cx(
-                        "w-4 h-4 mr-1 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
+                        "w-4 h-4 mr-1 text-blue-600 rounded-sm border-gray-300 focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600",
                         {
                           "opacity-50 focus:ring-0 ring-0 bg-gray-300":
                             theme === "system",
@@ -85,7 +85,7 @@ export function DarkModeSettings() {
                     <input
                       checked={theme === "system"}
                       type="checkbox"
-                      className="w-4 h-4 mr-1 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                      className="w-4 h-4 mr-1 text-blue-600 rounded-sm border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                       onChange={noop}
                     />
                     {t("darkModeToggle.useSystem")}

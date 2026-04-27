@@ -85,7 +85,7 @@ function Prompt({
 }: PromptProps) {
   return (
     <Transition.Root show as={Fragment}>
-      <Dialog as="div" className="relative z-[100]" onClose={onClose}>
+      <Dialog as="div" className="relative z-100" onClose={onClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -95,7 +95,7 @@ function Prompt({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-gray-500 dark:bg-gray-900 dark:bg-opacity-90 bg-opacity-75 transition-opacity" />
+          <div className="fixed inset-0 bg-gray-500/75 dark:bg-gray-900/90 transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 overflow-y-auto">

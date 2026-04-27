@@ -1,10 +1,65 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-:root {
-  --toastify-color-progress-dark: theme(colors.indigo.700) !important;
-  --toastify-color-progress-light: theme(colors.indigo.600) !important;
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+@source '../../httpserver/templates/*.gotmpl';
+
+@custom-variant dark (&:is([data-theme="dark"] *));
+
+@theme {
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+  --color-primary-950: #1e1b4b;
+
+  --transition-property-height: height;
+  --transition-property-width: width;
+
+  --font-poppins:
+    Poppins, Inter, -apple-system, Lucida Grande, Tahoma, Sans-Serif;
+  --font-inter: Inter, -apple-system, Lucida Grande, Tahoma, Sans-Serif;
+  --font-body: Merriweather, -apple-system, Lucida Grande, Tahoma, Sans-Serif;
+  --font-ui: Roboto, -apple-system, Lucida Grande, Tahoma, Sans-Serif;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  input[type="checkbox"]:checked,
+  input[type="radio"]:checked,
+  input[type="checkbox"]:indeterminate {
+    background-color: currentColor;
+    border-color: transparent;
+  }
+}
+
+@layer utilities {
+  :root {
+    --toastify-color-progress-dark: var(--color-indigo-700) !important;
+    --toastify-color-progress-light: var(--color-indigo-600) !important;
+  }
 }
 
 @layer base {

@@ -1,8 +1,8 @@
 {
-    "plugins": {
-      "postcss-import": {},
-      "postcss-simple-vars": {},
-      "postcss-nested": {},
-      "tailwindcss": {}
-    }
+  "plugins": {
+    "postcss-import": {},
+    "postcss-simple-vars": {},
+    "postcss-nested": {},
+    "@tailwindcss/postcss": {}
   }
+}

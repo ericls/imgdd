@@ -18,7 +18,7 @@ export function AppMainPage() {
     );
   }
   return (
-    <div className="max-w-screen-sm flex flex-col grow mx-auto items-center">
+    <div className="max-w-(--breakpoint-sm) flex flex-col grow mx-auto items-center">
       <h1
         className={classnames(
           TEXT_COLOR,

@@ -100,7 +100,7 @@ export function UsersList() {
             <button
               onClick={() => setCurrentPage(currentPage - 1)}
               disabled={!pageInfo.hasPreviousPage}
-              className="px-3 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="px-3 py-1 text-sm rounded-sm border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               {t("usersList.previous", "Previous")}
             </button>
@@ -113,7 +113,7 @@ export function UsersList() {
             <button
               onClick={() => setCurrentPage(currentPage + 1)}
               disabled={!pageInfo.hasNextPage}
-              className="px-3 py-1 text-sm rounded border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="px-3 py-1 text-sm rounded-sm border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               {t("usersList.next", "Next")}
             </button>

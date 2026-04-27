@@ -5,8 +5,8 @@ const BUTTON_VARIANTS = {
   indigo:
     "bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600 focus:ring-indigo-500 text-white",
   transparent:
-    "bg-transparent shadow-transparent focus:ring-0 focus:ring-offset-0 outline-none focus:ring-neutral-300 dark:focus:ring-neutral-500",
-  secondary: `bg-neutral-50 dark:bg-neutral-700 hover:bg-neutral-100 hover:dark:bg-neutral-600`,
+    "bg-transparent shadow-transparent focus:ring-0 focus:ring-offset-0 outline-hidden focus:ring-neutral-300 dark:focus:ring-neutral-500",
+  secondary: `bg-neutral-50 dark:bg-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-600`,
   green: `bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 focus:ring-green-600 text-white`,
   destructive:
     "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 focus:ring-red-500 text-white",
@@ -35,7 +35,7 @@ export const Button = React.forwardRef<
     if (roundLevel) {
       roundedClassName = `rounded-${roundLevel}`;
     } else if (roundLevel === "") {
-      roundedClassName = "rounded";
+      roundedClassName = "rounded-sm";
     }
     return (
       <button
@@ -44,9 +44,10 @@ export const Button = React.forwardRef<
           className,
           variantClassName,
           roundedClassName,
-          `justify-center border border-transparent shadow`,
+          `cursor-pointer`,
+          `justify-center border border-transparent shadow-sm`,
           `text-sm font-medium`,
-          `focus:outline-none focus:ring-2`,
+          `focus:outline-hidden focus:ring-2`,
           { "py-2 px-4": !noPadding },
         )}
         {...props}

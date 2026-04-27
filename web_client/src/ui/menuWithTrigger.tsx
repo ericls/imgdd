@@ -89,14 +89,9 @@ export function MenuWithTrigger({
       </div>
       {/* Full screen backdrop on mobile */}
       <div
-        className={classNames(
-          "fixed inset-0 bg-black bg-opacity-80",
-          "z-9",
-          "h-full",
-          {
-            hidden: !(open && breakpointName === "2xs"),
-          },
-        )}
+        className={classNames("fixed inset-0 bg-black/80", "z-9", "h-full", {
+          hidden: !(open && breakpointName === "2xs"),
+        })}
         onClick={onClose}
       />
       <Transition

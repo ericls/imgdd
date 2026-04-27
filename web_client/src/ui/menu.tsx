@@ -157,7 +157,7 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
         onMouseLeave={onMouseLeaveContaienr}
         className={cx(
           "menu",
-          "mt-2 rounded shadow-md ring-1 ring-black ring-opacity-5",
+          "mt-2 rounded-sm shadow-md ring-gray-200 ring-1 dark:ring-neutral-700",
           "bg-neutral-50 dark:bg-neutral-700 dark:shadow-neutral-800",
           "divide-y dark:divide-neutral-800",
           "z-20",
@@ -180,7 +180,7 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
                     disabled={item.disabled}
                     className={cx(
                       item.className,
-                      "cursor-pointer block rounded py-1 px-2 focus:outline-none w-full text-start",
+                      "cursor-pointer block rounded-sm py-1 px-2 focus:outline-hidden w-full text-start",
                       {
                         active: activeId === item.id,
                         "bg-neutral-200 dark:bg-neutral-800":

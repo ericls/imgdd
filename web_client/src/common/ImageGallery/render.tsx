@@ -74,7 +74,7 @@ export function ImageItemRenderer({ image }: { image: RenderingImageItem }) {
       className="group flex flex-col overflow-hidden rounded-md"
       tabIndex={0}
     >
-      <div className="relative w-full pb-[80%] overflow-hidden bg-transparent rounded-md focus-within:[&_.menu-trigger]:opacity-100">
+      <div className="relative w-full pb-[80%] overflow-hidden bg-transparent rounded-md [&_.menu-trigger]:focus-within:opacity-100">
         {menuSections && (
           <div className="absolute menu-trigger top-2 right-2 z-10 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
             <MenuWithTrigger
