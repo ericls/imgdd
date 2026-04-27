@@ -41,7 +41,14 @@ export function MenuWithTrigger({
     strategy:
       breakpointName == "2xs" && bottomFixedOnMobile ? "fixed" : "absolute",
   });
-  const { setReference, setFloating } = refs;
+  const { setReference, setFloating, reference, floating } = refs;
+  const ignoreRefs = React.useMemo(
+    () => [
+      reference as React.RefObject<HTMLElement | null>,
+      floating as React.RefObject<HTMLElement | null>,
+    ],
+    [reference, floating],
+  );
   let finalStyle: React.CSSProperties = {
     ...style,
     position: strategy,
@@ -110,6 +117,7 @@ export function MenuWithTrigger({
           {...props}
           style={finalStyle}
           onClose={onClose}
+          refsConsideredInside={ignoreRefs}
         />
       </Transition>
     </>

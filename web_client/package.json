@@ -60,7 +60,7 @@
   "dependencies": {
     "@apollo/client": "^3.14.1",
     "@floating-ui/react-dom": "^2.1.8",
-    "@headlessui/react": "^1.7.19",
+    "@headlessui/react": "^2.2.10",
     "@tanstack/react-table": "^8.21.3",
     "classnames": "^2.5.1",
     "copy-to-clipboard": "^4.0.2",

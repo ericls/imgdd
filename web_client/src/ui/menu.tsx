@@ -29,11 +29,19 @@ export type MenuSections = {
 export type MenuProps = {
   onClose?: () => void;
   closeOnOutside?: boolean;
+  refsConsideredInside?: React.RefObject<HTMLElement | null>[];
   menuSections: MenuSections;
 } & JSX.IntrinsicElements["div"];
 export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
   (
-    { onClose, menuSections, closeOnOutside = true, className, ...props },
+    {
+      onClose,
+      menuSections,
+      closeOnOutside = true,
+      refsConsideredInside,
+      className,
+      ...props
+    },
     containerRef,
   ) => {
     const localContainerRef = React.useRef<HTMLDivElement>();
@@ -132,22 +140,25 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
     }, [setActiveId]);
     React.useEffect(() => {
       if (!closeOnOutside) return;
+      let armed = false;
+      const armId = requestAnimationFrame(() => {
+        armed = true;
+      });
       const listener = (e: MouseEvent) => {
-        if (
-          e.target instanceof HTMLElement &&
-          localContainerRef.current &&
-          localContainerRef.current.contains(e.target)
-        ) {
-          return;
-        } else {
-          onClose?.();
+        if (!armed) return;
+        if (!(e.target instanceof Node)) return;
+        if (localContainerRef.current?.contains(e.target)) return;
+        for (const ref of refsConsideredInside ?? []) {
+          if (ref.current?.contains(e.target)) return;
         }
+        onClose?.();
       };
       document.addEventListener("click", listener);
       return () => {
+        cancelAnimationFrame(armId);
         document.removeEventListener("click", listener);
       };
-    }, [onClose, closeOnOutside]);
+    }, [onClose, closeOnOutside, refsConsideredInside]);
     return (
       <div
         ref={finalContainerRef}
