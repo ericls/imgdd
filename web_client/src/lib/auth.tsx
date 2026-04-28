@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { noop } from "lodash-es";
 import React from "react";
 import { gql } from "~src/__generated__/gql";

@@ -8,7 +8,7 @@ import { HEADING_1, LINK_COLOR, TEXT_COLOR } from "~src/ui/classNames";
 import { Input } from "~src/ui/input";
 import { useForm } from "react-hook-form";
 import { gql } from "~src/__generated__";
-import { useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client/react";
 import { toast } from "react-toastify";
 import { Loader } from "~src/ui/loader";
 import { captchaProtected } from "~src/lib/captcha";

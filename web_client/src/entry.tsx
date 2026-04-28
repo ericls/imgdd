@@ -10,7 +10,7 @@ import "./lib/sessionTokenInterceptor";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { ToastContainer } from "react-toastify";
-import { ApolloProvider } from "@apollo/client";
+import { ApolloProvider } from "@apollo/client/react";
 import {
   createBrowserRouter,
   Navigate,

@@ -1,5 +1,5 @@
 import React from "react";
-import { useLazyQuery, useMutation } from "@apollo/client";
+import { useLazyQuery, useMutation } from "@apollo/client/react";
 import { gql } from "~src/__generated__";
 import {
   ImageOrderByInput,
@@ -77,12 +77,24 @@ export function useImagesQuery({
     };
   }, [after, before, createdById, nameContains, orderBy]);
   const [
-    execute,
-    { data, loading, previousData, error, refetch, variables: dataVariables },
+    executeQuery,
+    {
+      data: rawData,
+      loading,
+      previousData: rawPreviousData,
+      error,
+      refetch,
+      variables: dataVariables,
+    },
   ] = useLazyQuery(ImagesQueryDoc, {
-    variables: variables,
     fetchPolicy: "network-only",
   });
+  const data = rawData as ImagesQueryQuery | undefined;
+  const previousData = rawPreviousData as ImagesQueryQuery | undefined;
+  const execute = React.useCallback(
+    () => executeQuery({ variables }),
+    [executeQuery, variables],
+  );
   const currentPageInfo = React.useMemo<
     ImagesQueryQuery["viewer"]["images"]["pageInfo"]
   >(() => {

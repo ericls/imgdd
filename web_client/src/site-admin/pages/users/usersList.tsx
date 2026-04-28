@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { UsersTable } from "./usersTable";
 import { Input } from "~src/ui/input";
 import { useDebounce } from "~src/lib/hooks";
-import { useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
 import classNames from "classnames";
 
 const listUsersQuery = gql(`

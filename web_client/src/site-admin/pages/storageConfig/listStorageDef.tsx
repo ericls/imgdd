@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
 import classNames from "classnames";
 import React from "react";
 import { gql } from "~src/__generated__";

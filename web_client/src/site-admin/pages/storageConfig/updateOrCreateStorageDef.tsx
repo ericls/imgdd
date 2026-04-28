@@ -1,4 +1,4 @@
-import { useLazyQuery } from "@apollo/client";
+import { useLazyQuery } from "@apollo/client/react";
 import classNames from "classnames";
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
