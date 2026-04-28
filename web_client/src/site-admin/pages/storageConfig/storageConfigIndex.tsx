@@ -1,6 +1,6 @@
 import React from "react";
 import { ListStorageDef } from "./listStorageDef";
-import { Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes } from "react-router";
 import { UpdateOrCreateStorageDef } from "./updateOrCreateStorageDef";
 
 export function StorageConfig() {

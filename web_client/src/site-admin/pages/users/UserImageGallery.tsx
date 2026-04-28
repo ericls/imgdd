@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { DEFAULT_MENU_CONFIG } from "~src/common/ImageGallery/menu";
 import { ImageGallery } from "~src/common/ImageGallery/render";
 import { useTranslation } from "react-i18next";

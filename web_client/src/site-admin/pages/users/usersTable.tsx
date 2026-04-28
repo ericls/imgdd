@@ -13,7 +13,7 @@ import {
   LINK_COLOR,
 } from "~src/ui/classNames";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { HiChevronRight, HiChevronDown } from "react-icons/hi";
 
 type User = ListUsersQuery["viewer"]["paginatedAllUsers"]["nodes"][number];

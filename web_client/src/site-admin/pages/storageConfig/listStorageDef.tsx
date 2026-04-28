@@ -5,7 +5,7 @@ import { gql } from "~src/__generated__";
 import { HEADING_2 } from "~src/ui/classNames";
 import { BlockLoader } from "~src/ui/loader";
 import { DumbStorageDefTable } from "../../components/storageDefTable/storageDefTable";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 
 const listStorageDefQuery = gql(`

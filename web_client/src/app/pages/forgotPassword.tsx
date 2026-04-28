@@ -2,7 +2,7 @@ import React from "react";
 import cx from "classnames";
 import { HiLockClosed as LockClosedIcon } from "react-icons/hi2";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Button } from "~src/ui/button";
 import { HEADING_1, LINK_COLOR, TEXT_COLOR } from "~src/ui/classNames";
 import { Input } from "~src/ui/input";

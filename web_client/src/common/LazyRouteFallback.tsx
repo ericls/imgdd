@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigation } from "react-router-dom";
+import { useNavigation } from "react-router";
 import { FullScreenLoader } from "~src/ui/fullscreenLoader";
 
 export function LazyRouteFallback() {

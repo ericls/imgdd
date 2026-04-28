@@ -1,7 +1,7 @@
 import { useLazyQuery } from "@apollo/client/react";
 import classNames from "classnames";
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 import { toast } from "react-toastify";
 import { gql } from "~src/__generated__";
 import { StorageConfigForm } from "~src/site-admin/components/storageConfigForm";

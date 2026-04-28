@@ -1,5 +1,5 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 import { Footer } from "~src/common/Footer";
 import { LazyRouteFallback } from "~src/common/LazyRouteFallback";
 import { TopNav } from "~src/common/TopNav";

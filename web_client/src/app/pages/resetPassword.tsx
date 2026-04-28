@@ -10,7 +10,7 @@ import { gql } from "~src/__generated__";
 import { useMutation } from "@apollo/client/react";
 import { toast } from "react-toastify";
 import { Loader } from "~src/ui/loader";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { captchaProtected } from "~src/lib/captcha";
 
 type ResetPasswordFormData = {

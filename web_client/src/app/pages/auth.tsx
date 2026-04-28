@@ -8,7 +8,7 @@ import { HEADING_1, LINK_COLOR, TEXT_COLOR } from "~src/ui/classNames";
 import { useForm } from "react-hook-form";
 import { useApolloClient, useMutation } from "@apollo/client/react";
 import { toast } from "react-toastify";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { gql } from "~src/__generated__/gql";
 import { Trans, useTranslation } from "react-i18next";
 

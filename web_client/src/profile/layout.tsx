@@ -1,5 +1,5 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 import { PiImages as ImagesIcon } from "react-icons/pi";
 import { DashboardLayout } from "~src/common/layout/dashboardLayout";
 import { useTranslation } from "react-i18next";
