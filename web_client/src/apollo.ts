@@ -1,7 +1,8 @@
-import { ApolloClient, createHttpLink, InMemoryCache } from "@apollo/client";
+import { ApolloClient, InMemoryCache } from "@apollo/client";
+import { HttpLink } from "@apollo/client/link/http";
 import { getSessionToken } from "./lib/sessionToken";
 
-const apolloLinkWithToken = createHttpLink({
+const apolloLinkWithToken = new HttpLink({
   uri: (operation) => {
     const context = operation.getContext();
     const maybeCaptchaToken = context.captchaToken;
