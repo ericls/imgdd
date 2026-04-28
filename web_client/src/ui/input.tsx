@@ -8,7 +8,7 @@ import {
 
 export const Input = React.forwardRef<
   HTMLInputElement,
-  JSX.IntrinsicElements["input"]
+  React.JSX.IntrinsicElements["input"]
 >(({ className, ...props }, ref) => {
   let defaultClassName = DEFAULT_INPUT;
   if (props.type === "checkbox") {

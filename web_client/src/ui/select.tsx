@@ -4,7 +4,7 @@ import { DEFAULT_INPUT, DEFAULT_INPUT_LABEL } from "./classNames";
 
 export const Select = React.forwardRef<
   HTMLSelectElement,
-  JSX.IntrinsicElements["select"]
+  React.JSX.IntrinsicElements["select"]
 >(({ className, ...props }, ref) => {
   return (
     <select ref={ref} className={cx(className, DEFAULT_INPUT)} {...props} />

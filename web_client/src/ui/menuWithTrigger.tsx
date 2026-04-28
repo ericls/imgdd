@@ -11,7 +11,7 @@ import classNames from "classnames";
 import { useBreakpointName } from "./breakpoint";
 
 type MenuWithTriggerProps = Omit<MenuProps, "open" | "onClose" | "ref"> & {
-  trigger: React.ReactElement;
+  trigger: React.ReactElement<{ className?: string; disabled?: boolean }>;
   placement?: Placement;
   containerClassName?: string;
   bottomFixedOnMobile?: boolean;

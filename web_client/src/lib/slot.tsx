@@ -1,6 +1,6 @@
 import React from "react";
 
-type SlotsFiller = string | ((r: typeof React) => JSX.Element | string);
+type SlotsFiller = string | ((r: typeof React) => React.JSX.Element | string);
 
 const SlotsContext = React.createContext<{
   slots: Record<string, SlotsFiller | undefined>;
@@ -30,7 +30,7 @@ export function Slot({
   fallback,
 }: {
   id: string;
-  fallback: JSX.Element | string;
+  fallback: React.JSX.Element | string;
 }) {
   const { slots } = React.useContext(SlotsContext);
   const slot = slots[id];

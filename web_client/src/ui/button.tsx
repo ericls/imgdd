@@ -14,7 +14,7 @@ const BUTTON_VARIANTS = {
 
 export const Button = React.forwardRef<
   HTMLButtonElement,
-  JSX.IntrinsicElements["button"] & {
+  React.JSX.IntrinsicElements["button"] & {
     variant?: keyof typeof BUTTON_VARIANTS;
     roundLevel?: "md" | "full" | "lg" | "";
     noPadding?: boolean;

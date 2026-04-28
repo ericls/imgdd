@@ -31,7 +31,7 @@ export type MenuProps = {
   closeOnOutside?: boolean;
   refsConsideredInside?: React.RefObject<HTMLElement | null>[];
   menuSections: MenuSections;
-} & JSX.IntrinsicElements["div"];
+} & React.JSX.IntrinsicElements["div"];
 export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
   (
     {
@@ -44,7 +44,7 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
     },
     containerRef,
   ) => {
-    const localContainerRef = React.useRef<HTMLDivElement>();
+    const localContainerRef = React.useRef<HTMLDivElement | null>(null);
     const menuIdToElement = React.useRef<Map<string, HTMLElement>>(new Map());
     const finalContainerRef = React.useCallback(
       (el: HTMLDivElement) => {
