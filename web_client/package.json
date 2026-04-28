@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "concurrently \"pnpm:dev:*\"",
-    "dev:js": "parcel watch --public-url=/static/web/ --port=8081",
-    "build": "NODE_ENV=production parcel build --public-url=/static/web/ --no-source-maps",
+    "dev:js": "parcel watch --public-url=/static/web/ --port=8081 --no-cache",
+    "build": "NODE_ENV=production parcel build --public-url=/static/web/ --no-source-maps --no-cache",
     "build-with-report": "pnpm run build -- --reporter @parcel/reporter-bundle-analyzer",
     "lint": "eslint src",
     "gen": "graphql-codegen",
@@ -55,7 +55,7 @@
     "process": "^0.11.10",
     "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.0"
+    "typescript-eslint": "^8.59.1"
   },
   "dependencies": {
     "@apollo/client": "^4.1.9",
@@ -70,7 +70,7 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-hook-form": "^7.74.0",
-    "react-i18next": "^17.0.4",
+    "react-i18next": "^17.0.6",
     "react-icons": "^5.6.0",
     "react-router": "^7.14.2",
     "react-toastify": "^11.1.0"
@@ -99,6 +99,6 @@
     ]
   },
   "@parcel/resolver-default": {
-     "packageExports": true
+    "packageExports": true
   }
 }
