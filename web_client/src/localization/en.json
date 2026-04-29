@@ -115,7 +115,8 @@
       },
       "images": {
         "list": {
-          "title": "Manage images"
+          "title": "Manage images",
+          "searchPlaceholder": "Search by name..."
         }
       },
       "users": {
@@ -151,7 +152,8 @@
       },
       "images": {
         "list": {
-          "title": "My images"
+          "title": "My images",
+          "searchPlaceholder": "Search by name..."
         }
       }
     },

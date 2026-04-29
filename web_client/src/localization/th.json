@@ -115,7 +115,8 @@
       },
       "images": {
         "list": {
-          "title": "จัดการภาพ"
+          "title": "จัดการภาพ",
+          "searchPlaceholder": "ค้นหาด้วยชื่อ…"
         }
       },
       "users": {
@@ -151,7 +152,8 @@
       },
       "images": {
         "list": {
-          "title": "ภาพของฉัน"
+          "title": "ภาพของฉัน",
+          "searchPlaceholder": "ค้นหาด้วยชื่อ…"
         }
       }
     },

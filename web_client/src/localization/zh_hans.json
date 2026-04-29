@@ -115,7 +115,8 @@
       },
       "images": {
         "list": {
-          "title": "管理图片"
+          "title": "管理图片",
+          "searchPlaceholder": "按名称搜索…"
         }
       },
       "users": {
@@ -151,7 +152,8 @@
       },
       "images": {
         "list": {
-          "title": "我的图片"
+          "title": "我的图片",
+          "searchPlaceholder": "按名称搜索…"
         }
       }
     },

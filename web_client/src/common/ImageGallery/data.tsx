@@ -65,6 +65,12 @@ export function useImagesQuery({
   });
   const [after, setAfter] = React.useState<string | null>(null);
   const [before, setBefore] = React.useState<string | null>(null);
+  const [prevNameContains, setPrevNameContains] = React.useState(nameContains);
+  if (prevNameContains !== nameContains) {
+    setPrevNameContains(nameContains);
+    setAfter(null);
+    setBefore(null);
+  }
   const variables: ImagesQueryQueryVariables = React.useMemo(() => {
     return {
       orderBy,
