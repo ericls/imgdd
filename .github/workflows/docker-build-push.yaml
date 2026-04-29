@@ -3,6 +3,9 @@ name: Build & Push Docker Image
 on:
   workflow_dispatch:  # Allows manual triggering
 
+permissions:
+  contents: read
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
