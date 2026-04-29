@@ -3,8 +3,7 @@ name: Build & Release Binaries
 on:
   workflow_dispatch:
 
-permissions:
-  contents: write
+permissions: read-all
 
 jobs:
   build-frontend:
@@ -88,6 +87,8 @@ jobs:
     name: Create GitHub Release
     needs: build-backend
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
