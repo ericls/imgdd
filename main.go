@@ -9,6 +9,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -22,7 +23,9 @@ import (
 	"github.com/ericls/imgdd/graph"
 	"github.com/ericls/imgdd/httpserver"
 	"github.com/ericls/imgdd/identity"
+	"github.com/ericls/imgdd/image"
 	"github.com/ericls/imgdd/logging"
+	"github.com/ericls/imgdd/storage"
 	"github.com/ericls/imgdd/test_support"
 	"github.com/rs/zerolog"
 
@@ -243,6 +246,63 @@ func main() {
 			Name: "build-info",
 			Action: func(ctx *cli.Context) error {
 				buildflag.PrintBuildInfo()
+				return nil
+			},
+		},
+		{
+			Name:  "replicate",
+			Usage: "Replicate images from one storage backend to another",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:     "source",
+					Usage:    "Identifier of the source storage definition",
+					Required: true,
+				},
+				&cli.StringFlag{
+					Name:     "target",
+					Usage:    "Identifier of the target storage definition",
+					Required: true,
+				},
+				&cli.StringFlag{
+					Name:  "image",
+					Usage: "ID of a specific image to replicate (omit to replicate all missing images)",
+				},
+				&cli.IntFlag{
+					Name:  "workers",
+					Usage: "Number of concurrent copy goroutines; the job buffer is workers*2 (default: 10)",
+					Value: 10,
+				},
+			},
+			Action: func(ctx *cli.Context) error {
+				conf := getConfig(ctx)
+				conn := db.GetConnection(&conf.Db)
+				storageDefRepo := storage.NewDBStorageDefRepo(conn)
+				storedImageRepo := storage.NewDBStoredImageRepo(conn)
+				imageRepo := image.NewDBImageRepo(conn)
+
+				sourceDef, err := storageDefRepo.GetStorageDefinitionByIdentifier(ctx.String("source"))
+				if err != nil {
+					return fmt.Errorf("source storage definition not found: %w", err)
+				}
+				targetDef, err := storageDefRepo.GetStorageDefinitionByIdentifier(ctx.String("target"))
+				if err != nil {
+					return fmt.Errorf("target storage definition not found: %w", err)
+				}
+
+				workers := ctx.Int("workers")
+				if imageId := ctx.String("image"); imageId != "" {
+					si, err := storage.ReplicateImageToStorageDefinition(imageId, sourceDef.Id, targetDef.Id, storedImageRepo, imageRepo, storageDefRepo)
+					if err != nil {
+						return err
+					}
+					logger.Info().Str("stored_image_id", si.Id).Msg("Image replicated successfully")
+				} else {
+					count, err := storage.BulkReplicateToStorageDefinition(sourceDef.Id, targetDef.Id, storedImageRepo, imageRepo, storageDefRepo, workers)
+					if err != nil {
+						return err
+					}
+					logger.Info().Int("count", count).Msg("Bulk replication complete")
+				}
 				return nil
 			},
 		},
