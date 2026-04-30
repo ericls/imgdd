@@ -15,7 +15,7 @@ As of February 2025, the project handles over 1 TB of traffic and 4.2 million re
 - [imgdd.com](https://imgdd.com)
 
 ## Features
-- **Pluggable storage backends**: S3 (and S3-compatible services like MinIO), local filesystem, WebDAV, and IPFS MFS. Multiple backends can be enabled at once with configurable priority, defined in the database or the config file.
+- **Pluggable storage backends**: S3 (and S3-compatible services like MinIO), local filesystem, WebDAV, and IPFS MFS. Multiple backends can be enabled at once with configurable priority, defined in the database or the config file. Images can be replicated between backends with the `replicate` CLI command.
 - **Flexible URL formats**: `canonical` (proxied from the best available backend) and `direct` (routed through a specific backend); per-image delivery chooses the highest-priority enabled backend.
 - **Upload pipeline**: automatic EXIF stripping, MIME-type detection with declared/detected mismatch rejection, size limits, and deduplication across stored images. Revisions are linked back to a root image.
 - **Optional safe-image check**: delegate NSFW/abuse screening to an external HTTP endpoint.
@@ -30,7 +30,7 @@ As of February 2025, the project handles over 1 TB of traffic and 4.2 million re
 - **Operational toggles**: disable new uploads (`ALLOW_UPLOAD`) or new user signups (`ALLOW_NEW_USER`) at runtime.
 - **Background cleanup** of orphaned stored images across backends.
 - **Deployment-friendly**: single Go binary, official Docker image, TOML + env configuration, optional migrate-on-start, Nix flake for reproducible dev.
-- **CLI tooling**: migrations, user/role management, config generation, test email, and dev helpers (`gql`, `jet`, `reset-db`, `dev-server` with hot reload).
+- **CLI tooling**: migrations, user/role management, config generation, test email, storage replication, and dev helpers (`gql`, `jet`, `reset-db`, `dev-server` with hot reload).
 
 ## Development
 

@@ -2,6 +2,7 @@ package storage
 
 import (
 	"io"
+	"iter"
 
 	dm "github.com/ericls/imgdd/domainmodels"
 	"github.com/ericls/imgdd/utils"
@@ -42,4 +43,9 @@ type StoredImageRepo interface {
 	GetStoredImageIdsByImageIds(imageIds []string) (map[string][]string, error)
 	GetStoredImagesToDelete() ([]*dm.StoredImage, error)
 	MarkStoredImagesAsDeleted(ids []string) error
+	// Returns all non-deleted stored images for a given image ID (with Image populated for MIMEType).
+	GetStoredImagesByImageId(imageId string) ([]*dm.StoredImage, error)
+	// Returns the total count of images to replicate and a lazy iterator that streams them
+	// one row at a time. The count is fetched eagerly so callers can report progress.
+	GetStoredImagesForReplication(sourceStorageDefId string, targetStorageDefId string) (int, iter.Seq2[*dm.StoredImage, error], error)
 }
