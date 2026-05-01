@@ -14,6 +14,9 @@ import { UploaderItem } from "./uploaderItem";
 import { useTranslation } from "react-i18next";
 import { addSessionHeaderToXMLHttpRequest } from "~src/lib/sessionToken";
 import { absoluteURL } from "~src/lib/url";
+import { track } from "~src/lib/analytics";
+
+type UploadSource = "file_input" | "drag_drop" | "paste";
 
 const FILE_SIZE_LIMIT = 5e6;
 
@@ -36,8 +39,14 @@ export function Uplodaer() {
   );
   const inputRef = React.useRef<HTMLInputElement>(null);
   const uploadSingle = React.useCallback(
-    (file: File) => {
+    (file: File, source: UploadSource) => {
       const id = uniqueId("file-");
+      const baseProps = {
+        source,
+        fileSize: file.size,
+        fileType: file.type,
+      };
+      track("upload_started", baseProps);
       const newUploadingFile: UploadingFile = {
         id,
         file,
@@ -76,6 +85,7 @@ export function Uplodaer() {
           url = payload.url;
         } catch {
           setCurrentFile({ errored: true });
+          track("upload_failed", { ...baseProps, reason: "bad_response" });
           return;
         }
         if (filename && url) {
@@ -87,14 +97,17 @@ export function Uplodaer() {
             uploadedFileName: filename,
             url,
           });
+          track("upload_succeeded", baseProps);
         } else {
           setCurrentFile({ errored: true });
+          track("upload_failed", { ...baseProps, reason: "bad_response" });
         }
       });
       request.addEventListener(
         "error",
         () => {
           setCurrentFile({ errored: true });
+          track("upload_failed", { ...baseProps, reason: "network" });
         },
         { once: false },
       );
@@ -123,7 +136,7 @@ export function Uplodaer() {
           continue;
         }
         if (file.size <= FILE_SIZE_LIMIT && !file.type.includes("svg")) {
-          uploadSingle(file);
+          uploadSingle(file, "file_input");
           c += 1;
         }
         i += 1;
@@ -159,7 +172,7 @@ export function Uplodaer() {
           file.size <= FILE_SIZE_LIMIT &&
           !file.type.includes("svg")
         ) {
-          uploadSingle(file);
+          uploadSingle(file, "paste");
           count += 1;
         }
       }
@@ -191,7 +204,7 @@ export function Uplodaer() {
             file.size <= FILE_SIZE_LIMIT &&
             !file.type.includes("svg")
           ) {
-            uploadSingle(file);
+            uploadSingle(file, "drag_drop");
             count += 1;
           }
         }
