@@ -32,6 +32,7 @@ type HttpServerConfigDef struct {
 	TurnstileSecretKey     string
 	CustomCSS              string
 	CustomJS               string
+	GoogleAnalyticsID      string
 	AllowUpload            bool
 	AllowNewUser           bool
 }
@@ -57,6 +58,7 @@ func ReadServerConfigFromEnv() HttpServerConfigDef {
 		TurnstileSecretKey:     utils.GetEnv("IMGDD_TURNSTILE_SECRET_KEY", ""),
 		CustomCSS:              utils.GetEnv("IMGDD_CUSTOM_CSS", ""),
 		CustomJS:               utils.GetEnv("IMGDD_CUSTOM_JS", ""),
+		GoogleAnalyticsID:      utils.GetEnv("IMGDD_GOOGLE_ANALYTICS_ID", ""),
 		AllowUpload:            utils.IsStrTruthy(utils.GetEnv("IMGDD_ALLOW_UPLOAD", "true")),
 		AllowNewUser:           utils.IsStrTruthy(utils.GetEnv("IMGDD_ALLOW_NEW_USER", "true")),
 	}

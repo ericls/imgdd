@@ -45,7 +45,7 @@
       }
       window.VERSION = "{{.Version}}";
       window.SITE_NAME = "{{.SiteName}}";
-      window.GAID = "";
+      window.GAID = "{{.GoogleAnalyticsID}}";
       window.SUPPORT_EMAIL = "support@imgdd.com"
       window.SESSION_HEADER_NAME = "{{.SessionHeaderName}}";
 </script>
@@ -56,10 +56,15 @@
 {{.CustomCSS}}
 </style>
 {{ end }}
-{{if .Debug}}
-{{else}}
-{{/* analytics */}}
-{{end}}
+{{ if and (not .Debug) .GoogleAnalyticsID }}
+<script async src="https://www.googletagmanager.com/gtag/js?id={{.GoogleAnalyticsID}}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '{{.GoogleAnalyticsID}}');
+</script>
+{{ end }}
 </head>
 <body class="bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-100 font-ui h-screen">
 {{block "content" .}}{{end}}

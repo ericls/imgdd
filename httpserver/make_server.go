@@ -137,6 +137,7 @@ func MakeServer(
 		withTurnstileSiteKey(conf.TurnstileSiteKey),
 		withCustomCSS(conf.CustomCSS),
 		withCustomJS(conf.CustomJS),
+		withGoogleAnalyticsID(conf.GoogleAnalyticsID),
 	))
 
 	rootRouter := mux.NewRouter()

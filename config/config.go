@@ -109,6 +109,7 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			TurnstileSecretKey:     configFile.HTTPServer.TURNSTILE_SECRET_KEY,
 			CustomCSS:              configFile.HTTPServer.CUSTOM_CSS,
 			CustomJS:               configFile.HTTPServer.CUSTOM_JS,
+			GoogleAnalyticsID:      configFile.HTTPServer.GOOGLE_ANALYTICS_ID,
 			AllowUpload:            utils.IsStrTruthy(configFile.HTTPServer.ALLOW_UPLOAD),
 			AllowNewUser:           utils.IsStrTruthy(configFile.HTTPServer.ALLOW_NEW_USER),
 		},
@@ -210,6 +211,9 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		}
 		if config.HttpServer.CustomJS != "" {
 			merged.HttpServer.CustomJS = config.HttpServer.CustomJS
+		}
+		if config.HttpServer.GoogleAnalyticsID != "" {
+			merged.HttpServer.GoogleAnalyticsID = config.HttpServer.GoogleAnalyticsID
 		}
 		if config.configFileDef != nil && config.configFileDef.HTTPServer.ALLOW_UPLOAD != "" {
 			merged.HttpServer.AllowUpload = config.HttpServer.AllowUpload

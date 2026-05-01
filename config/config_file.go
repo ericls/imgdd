@@ -55,6 +55,7 @@ type HTTPServerConfigFileDef struct {
 	TURNSTILE_SECRET_KEY      string `toml:"TURNSTILE_SECRET_KEY" comment:"Turnstile secret key. Used if CAPTCHA_PROVIDER is 'turnstile'"`
 	CUSTOM_CSS                string `toml:"CUSTOM_CSS" comment:"Custom CSS"`
 	CUSTOM_JS                 string `toml:"CUSTOM_JS" comment:"Custom JS"`
+	GOOGLE_ANALYTICS_ID       string `toml:"GOOGLE_ANALYTICS_ID" comment:"Google Analytics measurement ID (e.g. G-XXXXXXX). When set, injects gtag.js and exposes window.GAID."`
 	ALLOW_UPLOAD              string `toml:"ALLOW_UPLOAD" comment:"Allow uploading new images. 'true', '1' or 'yes' to enable"`
 	ALLOW_NEW_USER            string `toml:"ALLOW_NEW_USER" comment:"Allow new user creation. 'true', '1' or 'yes' to enable"`
 }

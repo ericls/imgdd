@@ -20,6 +20,7 @@ type appHandlerOptions struct {
 	turnstileSiteKey   string
 	customCSS          string
 	customJS           string
+	googleAnalyticsID  string
 }
 
 type appHandlerOption func(*appHandlerOptions)
@@ -87,6 +88,12 @@ func withCustomJS(js string) func(*appHandlerOptions) {
 	}
 }
 
+func withGoogleAnalyticsID(id string) func(*appHandlerOptions) {
+	return func(o *appHandlerOptions) {
+		o.googleAnalyticsID = id
+	}
+}
+
 func makeAppHandler(
 	options ...appHandlerOption,
 ) http.HandlerFunc {
@@ -122,6 +129,7 @@ func makeAppHandler(
 			TurnstileSiteKey   string
 			CustomCSS          template.CSS
 			CustomJS           template.JS
+			GoogleAnalyticsID  string
 		}{
 			Version:            buildflag.Version,
 			Debug:              buildflag.IsDebug,
@@ -134,6 +142,7 @@ func makeAppHandler(
 			TurnstileSiteKey:   opts.turnstileSiteKey,
 			CustomCSS:          template.CSS(opts.customCSS),
 			CustomJS:           template.JS(opts.customJS),
+			GoogleAnalyticsID:  opts.googleAnalyticsID,
 		})
 		if err != nil {
 			httpLogger.Err(err).Msg("Error rendering template")
