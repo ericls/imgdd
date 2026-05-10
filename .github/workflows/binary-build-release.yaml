@@ -11,15 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set Up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: web_client/.nvmrc
 
       - name: Install `pnpm`
-        run: npm install -g pnpm
+        run: npm install -g pnpm@10
 
       - name: Install Frontend Dependencies
         working-directory: web_client
@@ -30,7 +30,7 @@ jobs:
         run: pnpm run build
 
       - name: Upload Frontend Build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: frontend-dist
           path: web_client/dist/
@@ -45,12 +45,12 @@ jobs:
         arch: [amd64, arm64]
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Set Up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "1.25"
 
@@ -61,7 +61,7 @@ jobs:
           echo "GIT_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Download Frontend Build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: frontend-dist
           path: web_client/dist/
@@ -78,7 +78,7 @@ jobs:
                       -extldflags -static"
 
       - name: Upload Backend Binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: imgdd-${{ matrix.os }}-${{ matrix.arch }}
           path: artifacts/dist
@@ -91,7 +91,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -102,12 +102,12 @@ jobs:
           echo "GIT_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
       - name: Download All Binaries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ./artifacts/dist
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: artifacts/dist/*/imgdd-*
           tag_name: ${{ env.GIT_REV }}
