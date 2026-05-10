@@ -102,7 +102,7 @@ type ConfigFileDef struct {
 }
 
 func (cfd *ConfigFileDef) Clone() ConfigFileDef {
-	tomlData, err := toml.Marshal(EmptyConfig)
+	tomlData, err := toml.Marshal(cfd)
 	if err != nil {
 		panic(err)
 	}

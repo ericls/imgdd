@@ -17,4 +17,5 @@ func PrintBuildInfo() {
 	fmt.Println("Dev:", Dev)
 	fmt.Println("Version:", Version)
 	fmt.Println("VersionHash:", VersionHash)
+	fmt.Println("IsDocker:", IsDocker)
 }

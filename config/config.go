@@ -15,6 +15,14 @@ import (
 	dm "github.com/ericls/imgdd/domainmodels"
 )
 
+const (
+	defaultConfigURLFormat     = dm.ImageURLFormat_CANONICAL
+	defaultConfigEmailBackend  = email.EmailBackendDummy
+	defaultConfigStorageSource = storage.StorageDefSourceDB
+	defaultConfigCaptcha       = captcha.CaptchaProviderOff
+	defaultCleanupInterval     = 600 * time.Second
+)
+
 type ConfigDef struct {
 	Db            db.DBConfigDef
 	HttpServer    httpserver.HttpServerConfigDef
@@ -41,8 +49,30 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 	if err != nil {
 		return nil, err
 	}
-	storageDefs := make([]dm.StorageDefinition, len(configFile.Storage.STORAGE_BACKENDS))
-	for i, storageDef := range configFile.Storage.STORAGE_BACKENDS {
+
+	dbConfig := configFile.DB
+	if dbConfig == nil {
+		dbConfig = &DBConfigFileDef{}
+	}
+	redisConfig := configFile.Redis
+	if redisConfig == nil {
+		redisConfig = &RedisConfigFileDef{}
+	}
+	httpServerConfig := configFile.HTTPServer
+	if httpServerConfig == nil {
+		httpServerConfig = &HTTPServerConfigFileDef{}
+	}
+	storageConfig := configFile.Storage
+	if storageConfig == nil {
+		storageConfig = &StorageConfigFileDef{}
+	}
+	emailConfig := configFile.Email
+	if emailConfig == nil {
+		emailConfig = &EmailConfigFileDef{}
+	}
+
+	storageDefs := make([]dm.StorageDefinition, len(storageConfig.STORAGE_BACKENDS))
+	for i, storageDef := range storageConfig.STORAGE_BACKENDS {
 		storageDefs[i] = dm.StorageDefinition{
 			Id:          storageDef.ID,
 			Identifier:  storageDef.IDENTIFIER,
@@ -52,16 +82,36 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			Priority:    storageDef.PRIORITY,
 		}
 	}
-	defaultURLFormat := dm.ImageURLFormat(configFile.HTTPServer.DEFAULT_URL_FORMAT)
+	defaultURLFormat := dm.ImageURLFormat(httpServerConfig.DEFAULT_URL_FORMAT)
+	if defaultURLFormat == "" {
+		defaultURLFormat = defaultConfigURLFormat
+	}
 	if !defaultURLFormat.IsValid() {
-		return nil, fmt.Errorf("invalid default URL format: %s", configFile.HTTPServer.DEFAULT_URL_FORMAT)
+		return nil, fmt.Errorf("invalid default URL format: %s", httpServerConfig.DEFAULT_URL_FORMAT)
 	}
 
-	emailBackendType := email.EmailBackendType(configFile.Email.TYPE)
-	if !emailBackendType.IsValid() {
-		return nil, fmt.Errorf("invalid email backend type: %s", configFile.Email.TYPE)
+	emailBackendType := email.EmailBackendType(emailConfig.TYPE)
+	if emailBackendType == "" {
+		emailBackendType = defaultConfigEmailBackend
 	}
-	SMTPConfigFormFile := configFile.Email.SMTP
+	if !emailBackendType.IsValid() {
+		return nil, fmt.Errorf("invalid email backend type: %s", emailConfig.TYPE)
+	}
+	storageDefSource := storage.StorageDefSource(storageConfig.STORAGE_BACKEND_SOURCE)
+	if storageDefSource == "" {
+		storageDefSource = defaultConfigStorageSource
+	}
+	if storageDefSource != storage.StorageDefSourceDB && storageDefSource != storage.StorageDefSourceConf {
+		return nil, fmt.Errorf("invalid storage backend source: %s", storageConfig.STORAGE_BACKEND_SOURCE)
+	}
+	captchaProvider := captcha.CaptchaProvider(httpServerConfig.CAPTCHA_PROVIDER)
+	if captchaProvider == "" {
+		captchaProvider = defaultConfigCaptcha
+	}
+	if !captchaProvider.IsValid() {
+		return nil, fmt.Errorf("invalid captcha provider: %s", httpServerConfig.CAPTCHA_PROVIDER)
+	}
+	SMTPConfigFormFile := emailConfig.SMTP
 	var SMTPConfig *email.SMTPConfigDef
 	if SMTPConfigFormFile != nil {
 		SMTPConfig = &email.SMTPConfigDef{
@@ -74,47 +124,51 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 	}
 	var cleanupConfig *storage.CleanupConfig
 	if configFile.Cleanup != nil {
+		cleanupInterval := time.Duration(configFile.Cleanup.INTERVAL) * time.Second
+		if configFile.Cleanup.ENABLED && cleanupInterval == 0 {
+			cleanupInterval = defaultCleanupInterval
+		}
 		cleanupConfig = &storage.CleanupConfig{
 			Enabled:  configFile.Cleanup.ENABLED,
-			Interval: time.Duration(configFile.Cleanup.INTERVAL) * time.Second,
+			Interval: cleanupInterval,
 		}
 	}
 
 	return &ConfigDef{
 		Db: db.DBConfigDef{
-			POSTGRES_DB:       configFile.DB.POSTGRES_DB,
-			POSTGRES_USER:     configFile.DB.POSTGRES_USER,
-			POSTGRES_PASSWORD: configFile.DB.POSTGRES_PASSWORD,
-			POSTGRES_HOST:     configFile.DB.POSTGRES_HOST,
-			POSTGRES_PORT:     configFile.DB.POSTGRES_PORT,
-			LOG_QUERIES:       configFile.DB.LOG_QUERIES,
+			POSTGRES_DB:       dbConfig.POSTGRES_DB,
+			POSTGRES_USER:     dbConfig.POSTGRES_USER,
+			POSTGRES_PASSWORD: dbConfig.POSTGRES_PASSWORD,
+			POSTGRES_HOST:     dbConfig.POSTGRES_HOST,
+			POSTGRES_PORT:     dbConfig.POSTGRES_PORT,
+			LOG_QUERIES:       dbConfig.LOG_QUERIES,
 		},
 		HttpServer: httpserver.HttpServerConfigDef{
-			Bind:                   configFile.HTTPServer.BIND,
-			WriteTimeout:           configFile.HTTPServer.WRITE_TIMEOUT,
-			ReadTimeout:            configFile.HTTPServer.READ_TIMEOUT,
-			SessionKey:             configFile.HTTPServer.SESSION_KEY,
-			RedisURIForSession:     configFile.Redis.GetSessionRedisURI(),
-			RedisURI:               configFile.Redis.REDIS_URI,
-			SiteName:               configFile.HTTPServer.SITE_NAME,
-			SiteTitle:              configFile.HTTPServer.SITE_TITLE,
-			ImageDomain:            configFile.HTTPServer.IMAGE_DOMAIN,
+			Bind:                   httpServerConfig.BIND,
+			WriteTimeout:           httpServerConfig.WRITE_TIMEOUT,
+			ReadTimeout:            httpServerConfig.READ_TIMEOUT,
+			SessionKey:             httpServerConfig.SESSION_KEY,
+			RedisURIForSession:     redisConfig.GetSessionRedisURI(),
+			RedisURI:               redisConfig.REDIS_URI,
+			SiteName:               httpServerConfig.SITE_NAME,
+			SiteTitle:              httpServerConfig.SITE_TITLE,
+			ImageDomain:            httpServerConfig.IMAGE_DOMAIN,
 			DefaultURLFormat:       defaultURLFormat,
-			EnableSafeImageCheck:   utils.IsStrTruthy(configFile.HTTPServer.ENABLE_SAFE_IMAGE_CHECK),
-			SafeImageCheckEndpoint: configFile.HTTPServer.SAFE_IMAGE_CHECK_ENDPOINT,
-			CaptchaProvider:        captcha.CaptchaProvider(configFile.HTTPServer.CAPTCHA_PROVIDER),
-			RecaptchaClientKey:     configFile.HTTPServer.RECAPTCHA_CLIENT_KEY,
-			TurnstileSiteKey:       configFile.HTTPServer.TURNSTILE_SITE_KEY,
-			RecaptchaServerKey:     configFile.HTTPServer.RECAPTCHA_SERVER_KEY,
-			TurnstileSecretKey:     configFile.HTTPServer.TURNSTILE_SECRET_KEY,
-			CustomCSS:              configFile.HTTPServer.CUSTOM_CSS,
-			CustomJS:               configFile.HTTPServer.CUSTOM_JS,
-			GoogleAnalyticsID:      configFile.HTTPServer.GOOGLE_ANALYTICS_ID,
-			AllowUpload:            utils.IsStrTruthy(configFile.HTTPServer.ALLOW_UPLOAD),
-			AllowNewUser:           utils.IsStrTruthy(configFile.HTTPServer.ALLOW_NEW_USER),
+			EnableSafeImageCheck:   utils.IsStrTruthy(httpServerConfig.ENABLE_SAFE_IMAGE_CHECK),
+			SafeImageCheckEndpoint: httpServerConfig.SAFE_IMAGE_CHECK_ENDPOINT,
+			CaptchaProvider:        captchaProvider,
+			RecaptchaClientKey:     httpServerConfig.RECAPTCHA_CLIENT_KEY,
+			TurnstileSiteKey:       httpServerConfig.TURNSTILE_SITE_KEY,
+			RecaptchaServerKey:     httpServerConfig.RECAPTCHA_SERVER_KEY,
+			TurnstileSecretKey:     httpServerConfig.TURNSTILE_SECRET_KEY,
+			CustomCSS:              httpServerConfig.CUSTOM_CSS,
+			CustomJS:               httpServerConfig.CUSTOM_JS,
+			GoogleAnalyticsID:      httpServerConfig.GOOGLE_ANALYTICS_ID,
+			AllowUpload:            utils.IsStrTruthy(httpServerConfig.ALLOW_UPLOAD),
+			AllowNewUser:           utils.IsStrTruthy(httpServerConfig.ALLOW_NEW_USER),
 		},
 		Storage: storage.StorageConfigDef{
-			StorageDefSource: storage.StorageDefSource(configFile.Storage.STORAGE_BACKEND_SOURCE),
+			StorageDefSource: storageDefSource,
 			StorageDefs:      storageDefs,
 		},
 		Email: email.EmailConfigDef{
@@ -136,6 +190,15 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 	for _, config := range configs {
 		if config == nil {
 			continue
+		}
+		fileConfig := config.configFileDef
+		var fileHTTPServerConfig *HTTPServerConfigFileDef
+		var fileStorageConfig *StorageConfigFileDef
+		var fileEmailConfig *EmailConfigFileDef
+		if fileConfig != nil {
+			fileHTTPServerConfig = fileConfig.HTTPServer
+			fileStorageConfig = fileConfig.Storage
+			fileEmailConfig = fileConfig.Email
 		}
 		if config.Db.POSTGRES_DB != "" {
 			merged.Db.POSTGRES_DB = config.Db.POSTGRES_DB
@@ -182,16 +245,16 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		if config.HttpServer.ImageDomain != "" {
 			merged.HttpServer.ImageDomain = config.HttpServer.ImageDomain
 		}
-		if config.HttpServer.DefaultURLFormat != "" {
+		if config.HttpServer.DefaultURLFormat != "" && (fileConfig == nil || fileHTTPServerConfig != nil && fileHTTPServerConfig.DEFAULT_URL_FORMAT != "") {
 			merged.HttpServer.DefaultURLFormat = config.HttpServer.DefaultURLFormat
 		}
-		if config.configFileDef != nil && config.configFileDef.HTTPServer.ENABLE_SAFE_IMAGE_CHECK != "" {
+		if fileHTTPServerConfig != nil && fileHTTPServerConfig.ENABLE_SAFE_IMAGE_CHECK != "" {
 			merged.HttpServer.EnableSafeImageCheck = config.HttpServer.EnableSafeImageCheck
 		}
 		if config.HttpServer.SafeImageCheckEndpoint != "" {
 			merged.HttpServer.SafeImageCheckEndpoint = config.HttpServer.SafeImageCheckEndpoint
 		}
-		if config.HttpServer.CaptchaProvider != "" {
+		if config.HttpServer.CaptchaProvider != "" && (fileConfig == nil || fileHTTPServerConfig != nil && fileHTTPServerConfig.CAPTCHA_PROVIDER != "") {
 			merged.HttpServer.CaptchaProvider = config.HttpServer.CaptchaProvider
 			if config.HttpServer.TurnstileSiteKey != "" {
 				merged.HttpServer.TurnstileSiteKey = config.HttpServer.TurnstileSiteKey
@@ -215,19 +278,19 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		if config.HttpServer.GoogleAnalyticsID != "" {
 			merged.HttpServer.GoogleAnalyticsID = config.HttpServer.GoogleAnalyticsID
 		}
-		if config.configFileDef != nil && config.configFileDef.HTTPServer.ALLOW_UPLOAD != "" {
+		if fileHTTPServerConfig != nil && fileHTTPServerConfig.ALLOW_UPLOAD != "" {
 			merged.HttpServer.AllowUpload = config.HttpServer.AllowUpload
 		}
-		if config.configFileDef != nil && config.configFileDef.HTTPServer.ALLOW_NEW_USER != "" {
+		if fileHTTPServerConfig != nil && fileHTTPServerConfig.ALLOW_NEW_USER != "" {
 			merged.HttpServer.AllowNewUser = config.HttpServer.AllowNewUser
 		}
-		if config.Storage.StorageDefSource != "" {
+		if config.Storage.StorageDefSource != "" && (fileConfig == nil || fileStorageConfig != nil && (fileStorageConfig.STORAGE_BACKEND_SOURCE != "" || fileStorageConfig.STORAGE_BACKENDS != nil)) {
 			merged.Storage.StorageDefSource = config.Storage.StorageDefSource
 		}
 		if config.Storage.StorageDefSource == storage.StorageDefSourceConf {
 			merged.Storage.StorageDefs = config.Storage.StorageDefs
 		}
-		if config.Email.Type != "" {
+		if config.Email.Type != "" && (fileConfig == nil || fileEmailConfig != nil && fileEmailConfig.TYPE != "") {
 			merged.Email.Type = config.Email.Type
 		}
 		if config.Email.SMTP != nil && config.Email.SMTP.Host != "" {
