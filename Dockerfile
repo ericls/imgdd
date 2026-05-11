@@ -4,7 +4,7 @@ ARG GIT_HASH="unset"
 # 1) FRONTEND BUILD STAGE
 # -----------------------------------------------------
 FROM --platform=$BUILDPLATFORM node:24-alpine AS ui-build
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10
 
 RUN mkdir /code
 WORKDIR /code
