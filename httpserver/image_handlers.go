@@ -191,6 +191,33 @@ type storedImageWithStorageDef struct {
 	*domainmodels.StorageDefinition
 }
 
+func copyImageResponse(
+	w http.ResponseWriter,
+	reader io.Reader,
+	imageResponseCache *imageResponseCache,
+	cacheKey string,
+	contentType string,
+	etag string,
+	xImgddSI string,
+) {
+	if imageResponseCache == nil {
+		io.Copy(w, reader)
+		return
+	}
+	body, err := io.ReadAll(io.LimitReader(reader, imageResponseCache.maxFileBytes+1))
+	if err != nil {
+		httpLogger.Info().Err(err).Msg("Unable to read image")
+		return
+	}
+	if int64(len(body)) > imageResponseCache.maxFileBytes {
+		w.Write(body)
+		io.Copy(w, reader)
+		return
+	}
+	imageResponseCache.put(cacheKey, contentType, etag, xImgddSI, body)
+	w.Write(body)
+}
+
 func sortStoredImages(storedImages []*domainmodels.StoredImage, storageDefRepo storage.StorageDefRepo) ([]storedImageWithStorageDef, error) {
 	var storedImageWithStorageDefs []storedImageWithStorageDef
 	storageDefIds := make([]string, 0)
@@ -239,12 +266,18 @@ func sortStoredImages(storedImages []*domainmodels.StoredImage, storageDefRepo s
 func makeImageHandler(
 	storageDefRepo storage.StorageDefRepo,
 	storedImageRepo storage.StoredImageRepo,
+	imageResponseCache *imageResponseCache,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		filename := r.URL.Path[len("/image/"):]
 		if filename == "" {
 			http.Error(w, "Not found", http.StatusNotFound)
 			httpLogger.Info().Msg("No filename")
+			return
+		}
+		cacheKey := "image:" + filename
+		if entry, ok := imageResponseCache.get(cacheKey); ok {
+			writeCachedImageResponse(w, r, entry)
 			return
 		}
 		identifier, ext := splitIdentifierExt(filename)
@@ -314,12 +347,13 @@ func makeImageHandler(
 			return
 		}
 		defer reader.Close()
-		io.Copy(w, reader)
+		copyImageResponse(w, reader, imageResponseCache, cacheKey, mimeType, filename, storageDef.Identifier)
 	}
 }
 
 func makeDirectImageHandler(
 	storageDefRepo storage.StorageDefRepo,
+	imageResponseCache *imageResponseCache,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// URL format: <storage_definition_identifier>.<file_identifier>
@@ -338,6 +372,15 @@ func makeDirectImageHandler(
 		}
 		storageDefIdentifier := segments[0]
 		fileIdentifier := segments[1]
+		cacheKey := "direct:" + storageDefIdentifier + ":" + fileIdentifier
+		if entry, ok := imageResponseCache.get(cacheKey); ok {
+			writeCachedImageResponse(w, r, entry)
+			return
+		}
+		if r.Header.Get("If-None-Match") == fileIdentifier {
+			w.WriteHeader(http.StatusNotModified)
+			return
+		}
 		storageDef, err := storageDefRepo.GetStorageDefinitionByIdentifier(storageDefIdentifier)
 		if err != nil {
 			http.Error(w, "Not found", http.StatusNotFound)
@@ -372,6 +415,6 @@ func makeDirectImageHandler(
 			return
 		}
 		defer reader.Close()
-		io.Copy(w, reader)
+		copyImageResponse(w, reader, imageResponseCache, cacheKey, meta.ContentType, fileIdentifier, storageDef.Identifier)
 	}
 }

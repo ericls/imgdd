@@ -106,6 +106,26 @@ SITE_NAME = "custom"
 	}
 }
 
+func TestConfigFromFileReadsImageResponseCacheConfig(t *testing.T) {
+	configPath := writeTestConfig(t, `
+[HTTPServerConfig]
+IMAGE_CACHE_MAX_BYTES = 1048576
+IMAGE_CACHE_MAX_FILE_BYTES = 262144
+`)
+
+	conf, err := ConfigFromFile(configPath)
+	if err != nil {
+		t.Fatalf("expected config to parse: %v", err)
+	}
+
+	if conf.HttpServer.ImageCacheMaxBytes != 1048576 {
+		t.Fatalf("expected image cache max bytes 1048576, got %d", conf.HttpServer.ImageCacheMaxBytes)
+	}
+	if conf.HttpServer.ImageCacheMaxFileBytes != 262144 {
+		t.Fatalf("expected image cache max file bytes 262144, got %d", conf.HttpServer.ImageCacheMaxFileBytes)
+	}
+}
+
 func TestConfigFromFileDefaultsCleanupIntervalWhenEnabled(t *testing.T) {
 	configPath := writeTestConfig(t, `
 [CleanupTaskConfig]

@@ -166,6 +166,8 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			GoogleAnalyticsID:      httpServerConfig.GOOGLE_ANALYTICS_ID,
 			AllowUpload:            utils.IsStrTruthy(httpServerConfig.ALLOW_UPLOAD),
 			AllowNewUser:           utils.IsStrTruthy(httpServerConfig.ALLOW_NEW_USER),
+			ImageCacheMaxBytes:     httpServerConfig.IMAGE_CACHE_MAX_BYTES,
+			ImageCacheMaxFileBytes: httpServerConfig.IMAGE_CACHE_MAX_FILE_BYTES,
 		},
 		Storage: storage.StorageConfigDef{
 			StorageDefSource: storageDefSource,
@@ -283,6 +285,12 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		}
 		if fileHTTPServerConfig != nil && fileHTTPServerConfig.ALLOW_NEW_USER != "" {
 			merged.HttpServer.AllowNewUser = config.HttpServer.AllowNewUser
+		}
+		if config.HttpServer.ImageCacheMaxBytes > 0 {
+			merged.HttpServer.ImageCacheMaxBytes = config.HttpServer.ImageCacheMaxBytes
+		}
+		if config.HttpServer.ImageCacheMaxFileBytes > 0 {
+			merged.HttpServer.ImageCacheMaxFileBytes = config.HttpServer.ImageCacheMaxFileBytes
 		}
 		if config.Storage.StorageDefSource != "" && (fileConfig == nil || fileStorageConfig != nil && (fileStorageConfig.STORAGE_BACKEND_SOURCE != "" || fileStorageConfig.STORAGE_BACKENDS != nil)) {
 			merged.Storage.StorageDefSource = config.Storage.StorageDefSource

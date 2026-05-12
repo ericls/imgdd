@@ -3,6 +3,7 @@ package httpserver
 import (
 	"io/fs"
 	"os"
+	"strconv"
 
 	"github.com/ericls/imgdd/captcha"
 	"github.com/ericls/imgdd/domainmodels"
@@ -35,6 +36,8 @@ type HttpServerConfigDef struct {
 	GoogleAnalyticsID      string
 	AllowUpload            bool
 	AllowNewUser           bool
+	ImageCacheMaxBytes     int64
+	ImageCacheMaxFileBytes int64
 }
 
 func ReadServerConfigFromEnv() HttpServerConfigDef {
@@ -61,5 +64,19 @@ func ReadServerConfigFromEnv() HttpServerConfigDef {
 		GoogleAnalyticsID:      utils.GetEnv("IMGDD_GOOGLE_ANALYTICS_ID", ""),
 		AllowUpload:            utils.IsStrTruthy(utils.GetEnv("IMGDD_ALLOW_UPLOAD", "true")),
 		AllowNewUser:           utils.IsStrTruthy(utils.GetEnv("IMGDD_ALLOW_NEW_USER", "true")),
+		ImageCacheMaxBytes:     parseInt64Env("IMGDD_HTTP_IMAGE_CACHE_MAX_BYTES"),
+		ImageCacheMaxFileBytes: parseInt64Env("IMGDD_HTTP_IMAGE_CACHE_MAX_FILE_BYTES"),
 	}
+}
+
+func parseInt64Env(key string) int64 {
+	value := os.Getenv(key)
+	if value == "" {
+		return 0
+	}
+	parsed, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		return 0
+	}
+	return parsed
 }

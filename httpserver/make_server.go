@@ -141,8 +141,9 @@ func MakeServer(
 	))
 
 	rootRouter := mux.NewRouter()
-	rootRouter.PathPrefix("/image").HandlerFunc(makeImageHandler(storageDefRepo, storedImageRepo))
-	rootRouter.PathPrefix("/direct").HandlerFunc(makeDirectImageHandler(storageDefRepo))
+	imageResponseCache := newImageResponseCache(conf.ImageCacheMaxBytes, conf.ImageCacheMaxFileBytes)
+	rootRouter.PathPrefix("/image").HandlerFunc(makeImageHandler(storageDefRepo, storedImageRepo, imageResponseCache))
+	rootRouter.PathPrefix("/direct").HandlerFunc(makeDirectImageHandler(storageDefRepo, imageResponseCache))
 	rootRouter.PathPrefix("/").Handler(appRouter)
 
 	srv := &http.Server{
