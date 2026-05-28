@@ -44,6 +44,13 @@ const ImagesQueryDoc = gql(`
             storedImages {
               id
             }
+            createdBy {
+              id
+              user {
+                id
+                avatarUrl
+              }
+            }
           }
         }
       }

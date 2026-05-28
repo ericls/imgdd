@@ -58,6 +58,14 @@ func (r *imageResolver) StoredImages(ctx context.Context, obj *model.Image) ([]*
 	return loader.Load(ctx, obj.ID)
 }
 
+// CreatedBy is the resolver for the createdBy field.
+func (r *imageResolver) CreatedBy(ctx context.Context, obj *model.Image) (*model.OrganizationUser, error) {
+	if obj.CreatedById == "" {
+		return nil, nil
+	}
+	return LoadersFor(ctx).OrganizationUserLoader.Load(ctx, obj.CreatedById)
+}
+
 // DeleteImage is the resolver for the deleteImage field.
 func (r *mutationResolver) DeleteImage(ctx context.Context, input model.DeleteImageInput) (*model.DeleteImageResult, error) {
 	currentUser := identity.GetCurrentOrganizationUser(r.ContextUserManager, ctx)

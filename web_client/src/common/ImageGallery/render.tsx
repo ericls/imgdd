@@ -13,6 +13,9 @@ import {
 import { ImageItemMenuConfig, useImageItemMenu } from "./menu";
 import { MenuWithTrigger } from "~src/ui/menuWithTrigger";
 import { DefaultMenuIcon } from "~src/ui/menu";
+import { Link } from "react-router";
+import { useAuth } from "~src/lib/auth";
+import { routes } from "~src/routes";
 
 type DumbImageGalleryProps = {
   images: RenderingImageItem[];
@@ -62,12 +65,32 @@ export function DumbImageGallery({
   );
 }
 
-export function ImageItemRenderer({ image }: { image: RenderingImageItem }) {
+export function ImageItemRenderer({
+  image,
+  showCreatorInfo,
+}: {
+  image: RenderingImageItem;
+  showCreatorInfo?: boolean;
+}) {
   const menuSections = useImageItemMenu(image, image.menuConfig);
   const { url, name, nominalWidth, nominalHeight, nominalByteSize, createdAt } =
     image;
+  const { data: authData } = useAuth();
+  const canLinkToUser =
+    authData?.viewer.hasSiteOwnerAccess || authData?.viewer.hasAdminAccess;
 
   const humanizedDateTime = useHumanizeDateTime({ datetimeStr: createdAt });
+
+  const avatarEl =
+    showCreatorInfo && image.createdBy ? (
+      <img
+        src={image.createdBy.user.avatarUrl}
+        alt="avatar"
+        className="w-8 h-8 rounded-full flex-shrink-0 object-cover"
+      />
+    ) : null;
+
+  console.log(showCreatorInfo, image);
 
   return (
     <div
@@ -103,6 +126,17 @@ export function ImageItemRenderer({ image }: { image: RenderingImageItem }) {
         />
       </div>
       <div className="flex items-center p-2 space-x-3">
+        {avatarEl && image.createdBy && canLinkToUser ? (
+          <Link
+            to={routes.siteAdmin.userImages(image.createdBy.id)}
+            onClick={(e) => e.stopPropagation()}
+            className="flex-shrink-0"
+          >
+            {avatarEl}
+          </Link>
+        ) : (
+          avatarEl
+        )}
         <div className={classNames("flex flex-col justify-center max-w-full")}>
           <span
             className={classNames(
@@ -142,12 +176,14 @@ type ImageGalleryProps = {
   createdById?: string;
   itemRenderer?: ImageItemRenderer;
   menuConfig?: ImageItemMenuConfig;
+  showCreatorInfo?: boolean;
 };
 export function ImageGallery({
   nameContains,
   createdById,
   itemRenderer,
   menuConfig,
+  showCreatorInfo,
 }: ImageGalleryProps) {
   const { data, execute, hasNext, hasPrev, goNext, goPrev, loading } =
     useImagesQuery({
@@ -162,9 +198,11 @@ export function ImageGallery({
       if (itemRenderer) {
         return itemRenderer(image);
       }
-      return <ImageItemRenderer image={image} />;
+      return (
+        <ImageItemRenderer image={image} showCreatorInfo={showCreatorInfo} />
+      );
     },
-    [itemRenderer],
+    [itemRenderer, showCreatorInfo],
   );
   const images = React.useMemo<RenderingImageItem[]>(() => {
     const images = data?.viewer.images.edges.map((edge) => edge.node) ?? [];

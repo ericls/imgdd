@@ -26,6 +26,11 @@ func (r *viewerResolver) OrganizationUser(ctx context.Context, obj *model.Viewer
 	return orgUser, nil
 }
 
+// OrganizationUserByID is the resolver for the organizationUserById field.
+func (r *viewerResolver) OrganizationUserByID(ctx context.Context, obj *model.Viewer, id string) (*model.OrganizationUser, error) {
+	return LoadersFor(ctx).OrganizationUserLoader.Load(ctx, id)
+}
+
 // Viewer returns ViewerResolver implementation.
 func (r *Resolver) Viewer() ViewerResolver { return &viewerResolver{r} }
 

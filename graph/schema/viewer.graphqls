@@ -5,4 +5,5 @@ type ViewerResult {
 type Viewer {
   id: ID!
   organizationUser: OrganizationUser
+  organizationUserById(id: ID!): OrganizationUser @isSiteOwner
 }

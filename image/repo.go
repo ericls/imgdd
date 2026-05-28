@@ -375,6 +375,7 @@ func (repo *DBImageRepo) ListImages(
 			NominalWidth:    image.NominalWidth,
 			NominalHeight:   image.NominalHeight,
 			NominalByteSize: image.NominalByteSize,
+			CreatedById:     utils.SafeDerefWithDefault(image.CreatedByID, ZeroUUID).String(),
 		}
 	}
 	hasNext := false

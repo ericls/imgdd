@@ -109,6 +109,8 @@ models:
     fields:
       organization:
         resolver: true
+      avatarUrl:
+        resolver: true
   Viewer:
     fields:
       organizationUser:
@@ -122,4 +124,6 @@ models:
   Image:
     fields:
       url:
+        resolver: true
+      createdBy:
         resolver: true

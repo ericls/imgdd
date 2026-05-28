@@ -8,6 +8,13 @@ export type RenderingImageItem = {
   nominalHeight: number;
   nominalByteSize: number;
   createdAt: string;
+  createdBy?: {
+    id: string;
+    user: {
+      id: string;
+      avatarUrl: string;
+    };
+  } | null;
 } & {
   menuConfig?: ImageItemMenuConfig;
 };

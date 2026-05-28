@@ -27,6 +27,7 @@ export function ListImages() {
         <ImageGallery
           menuConfig={DEFAULT_MENU_CONFIG}
           nameContains={debouncedSearchTerm || undefined}
+          showCreatorInfo
         />
       </div>
     </div>

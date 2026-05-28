@@ -17,6 +17,7 @@ type Image struct {
 	CreatedAt       time.Time `json:"createdAt"`
 	MIMEType        string    `json:"MIMEType"`
 	URL             string    `json:"url"`
+	CreatedById     string    `json:"createdById"`
 }
 
 func FromImage(i *domainmodels.Image) *Image {
@@ -29,6 +30,7 @@ func FromImage(i *domainmodels.Image) *Image {
 		NominalByteSize: int(i.NominalByteSize),
 		CreatedAt:       i.CreatedAt,
 		MIMEType:        i.MIMEType,
+		CreatedById:     i.CreatedById,
 	}
 }
 

@@ -12,6 +12,7 @@ import { createRoot } from "react-dom/client";
 import { ToastContainer } from "react-toastify";
 import { ApolloProvider } from "@apollo/client/react";
 import { createBrowserRouter, Navigate } from "react-router";
+import { routes, routeSegments } from "~src/routes";
 import { RouterProvider } from "react-router/dom";
 
 import "./entry.css";
@@ -42,7 +43,7 @@ function ErrorPage() {
 
 const router = createBrowserRouter([
   {
-    path: "site-admin",
+    path: routeSegments.siteAdmin,
     lazy: async () => {
       const { SiteAdminLayout } = await import("~src/site-admin/layout");
       return {
@@ -53,10 +54,10 @@ const router = createBrowserRouter([
     children: [
       {
         path: "",
-        element: <Navigate to="/site-admin/images" replace />,
+        element: <Navigate to={routes.siteAdmin.images} replace />,
       },
       {
-        path: "users/*",
+        path: `${routeSegments.users}/*`,
         lazy: async () => {
           const { Users } =
             await import("~src/site-admin/pages/users/usersIndex");
@@ -66,7 +67,7 @@ const router = createBrowserRouter([
         },
       },
       {
-        path: "images/*",
+        path: `${routeSegments.images}/*`,
         lazy: async () => {
           const { Images } =
             await import("~src/site-admin/pages/images/imagesIndex");
@@ -76,7 +77,7 @@ const router = createBrowserRouter([
         },
       },
       {
-        path: "storage/*",
+        path: `${routeSegments.storage}/*`,
         index: true,
         lazy: async () => {
           const { StorageConfig } =
@@ -89,7 +90,7 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: "profile",
+    path: routeSegments.profile,
     lazy: async () => {
       const { ProfileLayout } = await import("~src/profile/layout");
       return {
@@ -99,10 +100,10 @@ const router = createBrowserRouter([
     children: [
       {
         path: "",
-        element: <Navigate to="/profile/images" replace />,
+        element: <Navigate to={routes.profile.images} replace />,
       },
       {
-        path: "images/*",
+        path: `${routeSegments.images}/*`,
         lazy: async () => {
           const { Images } =
             await import("~src/profile/pages/images/imagesIndex");

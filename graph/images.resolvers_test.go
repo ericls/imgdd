@@ -371,6 +371,95 @@ func tDeletingImage(t *testing.T, tc *TestContext) {
 	require.Error(t, err)
 }
 
+func tImageCreatedByIsPopulated(t *testing.T, tc *TestContext) {
+	orgUser := tc.forceAuthenticate(asSiteOwner)
+	sd := createStorageDefinition(t, tc)
+	createImage(t, tc, orgUser.Id, sd.Id)
+
+	var resp struct {
+		Viewer *struct {
+			Images *struct {
+				Edges []struct {
+					Node struct {
+						ID        string
+						CreatedBy *struct {
+							ID   string
+							User struct {
+								ID    string
+								Email string
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	err := tc.client.Post(`
+	query {
+		viewer {
+			images {
+				edges {
+					node {
+						id
+						createdBy {
+							id
+							user {
+								id
+								email
+							}
+						}
+					}
+				}
+			}
+		}
+	}`, &resp)
+	require.NoError(t, err)
+	require.NotNil(t, resp.Viewer)
+	require.Len(t, resp.Viewer.Images.Edges, 1)
+	node := resp.Viewer.Images.Edges[0].Node
+	require.NotNil(t, node.CreatedBy, "createdBy must not be nil")
+	require.Equal(t, orgUser.Id, node.CreatedBy.ID)
+	require.Equal(t, orgUser.User.Email, node.CreatedBy.User.Email)
+}
+
+func tImageCreatedByNullWhenNoCreator(t *testing.T, tc *TestContext) {
+	tc.forceAuthenticate(asSiteOwner)
+	sd := createStorageDefinition(t, tc)
+	// empty string createdById → NULL in DB
+	createImage(t, tc, "", sd.Id)
+
+	var resp struct {
+		Viewer *struct {
+			Images *struct {
+				Edges []struct {
+					Node struct {
+						ID        string
+						CreatedBy *struct{ ID string }
+					}
+				}
+			}
+		}
+	}
+	err := tc.client.Post(`
+	query {
+		viewer {
+			images {
+				edges {
+					node {
+						id
+						createdBy {
+							id
+						}
+					}
+				}
+			}
+		}
+	}`, &resp)
+	require.NoError(t, err)
+	require.Len(t, resp.Viewer.Images.Edges, 1)
+	require.Nil(t, resp.Viewer.Images.Edges[0].Node.CreatedBy)
+}
+
 func TestImageResolvers(t *testing.T) {
 	tc := newTestContext(t)
 	tc.runTestCases(
@@ -380,5 +469,7 @@ func TestImageResolvers(t *testing.T) {
 		tBasicPagination,
 		tBasicPaginationByCreatedAt,
 		tDeletingImage,
+		tImageCreatedByIsPopulated,
+		tImageCreatedByNullWhenNoCreator,
 	)
 }

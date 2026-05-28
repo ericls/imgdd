@@ -17,6 +17,7 @@ type Image {
   createdAt: Time!
   storedImages: [StoredImage!]!
   MIMEType: String!
+  createdBy: OrganizationUser
 }
 
 input ImageOrderByInput {

@@ -33,6 +33,7 @@ type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
 	StorageDefinition() StorageDefinitionResolver
+	User() UserResolver
 	Viewer() ViewerResolver
 }
 
@@ -59,6 +60,7 @@ type ComplexityRoot struct {
 
 	Image struct {
 		CreatedAt       func(childComplexity int) int
+		CreatedBy       func(childComplexity int) int
 		ID              func(childComplexity int) int
 		Identifier      func(childComplexity int) int
 		MIMEType        func(childComplexity int) int
@@ -176,9 +178,10 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		Email func(childComplexity int) int
-		ID    func(childComplexity int) int
-		Name  func(childComplexity int) int
+		AvatarURL func(childComplexity int) int
+		Email     func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Name      func(childComplexity int) int
 	}
 
 	UserWithOrganizationUsers struct {
@@ -194,6 +197,7 @@ type ComplexityRoot struct {
 		ID                   func(childComplexity int) int
 		Images               func(childComplexity int, orderBy *model.ImageOrderByInput, filters *model.ImageFilterInput, after *string, before *string) int
 		OrganizationUser     func(childComplexity int) int
+		OrganizationUserByID func(childComplexity int, id string) int
 		PaginatedAllUsers    func(childComplexity int, limit *int, offset *int, search *string) int
 		StorageDefinitions   func(childComplexity int) int
 	}
@@ -217,6 +221,8 @@ type ImageResolver interface {
 	Revisions(ctx context.Context, obj *model.Image) ([]*model.Image, error)
 
 	StoredImages(ctx context.Context, obj *model.Image) ([]*model.StoredImage, error)
+
+	CreatedBy(ctx context.Context, obj *model.Image) (*model.OrganizationUser, error)
 }
 type MutationResolver interface {
 	Authenticate(ctx context.Context, email string, password string, organizationID *string) (*model.ViewerResult, error)
@@ -235,9 +241,13 @@ type QueryResolver interface {
 type StorageDefinitionResolver interface {
 	Connectivity(ctx context.Context, obj *model.StorageDefinition) (bool, error)
 }
+type UserResolver interface {
+	AvatarURL(ctx context.Context, obj *model.User) (string, error)
+}
 type ViewerResolver interface {
 	ID(ctx context.Context, obj *model.Viewer) (string, error)
 	OrganizationUser(ctx context.Context, obj *model.Viewer) (*model.OrganizationUser, error)
+	OrganizationUserByID(ctx context.Context, obj *model.Viewer, id string) (*model.OrganizationUser, error)
 	Images(ctx context.Context, obj *model.Viewer, orderBy *model.ImageOrderByInput, filters *model.ImageFilterInput, after *string, before *string) (*model.ImagesResult, error)
 	HasPermission(ctx context.Context, obj *model.Viewer, permission model.PermissionNameEnum) (bool, error)
 	StorageDefinitions(ctx context.Context, obj *model.Viewer) ([]*model.StorageDefinition, error)
@@ -299,6 +309,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Image.CreatedAt(childComplexity), true
+	case "Image.createdBy":
+		if e.ComplexityRoot.Image.CreatedBy == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Image.CreatedBy(childComplexity), true
 	case "Image.id":
 		if e.ComplexityRoot.Image.ID == nil {
 			break
@@ -735,6 +751,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.StoredImage.StorageDefinition(childComplexity), true
 
+	case "User.avatarUrl":
+		if e.ComplexityRoot.User.AvatarURL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.User.AvatarURL(childComplexity), true
 	case "User.email":
 		if e.ComplexityRoot.User.Email == nil {
 			break
@@ -829,6 +851,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Viewer.OrganizationUser(childComplexity), true
+	case "Viewer.organizationUserById":
+		if e.ComplexityRoot.Viewer.OrganizationUserByID == nil {
+			break
+		}
+
+		args, err := ec.field_Viewer_organizationUserById_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Viewer.OrganizationUserByID(childComplexity, args["id"].(string)), true
 	case "Viewer.paginatedAllUsers":
 		if e.ComplexityRoot.Viewer.PaginatedAllUsers == nil {
 			break
@@ -1187,6 +1220,17 @@ func (ec *executionContext) field_Viewer_images_args(ctx context.Context, rawArg
 		return nil, err
 	}
 	args["before"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Viewer_organizationUserById_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -1659,6 +1703,8 @@ func (ec *executionContext) fieldContext_Image_root(_ context.Context, field gra
 				return ec.fieldContext_Image_storedImages(ctx, field)
 			case "MIMEType":
 				return ec.fieldContext_Image_MIMEType(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Image_createdBy(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Image", field.Name)
 		},
@@ -1714,6 +1760,8 @@ func (ec *executionContext) fieldContext_Image_revisions(_ context.Context, fiel
 				return ec.fieldContext_Image_storedImages(ctx, field)
 			case "MIMEType":
 				return ec.fieldContext_Image_MIMEType(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Image_createdBy(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Image", field.Name)
 		},
@@ -1816,6 +1864,45 @@ func (ec *executionContext) fieldContext_Image_MIMEType(_ context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Image_createdBy(ctx context.Context, field graphql.CollectedField, obj *model.Image) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Image_createdBy,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Image().CreatedBy(ctx, obj)
+		},
+		nil,
+		ec.marshalOOrganizationUser2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐOrganizationUser,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Image_createdBy(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Image",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_OrganizationUser_id(ctx, field)
+			case "organization":
+				return ec.fieldContext_OrganizationUser_organization(ctx, field)
+			case "user":
+				return ec.fieldContext_OrganizationUser_user(ctx, field)
+			case "roles":
+				return ec.fieldContext_OrganizationUser_roles(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OrganizationUser", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ImageEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.ImageEdge) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -1864,6 +1951,8 @@ func (ec *executionContext) fieldContext_ImageEdge_node(_ context.Context, field
 				return ec.fieldContext_Image_storedImages(ctx, field)
 			case "MIMEType":
 				return ec.fieldContext_Image_MIMEType(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Image_createdBy(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Image", field.Name)
 		},
@@ -2838,6 +2927,8 @@ func (ec *executionContext) fieldContext_OrganizationUser_user(_ context.Context
 				return ec.fieldContext_User_name(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
+			case "avatarUrl":
+				return ec.fieldContext_User_avatarUrl(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -3098,6 +3189,8 @@ func (ec *executionContext) fieldContext_Query_viewer(_ context.Context, field g
 				return ec.fieldContext_Viewer_id(ctx, field)
 			case "organizationUser":
 				return ec.fieldContext_Viewer_organizationUser(ctx, field)
+			case "organizationUserById":
+				return ec.fieldContext_Viewer_organizationUserById(ctx, field)
 			case "images":
 				return ec.fieldContext_Viewer_images(ctx, field)
 			case "hasPermission":
@@ -3877,6 +3970,35 @@ func (ec *executionContext) fieldContext_User_email(_ context.Context, field gra
 	return fc, nil
 }
 
+func (ec *executionContext) _User_avatarUrl(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_User_avatarUrl,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.User().AvatarURL(ctx, obj)
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_User_avatarUrl(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserWithOrganizationUsers_id(ctx context.Context, field graphql.CollectedField, obj *model.UserWithOrganizationUsers) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -4038,6 +4160,70 @@ func (ec *executionContext) fieldContext_Viewer_organizationUser(_ context.Conte
 			}
 			return nil, fmt.Errorf("no field named %q was found under type OrganizationUser", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Viewer_organizationUserById(ctx context.Context, field graphql.CollectedField, obj *model.Viewer) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Viewer_organizationUserById,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Viewer().OrganizationUserByID(ctx, obj, fc.Args["id"].(string))
+		},
+		func(ctx context.Context, next graphql.Resolver) graphql.Resolver {
+			directive0 := next
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.Directives.IsSiteOwner == nil {
+					var zeroVal *model.OrganizationUser
+					return zeroVal, errors.New("directive isSiteOwner is not implemented")
+				}
+				return ec.Directives.IsSiteOwner(ctx, obj, directive0)
+			}
+
+			next = directive1
+			return next
+		},
+		ec.marshalOOrganizationUser2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐOrganizationUser,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Viewer_organizationUserById(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Viewer",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_OrganizationUser_id(ctx, field)
+			case "organization":
+				return ec.fieldContext_OrganizationUser_organization(ctx, field)
+			case "user":
+				return ec.fieldContext_OrganizationUser_user(ctx, field)
+			case "roles":
+				return ec.fieldContext_OrganizationUser_roles(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type OrganizationUser", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Viewer_organizationUserById_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -4298,6 +4484,8 @@ func (ec *executionContext) fieldContext_Viewer_allUsers(ctx context.Context, fi
 				return ec.fieldContext_User_name(ctx, field)
 			case "email":
 				return ec.fieldContext_User_email(ctx, field)
+			case "avatarUrl":
+				return ec.fieldContext_User_avatarUrl(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -4404,6 +4592,8 @@ func (ec *executionContext) fieldContext_ViewerResult_viewer(_ context.Context, 
 				return ec.fieldContext_Viewer_id(ctx, field)
 			case "organizationUser":
 				return ec.fieldContext_Viewer_organizationUser(ctx, field)
+			case "organizationUserById":
+				return ec.fieldContext_Viewer_organizationUserById(ctx, field)
 			case "images":
 				return ec.fieldContext_Viewer_images(ctx, field)
 			case "hasPermission":
@@ -6732,6 +6922,39 @@ func (ec *executionContext) _Image(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "createdBy":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Image_createdBy(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7670,18 +7893,54 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "id":
 			out.Values[i] = ec._User_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._User_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "email":
 			out.Values[i] = ec._User_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "avatarUrl":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_avatarUrl(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7811,6 +8070,39 @@ func (ec *executionContext) _Viewer(ctx context.Context, sel ast.SelectionSet, o
 					}
 				}()
 				res = ec._Viewer_organizationUser(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "organizationUserById":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Viewer_organizationUserById(ctx, field, obj)
 				return res
 			}
 
