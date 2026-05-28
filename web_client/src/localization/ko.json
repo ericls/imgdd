@@ -1,0 +1,163 @@
+{
+    "common": {
+        "buttonLabel": {
+            "edit": "편집",
+            "save": "저장",
+            "cancel": "취소",
+            "delete": "삭제",
+            "deleteWithConfirm": "삭제…"
+        },
+        "toast": {
+          "copied": "복사됨",
+          "deleted": "삭제됨"
+        }
+    },
+    "darkModeToggle": {
+        "dark": "다크",
+        "useSystem": "자동"
+    },
+    "topNav": {
+        "signIn": "로그인",
+        "siteSettings": "사이트 설정",
+        "profile": "내 업로드",
+        "signOut": "로그아웃"
+    },
+    "home": {
+        "tagLine": "전 세계로 빠르게, 무료로 이미지를 전송하세요."
+    },
+    "uploader": {
+        "mainHelpText": "파일을 끌어다 놓거나 클릭하여 선택하세요",
+        "copyAllURLs": "모든 URL 복사",
+        "copyFormat": "{{format}} 복사"
+    },
+    "auth": {
+        "authenticationFailed": "인증에 실패했습니다. 자격 증명을 확인하고 다시 시도하세요.",
+        "passwordsDoNotMatch": "비밀번호가 일치하지 않습니다.",
+        "passwordCannotBeEmpty": "비밀번호는 비워 둘 수 없습니다.",
+        "userCreationFailed": "사용자 생성에 실패했습니다. 다시 시도하거나 지원팀에 문의하세요.",
+        "titleSignIn": "계정에 로그인",
+        "titleCreateAccount": "새 계정 만들기",
+        "orCreateAccount": "또는 <2>새 계정 만들기</2>",
+        "orSignIn": "또는 <2>로그인</2>",
+        "fieldEmail": "이메일",
+        "fieldPassword": "비밀번호",
+        "fieldRepeatPassword": "비밀번호 확인",
+        "fieldEmailPlaceholder": "이메일",
+        "fieldPasswordPlaceholder": "비밀번호",
+        "fieldRepeatPasswordPlaceholder": "비밀번호 확인",
+        "forgotPasswordLink": "비밀번호를 잊으셨나요?",
+        "buttonSignIn": "로그인",
+        "buttonCreateAccount": "계정 만들기",
+        "buttonSubmit": "제출",
+        "forgotPassword": {
+          "title": "비밀번호를 잊으셨나요?",
+          "backToSignInLink": "로그인으로 돌아가기",
+          "description": "이메일을 입력하시면 비밀번호 재설정 링크를 보내드립니다",
+          "success": "비밀번호 재설정 링크가 포함된 이메일을 보냈습니다.",
+          "error": "이메일을 보내는 중 오류가 발생했습니다. 다시 시도하세요."
+        },
+        "resetPassword": {
+          "title": "비밀번호 재설정",
+          "success": "비밀번호가 성공적으로 재설정되었습니다.",
+          "error": "비밀번호를 재설정하는 중 오류가 발생했습니다. 다시 시도하세요.",
+          "newPasswordPlaceholder": "새 비밀번호",
+          "newPasswordConfirmPlaceholder": "새 비밀번호 확인"
+        }
+    },
+    "listStorageDefPage": {
+        "title": "스토리지 백엔드"
+    },
+    "storageTypeNameTitle": {
+      "fs": "파일 시스템",
+      "WebDAV": "WebDAV",
+      "ipfsMfs": "IPFS (MFS)"
+    },
+    "storageDefTable": {
+        "identifier": "식별자",
+        "enabled": "활성화됨",
+        "storageType": "스토리지 유형",
+        "actions": "작업",
+        "priority": "우선순위",
+        "addNew": "새로 추가",
+        "connectivity": "연결 상태"
+    },
+    "storageConfigForm": {
+        "storageType":"스토리지 유형",
+        "identifier": "식별자",
+        "enabled": "활성화됨",
+        "priority": "우선순위",
+        "bucket": "버킷",
+        "endpoint": "엔드포인트",
+        "access": "Access Key",
+        "secret": "Secret Key",
+        "mediaRootPath": "미디어 루트 경로",
+        "url": "URL",
+        "username": "사용자 이름",
+        "password": "비밀번호",
+        "pathPrefix": "경로 접두사",
+        "apiUrl": "API URL",
+        "pin": "쓰기 시 고정"
+    },
+    "storageDef": {
+        "connection": {
+            "success": "연결 성공",
+            "error": "연결 실패",
+            "unknown": "연결 상태 알 수 없음"
+        }
+    },
+    "siteadmin": {
+      "nav": {
+        "general": "일반",
+        "users": "사용자",
+        "images": "이미지",
+        "storage": "스토리지",
+        "storageBackend": "스토리지 백엔드"
+      },
+      "images": {
+        "list": {
+          "title": "이미지 관리",
+          "searchPlaceholder": "이름으로 검색…"
+        }
+      },
+      "users": {
+        "list": {
+          "title": "사용자 관리"
+        }
+      }
+    },
+    "usersList": {
+      "title": "사용자",
+      "searchPlaceholder": "이메일로 검색…",
+      "showingResults": "전체 {{total}}개 중 {{from}}–{{to}}개 표시",
+      "previous": "이전",
+      "next": "다음",
+      "pageInfo": "{{total}} 페이지 중 {{current}} 페이지"
+    },
+    "usersTable": {
+      "name": "이름",
+      "email": "이메일",
+      "noUsers": "사용자를 찾을 수 없습니다",
+      "organizationUsers": "조직 사용자",
+      "viewImagesButton": "이미지 보기"
+    },
+    "imageItem": {
+      "copyURL": "URL 복사",
+      "download": "다운로드",
+      "confirmDelete": "이 이미지를 삭제하시겠습니까?<br/><b>{{name}}</b>"
+    },
+    "profile": {
+      "nav": {
+        "general": "일반",
+        "images": "이미지"
+      },
+      "images": {
+        "list": {
+          "title": "내 이미지",
+          "searchPlaceholder": "이름으로 검색…"
+        }
+      }
+    },
+    "userImageGallery": {
+      "title": "사용자 이미지"
+    }
+}

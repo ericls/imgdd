@@ -8,6 +8,8 @@ type AsyncLoader = () => Promise<{ default: Record<string, unknown> }>;
 const LAZY_LOADERS: Partial<Record<SupportedLanguage, AsyncLoader>> = {
   zh_hans: () => import("./localization/zh_hans.json"),
   th: () => import("./localization/th.json"),
+  ko: () => import("./localization/ko.json"),
+  ru: () => import("./localization/ru.json"),
 };
 
 export async function loadLanguage(lang: SupportedLanguage) {

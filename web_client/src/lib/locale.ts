@@ -12,14 +12,25 @@ export function isThai() {
   return lang === "th" || lang.startsWith("th-");
 }
 
-export type SupportedLanguage = "en" | "zh_hans" | "th";
+export function isKorean() {
+  const lang = getUserLocaleLower();
+  return lang === "ko" || lang.startsWith("ko-");
+}
+
+export function isRussian() {
+  const lang = getUserLocaleLower();
+  return lang === "ru" || lang.startsWith("ru-");
+}
+
+export type SupportedLanguage = "en" | "zh_hans" | "th" | "ko" | "ru";
 
 const LANGUAGE_STORAGE_KEY = "imgdd.language";
 
 export function getStoredLanguage(): SupportedLanguage | null {
   try {
     const v = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (v === "en" || v === "zh_hans" || v === "th") return v;
+    if (v === "en" || v === "zh_hans" || v === "th" || v === "ko" || v === "ru")
+      return v;
   } catch {
     // localStorage may be unavailable (SSR, privacy mode)
   }
@@ -43,6 +54,8 @@ export function getInitialLanguage(): SupportedLanguage {
   if (stored) return stored;
   if (isChinese()) return "zh_hans";
   if (isThai()) return "th";
+  if (isKorean()) return "ko";
+  if (isRussian()) return "ru";
   return "en";
 }
 

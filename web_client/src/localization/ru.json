@@ -1,0 +1,163 @@
+{
+    "common": {
+        "buttonLabel": {
+            "edit": "Изменить",
+            "save": "Сохранить",
+            "cancel": "Отмена",
+            "delete": "Удалить",
+            "deleteWithConfirm": "Удалить…"
+        },
+        "toast": {
+          "copied": "Скопировано",
+          "deleted": "Удалено"
+        }
+    },
+    "darkModeToggle": {
+        "dark": "Тёмная",
+        "useSystem": "Авто"
+    },
+    "topNav": {
+        "signIn": "Войти",
+        "siteSettings": "Настройки сайта",
+        "profile": "Мои загрузки",
+        "signOut": "Выйти"
+    },
+    "home": {
+        "tagLine": "Быстрая доставка изображений по всему миру, бесплатно."
+    },
+    "uploader": {
+        "mainHelpText": "Перетащите файлы или нажмите, чтобы выбрать",
+        "copyAllURLs": "Копировать все URL",
+        "copyFormat": "Копировать {{format}}"
+    },
+    "auth": {
+        "authenticationFailed": "Не удалось выполнить аутентификацию. Проверьте учётные данные и попробуйте снова.",
+        "passwordsDoNotMatch": "Пароли не совпадают.",
+        "passwordCannotBeEmpty": "Пароль не может быть пустым.",
+        "userCreationFailed": "Не удалось создать пользователя. Попробуйте снова или обратитесь в поддержку.",
+        "titleSignIn": "Войдите в свою учётную запись",
+        "titleCreateAccount": "Создайте новую учётную запись",
+        "orCreateAccount": "или <2>создайте новую учётную запись</2>",
+        "orSignIn": "или <2>войдите</2>",
+        "fieldEmail": "Эл. почта",
+        "fieldPassword": "Пароль",
+        "fieldRepeatPassword": "Повторите пароль",
+        "fieldEmailPlaceholder": "Эл. почта",
+        "fieldPasswordPlaceholder": "Пароль",
+        "fieldRepeatPasswordPlaceholder": "Повторите пароль",
+        "forgotPasswordLink": "Забыли пароль?",
+        "buttonSignIn": "Войти",
+        "buttonCreateAccount": "Создать учётную запись",
+        "buttonSubmit": "Отправить",
+        "forgotPassword": {
+          "title": "Забыли пароль?",
+          "backToSignInLink": "Вернуться ко входу",
+          "description": "Введите эл. почту, и мы отправим вам ссылку для сброса пароля",
+          "success": "Вам отправлено письмо со ссылкой для сброса пароля.",
+          "error": "Произошла ошибка при отправке письма. Попробуйте снова."
+        },
+        "resetPassword": {
+          "title": "Сброс пароля",
+          "success": "Ваш пароль успешно сброшен.",
+          "error": "Произошла ошибка при сбросе пароля. Попробуйте снова.",
+          "newPasswordPlaceholder": "Новый пароль",
+          "newPasswordConfirmPlaceholder": "Повторите новый пароль"
+        }
+    },
+    "listStorageDefPage": {
+        "title": "Хранилище"
+    },
+    "storageTypeNameTitle": {
+      "fs": "Файловая система",
+      "WebDAV": "WebDAV",
+      "ipfsMfs": "IPFS (MFS)"
+    },
+    "storageDefTable": {
+        "identifier": "Идентификатор",
+        "enabled": "Включено",
+        "storageType": "Тип хранилища",
+        "actions": "Действия",
+        "priority": "Приоритет",
+        "addNew": "Добавить",
+        "connectivity": "Подключение"
+    },
+    "storageConfigForm": {
+        "storageType":"Тип хранилища",
+        "identifier": "Идентификатор",
+        "enabled": "Включено",
+        "priority": "Приоритет",
+        "bucket": "Бакет",
+        "endpoint": "Конечная точка",
+        "access": "Access Key",
+        "secret": "Secret Key",
+        "mediaRootPath": "Корневой путь медиа",
+        "url": "URL",
+        "username": "Имя пользователя",
+        "password": "Пароль",
+        "pathPrefix": "Префикс пути",
+        "apiUrl": "API URL",
+        "pin": "Закреплять при записи"
+    },
+    "storageDef": {
+        "connection": {
+            "success": "Подключение успешно",
+            "error": "Не удалось подключиться",
+            "unknown": "Состояние подключения неизвестно"
+        }
+    },
+    "siteadmin": {
+      "nav": {
+        "general": "Общие",
+        "users": "Пользователи",
+        "images": "Изображения",
+        "storage": "Хранилище",
+        "storageBackend": "Хранилище"
+      },
+      "images": {
+        "list": {
+          "title": "Управление изображениями",
+          "searchPlaceholder": "Поиск по имени…"
+        }
+      },
+      "users": {
+        "list": {
+          "title": "Управление пользователями"
+        }
+      }
+    },
+    "usersList": {
+      "title": "Пользователи",
+      "searchPlaceholder": "Поиск по эл. почте…",
+      "showingResults": "Показано с {{from}} по {{to}} из {{total}} результатов",
+      "previous": "Назад",
+      "next": "Вперёд",
+      "pageInfo": "Страница {{current}} из {{total}}"
+    },
+    "usersTable": {
+      "name": "Имя",
+      "email": "Эл. почта",
+      "noUsers": "Пользователи не найдены",
+      "organizationUsers": "Пользователи организации",
+      "viewImagesButton": "Просмотр изображений"
+    },
+    "imageItem": {
+      "copyURL": "Копировать URL",
+      "download": "Скачать",
+      "confirmDelete": "Вы уверены, что хотите удалить это изображение?<br/><b>{{name}}</b>"
+    },
+    "profile": {
+      "nav": {
+        "general": "Общие",
+        "images": "Изображения"
+      },
+      "images": {
+        "list": {
+          "title": "Мои изображения",
+          "searchPlaceholder": "Поиск по имени…"
+        }
+      }
+    },
+    "userImageGallery": {
+      "title": "Изображения пользователя"
+    }
+}
