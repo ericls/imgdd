@@ -131,7 +131,8 @@
       "showingResults": "Showing {{from}} to {{to}} of {{total}} results",
       "previous": "Previous",
       "next": "Next",
-      "pageInfo": "Page {{current}} of {{total}}"
+      "pageInfo": "Page {{current}} of {{total}}",
+      "pageSize": "Per page"
     },
     "usersTable": {
       "name": "Name",

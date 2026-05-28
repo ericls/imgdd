@@ -7,7 +7,11 @@ export const Select = React.forwardRef<
   React.JSX.IntrinsicElements["select"]
 >(({ className, ...props }, ref) => {
   return (
-    <select ref={ref} className={cx(className, DEFAULT_INPUT)} {...props} />
+    <select
+      ref={ref}
+      className={cx(className, DEFAULT_INPUT, "pr-[revert-layer]")}
+      {...props}
+    />
   );
 });
 

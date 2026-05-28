@@ -7,7 +7,9 @@ import { UsersTable } from "./usersTable";
 import { Input } from "~src/ui/input";
 import { useDebounce } from "~src/lib/hooks";
 import { useQuery } from "@apollo/client/react";
+import { useSearchParams } from "react-router";
 import classNames from "classnames";
+import { Select } from "~src/ui/select";
 
 const listUsersQuery = gql(`
   query ListUsers($limit: Int, $offset: Int, $search: String) {
@@ -38,14 +40,21 @@ const listUsersQuery = gql(`
 export function UsersList() {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(0);
-  const pageSize = 10;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = parseInt(searchParams.get("page") ?? "0", 10);
+  const pageSize = parseInt(searchParams.get("pageSize") ?? "10", 10);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [prevDebouncedSearchTerm, setPrevDebouncedSearchTerm] =
     useState(debouncedSearchTerm);
   if (prevDebouncedSearchTerm !== debouncedSearchTerm) {
     setPrevDebouncedSearchTerm(debouncedSearchTerm);
-    setCurrentPage(0);
+    setSearchParams(
+      (p) => {
+        p.set("page", "0");
+        return p;
+      },
+      { replace: true },
+    );
   }
 
   const { data: usersData, loading } = useQuery(listUsersQuery, {
@@ -67,13 +76,35 @@ export function UsersList() {
         {t("usersList.title", "Users")}
       </h1>
 
-      <div className="my-4 w-full max-w-md mt-2">
+      <div className="my-4 flex items-center gap-4 mt-2">
         <Input
           type="text"
           placeholder={t("usersList.searchPlaceholder", "Search by email...")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full max-w-md"
         />
+        <div className="flex items-center gap-2 shrink-0">
+          <label className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+            {t("usersList.pageSize", "Per page")}
+          </label>
+          <Select
+            value={pageSize}
+            onChange={(e) =>
+              setSearchParams((p) => {
+                p.set("pageSize", e.target.value);
+                p.set("page", "0");
+                return p;
+              })
+            }
+          >
+            {[10, 25, 50, 100, 200].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </Select>
+        </div>
       </div>
 
       {!usersData && loading && <BlockLoader />}
@@ -98,7 +129,12 @@ export function UsersList() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => setCurrentPage(currentPage - 1)}
+              onClick={() =>
+                setSearchParams((p) => {
+                  p.set("page", String(currentPage - 1));
+                  return p;
+                })
+              }
               disabled={!pageInfo.hasPreviousPage}
               className="px-3 py-1 text-sm rounded-sm border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
             >
@@ -111,7 +147,12 @@ export function UsersList() {
               })}
             </span>
             <button
-              onClick={() => setCurrentPage(currentPage + 1)}
+              onClick={() =>
+                setSearchParams((p) => {
+                  p.set("page", String(currentPage + 1));
+                  return p;
+                })
+              }
               disabled={!pageInfo.hasNextPage}
               className="px-3 py-1 text-sm rounded-sm border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
             >

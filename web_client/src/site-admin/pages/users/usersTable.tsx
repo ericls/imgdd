@@ -35,7 +35,8 @@ export function UsersTable({ data }: { data: User[] }) {
         id: "expand",
         header: "",
         cell: ({ row }) =>
-          "organizationUsers" in row.original ? (
+          "organizationUsers" in row.original &&
+          row.original.organizationUsers.length > 1 ? (
             <button
               onClick={() => toggleRow(row.original.id)}
               className="flex items-center justify-center text-gray-700 dark:text-gray-300"
@@ -64,15 +65,21 @@ export function UsersTable({ data }: { data: User[] }) {
       columnHelper.display({
         id: "actions",
         header: "",
-        cell: ({ row }) =>
-          "organizationUsers" in row.original ? null : (
-            <Link
-              to={`${row.original.id}/images`}
-              className={classNames(LINK_COLOR, "ml-2")}
-            >
-              {t("usersTable.viewImagesButton")}
-            </Link>
-          ),
+        cell: ({ row }) => {
+          if (!("organizationUsers" in row.original)) return null;
+          const { organizationUsers } = row.original;
+          if (organizationUsers.length === 1) {
+            return (
+              <Link
+                to={`${organizationUsers[0].id}/images`}
+                className={classNames(LINK_COLOR, "ml-2")}
+              >
+                {t("usersTable.viewImagesButton")}
+              </Link>
+            );
+          }
+          return null;
+        },
       }),
     ],
     [t, expandedRows],
@@ -127,6 +134,7 @@ export function UsersTable({ data }: { data: User[] }) {
               </tr>
               {expandedRows[row.original.id] &&
                 "organizationUsers" in row.original &&
+                row.original.organizationUsers.length > 1 &&
                 row.original.organizationUsers.map(
                   (orgUser: OrganizationUser) => (
                     <tr
