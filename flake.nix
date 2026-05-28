@@ -26,9 +26,11 @@
             corepack_24
 
             git
+            lefthook
           ];
 
           shellHook = ''
+            lefthook install
             echo "Go version:   $(go version)"
             echo "Node version: $(node -v)"
             echo ""

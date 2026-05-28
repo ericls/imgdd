@@ -1,0 +1,12 @@
+pre-commit:
+  parallel: true
+  commands:
+    gofmt:
+      glob: "*.go"
+      run: bash -c 'out=$(gofmt -l {staged_files}); [ -z "$out" ] || (echo "Unformatted Go files:\n$out"; exit 1)'
+    govet:
+      glob: "*.go"
+      run: go vet ./...
+    web-check:
+      glob: "web_client/src/**/*.ts*"
+      run: pnpm --prefix web_client run check

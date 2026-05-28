@@ -39,6 +39,7 @@ As of February 2025, the project handles over 1 TB of traffic and 4.2 million re
 - Go 1.25+
 - Node.js 20 (for the frontend)
 - Docker & Docker Compose (for local services)
+- [lefthook](https://github.com/evilmartians/lefthook) (for pre-commit hooks)
 
 > If you use nix, you can just do `nix develop`.
 
@@ -67,6 +68,11 @@ As of February 2025, the project handles over 1 TB of traffic and 4.2 million re
 5. Create a user:
    ```bash
    go run . create-user --email you@imgdd.com --password yourpassword --is-site-owner
+   ```
+
+6. Install pre-commit hooks if you plan to contribute:
+   ```bash
+   lefthook install
    ```
 
 ### Building & Running
