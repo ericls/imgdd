@@ -1,0 +1,163 @@
+{
+    "common": {
+        "buttonLabel": {
+            "edit": "編輯",
+            "save": "儲存",
+            "cancel": "取消",
+            "delete": "刪除",
+            "deleteWithConfirm": "刪除…"
+        },
+        "toast": {
+          "copied": "已複製",
+          "deleted": "已刪除"
+        }
+    },
+    "darkModeToggle": {
+        "dark": "深色",
+        "useSystem": "自動"
+    },
+    "topNav": {
+        "signIn": "登入",
+        "siteSettings": "網站設定",
+        "profile": "我的上傳",
+        "signOut": "登出"
+    },
+    "home": {
+        "tagLine": "圖片分享，隨點即達，完全免費"
+    },
+    "uploader": {
+        "mainHelpText": "拖放 或 點擊以選擇檔案",
+        "copyAllURLs": "複製全部連結",
+        "copyFormat": "複製 {{format}}"
+    },
+    "auth": {
+        "authenticationFailed": "身分驗證失敗，請檢查您的憑證後重試。",
+        "passwordsDoNotMatch": "兩次輸入的密碼不一致。",
+        "passwordCannotBeEmpty": "密碼不能為空。",
+        "userCreationFailed": "建立使用者失敗，請重試或聯絡支援。",
+        "titleSignIn": "登入您的帳戶",
+        "titleCreateAccount": "建立新帳戶",
+        "orCreateAccount": "或<2>建立新帳戶</2>",
+        "orSignIn": "或<2>登入</2>",
+        "fieldEmail": "電子郵件",
+        "fieldPassword": "密碼",
+        "fieldRepeatPassword": "重複密碼",
+        "fieldEmailPlaceholder": "電子郵件",
+        "fieldPasswordPlaceholder": "密碼",
+        "fieldRepeatPasswordPlaceholder": "重複密碼",
+        "forgotPasswordLink": "忘記密碼？",
+        "buttonSignIn": "登入",
+        "buttonCreateAccount": "建立帳戶",
+        "buttonSubmit": "送出",
+        "forgotPassword": {
+          "title": "忘記密碼？",
+          "backToSignInLink": "返回登入",
+          "description": "輸入您的電子郵件，我們會寄送重設密碼的連結給您",
+          "success": "重設密碼的郵件已寄出，請查收。",
+          "error": "寄送郵件時發生錯誤，請重試。"
+        },
+        "resetPassword": {
+          "title": "重設密碼",
+          "success": "密碼已成功重設。",
+          "error": "重設密碼時發生錯誤，請重試。",
+          "newPasswordPlaceholder": "新密碼",
+          "newPasswordConfirmPlaceholder": "重複新密碼"
+        }
+    },
+    "listStorageDefPage": {
+        "title": "儲存後端"
+    },
+    "storageTypeNameTitle": {
+      "fs": "檔案系統",
+      "WebDAV": "WebDAV",
+      "ipfsMfs": "IPFS (MFS)"
+    },
+    "storageDefTable": {
+        "identifier": "識別碼",
+        "enabled": "已啟用",
+        "storageType": "儲存類型",
+        "actions": "操作",
+        "priority": "優先順序",
+        "addNew": "新增",
+        "connectivity": "連線狀態"
+    },
+    "storageConfigForm": {
+        "storageType":"儲存類型",
+        "identifier": "識別碼",
+        "enabled": "已啟用",
+        "priority": "優先順序",
+        "bucket": "儲存桶",
+        "endpoint": "端點",
+        "access": "Access Key",
+        "secret": "Secret Key",
+        "mediaRootPath": "媒體根路徑",
+        "url": "URL",
+        "username": "使用者名稱",
+        "password": "密碼",
+        "pathPrefix": "路徑前綴",
+        "apiUrl": "API 網址",
+        "pin": "寫入時釘選 (Pin)"
+    },
+    "storageDef": {
+        "connection": {
+            "success": "連線成功",
+            "error": "連線失敗",
+            "unknown": "連線狀態未知"
+        }
+    },
+    "siteadmin": {
+      "nav": {
+        "general": "一般",
+        "users": "使用者",
+        "images": "圖片",
+        "storage": "儲存",
+        "storageBackend": "儲存後端"
+      },
+      "images": {
+        "list": {
+          "title": "管理圖片",
+          "searchPlaceholder": "依名稱搜尋…"
+        }
+      },
+      "users": {
+        "list": {
+          "title": "管理使用者"
+        }
+      }
+    },
+    "usersList": {
+      "title": "使用者",
+      "searchPlaceholder": "依電子郵件搜尋…",
+      "showingResults": "顯示第 {{from}} 到 {{to}} 筆，共 {{total}} 筆",
+      "previous": "上一頁",
+      "next": "下一頁",
+      "pageInfo": "第 {{current}} 頁，共 {{total}} 頁"
+    },
+    "usersTable": {
+      "name": "姓名",
+      "email": "電子郵件",
+      "noUsers": "找不到使用者",
+      "organizationUsers": "組織使用者",
+      "viewImagesButton": "檢視圖片"
+    },
+    "imageItem": {
+      "copyURL": "複製連結",
+      "download": "下載",
+      "confirmDelete": "確定要刪除這張圖片嗎？<br/><b>{{name}}</b>"
+    },
+    "profile": {
+      "nav": {
+        "general": "一般",
+        "images": "圖片"
+      },
+      "images": {
+        "list": {
+          "title": "我的圖片",
+          "searchPlaceholder": "依名稱搜尋…"
+        }
+      }
+    },
+    "userImageGallery": {
+      "title": "使用者圖片"
+    }
+}

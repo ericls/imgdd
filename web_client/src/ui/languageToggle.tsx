@@ -13,6 +13,7 @@ import { setStoredLanguage, SupportedLanguage } from "~src/lib/locale";
 const LANGUAGES: { id: SupportedLanguage; label: string }[] = [
   { id: "en", label: "English" },
   { id: "zh_hans", label: "简体中文" },
+  { id: "zh_hant", label: "繁體中文" },
   { id: "th", label: "ไทย" },
   { id: "ko", label: "한국어" },
   { id: "ru", label: "Русский" },

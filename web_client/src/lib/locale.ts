@@ -7,6 +7,16 @@ export function isChinese() {
   return lang === "zh" || lang.startsWith("zh-");
 }
 
+export function isTraditionalChinese() {
+  const lang = getUserLocaleLower();
+  return (
+    lang.startsWith("zh-tw") ||
+    lang.startsWith("zh-hk") ||
+    lang.startsWith("zh-mo") ||
+    lang.startsWith("zh-hant")
+  );
+}
+
 export function isThai() {
   const lang = getUserLocaleLower();
   return lang === "th" || lang.startsWith("th-");
@@ -22,14 +32,27 @@ export function isRussian() {
   return lang === "ru" || lang.startsWith("ru-");
 }
 
-export type SupportedLanguage = "en" | "zh_hans" | "th" | "ko" | "ru";
+export type SupportedLanguage =
+  | "en"
+  | "zh_hans"
+  | "zh_hant"
+  | "th"
+  | "ko"
+  | "ru";
 
 const LANGUAGE_STORAGE_KEY = "imgdd.language";
 
 export function getStoredLanguage(): SupportedLanguage | null {
   try {
     const v = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    if (v === "en" || v === "zh_hans" || v === "th" || v === "ko" || v === "ru")
+    if (
+      v === "en" ||
+      v === "zh_hans" ||
+      v === "zh_hant" ||
+      v === "th" ||
+      v === "ko" ||
+      v === "ru"
+    )
       return v;
   } catch {
     // localStorage may be unavailable (SSR, privacy mode)
@@ -52,6 +75,7 @@ export function setStoredLanguage(lang: SupportedLanguage | null) {
 export function getInitialLanguage(): SupportedLanguage {
   const stored = getStoredLanguage();
   if (stored) return stored;
+  if (isTraditionalChinese()) return "zh_hant";
   if (isChinese()) return "zh_hans";
   if (isThai()) return "th";
   if (isKorean()) return "ko";
