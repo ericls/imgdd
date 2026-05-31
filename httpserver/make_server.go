@@ -91,6 +91,7 @@ func MakeServer(
 	gqlResolver := NewGqlResolver(
 		identityManager,
 		storageDefRepo,
+		storedImageRepo,
 		imageRepo,
 		conf.ImageDomain,
 		conf.DefaultURLFormat,

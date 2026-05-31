@@ -127,3 +127,7 @@ models:
         resolver: true
       createdBy:
         resolver: true
+      parent:
+        resolver: true
+      changes:
+        resolver: true

@@ -16,6 +16,7 @@ type ContextKey string
 func NewGqlResolver(
 	identityManager *IdentityManager,
 	storageDefRepo storage.StorageDefRepo,
+	storedImageRepo storage.StoredImageRepo,
 	imageRepo image.ImageRepo,
 	imageDomain string,
 	defaultURLFormat domainmodels.ImageURLFormat,
@@ -27,6 +28,7 @@ func NewGqlResolver(
 	return &graph.Resolver{
 		IdentityRepo:       identityManager.IdentityRepo,
 		StorageDefRepo:     storageDefRepo,
+		StoredImageRepo:    storedImageRepo,
 		ImageRepo:          imageRepo,
 		ContextUserManager: identityManager.ContextUserManager,
 		LoginFn:            identityManager.AuthenticateContext,

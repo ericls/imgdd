@@ -33,6 +33,7 @@ type Image struct {
 	Identifier      string
 	RootId          string
 	ParentId        string
+	Changes         string
 	UploaderIP      string
 	MIMEType        string
 	NominalWidth    int32

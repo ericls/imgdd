@@ -18,6 +18,9 @@ type Image struct {
 	MIMEType        string    `json:"MIMEType"`
 	URL             string    `json:"url"`
 	CreatedById     string    `json:"createdById"`
+	ParentId        string    `json:"parentId"`
+	RootId          string    `json:"rootId"`
+	RawChanges      string    `json:"rawChanges"`
 }
 
 func FromImage(i *domainmodels.Image) *Image {
@@ -31,6 +34,9 @@ func FromImage(i *domainmodels.Image) *Image {
 		CreatedAt:       i.CreatedAt,
 		MIMEType:        i.MIMEType,
 		CreatedById:     i.CreatedById,
+		ParentId:        i.ParentId,
+		RootId:          i.RootId,
+		RawChanges:      i.Changes,
 	}
 }
 

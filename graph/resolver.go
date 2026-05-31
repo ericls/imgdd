@@ -20,6 +20,7 @@ import (
 type Resolver struct {
 	IdentityRepo       identity.IdentityRepo
 	StorageDefRepo     storage.StorageDefRepo
+	StoredImageRepo    storage.StoredImageRepo
 	ImageRepo          image.ImageRepo
 	ContextUserManager identity.ContextUserManager
 	LoginFn            func(c context.Context, userId string, organizationUserId string)

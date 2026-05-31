@@ -9,6 +9,19 @@ import (
 	"strconv"
 )
 
+type ApplyWatermarkInput struct {
+	BaseImageID    string                  `json:"baseImageId"`
+	OverlayImageID string                  `json:"overlayImageId"`
+	Position       *WatermarkPositionInput `json:"position"`
+	Anchor         Anchor                  `json:"anchor"`
+	Opacity        float64                 `json:"opacity"`
+	Scale          float64                 `json:"scale"`
+}
+
+type ApplyWatermarkResult struct {
+	Image *Image `json:"image,omitempty"`
+}
+
 type CreateUserWithOrganizationInput struct {
 	UserEmail        string `json:"userEmail"`
 	UserPassword     string `json:"userPassword"`
@@ -29,6 +42,72 @@ type Query struct {
 
 type ViewerResult struct {
 	Viewer *Viewer `json:"viewer"`
+}
+
+type WatermarkPositionInput struct {
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
+}
+
+type Anchor string
+
+const (
+	AnchorTopLeft     Anchor = "TOP_LEFT"
+	AnchorTopRight    Anchor = "TOP_RIGHT"
+	AnchorBottomLeft  Anchor = "BOTTOM_LEFT"
+	AnchorBottomRight Anchor = "BOTTOM_RIGHT"
+	AnchorCenter      Anchor = "CENTER"
+)
+
+var AllAnchor = []Anchor{
+	AnchorTopLeft,
+	AnchorTopRight,
+	AnchorBottomLeft,
+	AnchorBottomRight,
+	AnchorCenter,
+}
+
+func (e Anchor) IsValid() bool {
+	switch e {
+	case AnchorTopLeft, AnchorTopRight, AnchorBottomLeft, AnchorBottomRight, AnchorCenter:
+		return true
+	}
+	return false
+}
+
+func (e Anchor) String() string {
+	return string(e)
+}
+
+func (e *Anchor) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Anchor(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Anchor", str)
+	}
+	return nil
+}
+
+func (e Anchor) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *Anchor) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e Anchor) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }
 
 type PaginationDirection string

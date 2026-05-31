@@ -1,10 +1,16 @@
 package graph_test
 
 import (
+	"bytes"
+	"image"
+	"image/color"
+	"image/png"
+	"os"
 	"testing"
 
 	"github.com/ericls/imgdd/domainmodels"
 	"github.com/ericls/imgdd/graph/model"
+	"github.com/ericls/imgdd/storage"
 	"github.com/ericls/imgdd/utils"
 
 	"github.com/99designs/gqlgen/client"
@@ -460,6 +466,212 @@ func tImageCreatedByNullWhenNoCreator(t *testing.T, tc *TestContext) {
 	require.Nil(t, resp.Viewer.Images.Edges[0].Node.CreatedBy)
 }
 
+func makeTestPNGBytes(w, h int, c color.Color) []byte {
+	img := image.NewRGBA(image.Rect(0, 0, w, h))
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			img.Set(x, y, c)
+		}
+	}
+	var buf bytes.Buffer
+	png.Encode(&buf, img)
+	return buf.Bytes()
+}
+
+func createFSStorageDefinition(t *testing.T, tc *TestContext) (*domainmodels.StorageDefinition, string) {
+	tempDir, err := os.MkdirTemp("", "imgdd_test_*")
+	require.NoError(t, err)
+	configJSON := `{"mediaRoot": "` + tempDir + `"}`
+	sd, err := tc.storageDefRepo.CreateStorageDefinition("fs", configJSON, "test-fs", true, 1)
+	require.NoError(t, err)
+	return sd, tempDir
+}
+
+func createRealImage(t *testing.T, tc *TestContext, uploaderId string, storageDefId string, imgBytes []byte) *domainmodels.Image {
+	identifier := uuid.New().String()
+	fakeImage := domainmodels.Image{
+		UploaderIP:      "127.0.0.1",
+		CreatedById:     uploaderId,
+		MIMEType:        "image/png",
+		Name:            identifier + ".png",
+		Identifier:      identifier,
+		NominalByteSize: int32(len(imgBytes)),
+		NominalWidth:    100,
+		NominalHeight:   100,
+	}
+	storageInstance, err := storage.GetStorage(&domainmodels.StorageDefinition{
+		Id:          storageDefId,
+		StorageType: "fs",
+		Config:      func() string { sd, _ := tc.storageDefRepo.GetStorageDefinitionById(storageDefId); return sd.Config }(),
+		IsEnabled:   true,
+	})
+	require.NoError(t, err)
+	si, err := tc.imageRepo.CreateAndSaveUploadedImage(&fakeImage, "image/png", imgBytes, storageDefId, storageInstance.Save)
+	require.NoError(t, err)
+	return si.Image
+}
+
+func tApplyWatermark(t *testing.T, tc *TestContext) {
+	orgUser := tc.forceAuthenticate()
+	sd, tempDir := createFSStorageDefinition(t, tc)
+	defer os.RemoveAll(tempDir)
+
+	baseBytes := makeTestPNGBytes(200, 200, color.RGBA{255, 0, 0, 255})
+	overlayBytes := makeTestPNGBytes(50, 50, color.RGBA{0, 0, 255, 255})
+	baseImage := createRealImage(t, tc, orgUser.Id, sd.Id, baseBytes)
+	overlayImage := createRealImage(t, tc, orgUser.Id, sd.Id, overlayBytes)
+
+	var resp struct {
+		ApplyWatermark *struct {
+			Image *struct {
+				ID       string
+				Name     string
+				MIMEType string
+				Parent   *struct {
+					ID string
+				}
+				Changes *string
+			}
+		}
+	}
+
+	err := tc.client.Post(`
+	mutation applyWatermark($input: ApplyWatermarkInput!) {
+		applyWatermark(input: $input) {
+			image {
+				id
+				name
+				MIMEType
+				parent {
+					id
+				}
+				changes
+			}
+		}
+	}`, &resp, client.Var("input", map[string]interface{}{
+		"baseImageId":    baseImage.Id,
+		"overlayImageId": overlayImage.Id,
+		"position":       map[string]float64{"x": 0.9, "y": 0.9},
+		"anchor":         "BOTTOM_RIGHT",
+		"opacity":        0.5,
+		"scale":          0.15,
+	}))
+	require.NoError(t, err)
+	require.NotNil(t, resp.ApplyWatermark)
+	require.NotNil(t, resp.ApplyWatermark.Image)
+	require.NotEmpty(t, resp.ApplyWatermark.Image.ID)
+	require.Equal(t, baseImage.Name, resp.ApplyWatermark.Image.Name)
+	require.Equal(t, "image/png", resp.ApplyWatermark.Image.MIMEType)
+
+	// Verify lineage
+	require.NotNil(t, resp.ApplyWatermark.Image.Parent)
+	require.Equal(t, baseImage.Id, resp.ApplyWatermark.Image.Parent.ID)
+
+	// Verify changes JSON is populated
+	require.NotNil(t, resp.ApplyWatermark.Image.Changes)
+	require.Contains(t, *resp.ApplyWatermark.Image.Changes, `"type"`)
+	require.Contains(t, *resp.ApplyWatermark.Image.Changes, `watermark`)
+
+	// Verify the new image exists in the DB with correct lineage
+	newImage, err := tc.imageRepo.GetImageById(resp.ApplyWatermark.Image.ID)
+	require.NoError(t, err)
+	require.Equal(t, baseImage.Id, newImage.ParentId)
+	require.Equal(t, baseImage.Id, newImage.RootId)
+}
+
+func tApplyWatermarkUnauthenticated(t *testing.T, tc *TestContext) {
+	tc.clearAuthenticationInfo()
+
+	var resp struct {
+		ApplyWatermark *struct {
+			Image *struct{ ID string }
+		}
+	}
+
+	err := tc.client.Post(`
+	mutation applyWatermark($input: ApplyWatermarkInput!) {
+		applyWatermark(input: $input) {
+			image {
+				id
+			}
+		}
+	}`, &resp, client.Var("input", map[string]interface{}{
+		"baseImageId":    uuid.New().String(),
+		"overlayImageId": uuid.New().String(),
+		"position":       map[string]float64{"x": 0.5, "y": 0.5},
+		"anchor":         "CENTER",
+		"opacity":        1.0,
+		"scale":          0.1,
+	}))
+	require.Error(t, err)
+}
+
+func tApplyWatermarkUnauthorizedImage(t *testing.T, tc *TestContext) {
+	orgUser1 := tc.forceAuthenticate()
+	orgUser2 := tc.forceAuthenticate()
+	sd, tempDir := createFSStorageDefinition(t, tc)
+	defer os.RemoveAll(tempDir)
+
+	baseBytes := makeTestPNGBytes(100, 100, color.White)
+	overlayBytes := makeTestPNGBytes(20, 20, color.Black)
+	// base image owned by orgUser1
+	baseImage := createRealImage(t, tc, orgUser1.Id, sd.Id, baseBytes)
+	overlayImage := createRealImage(t, tc, orgUser2.Id, sd.Id, overlayBytes)
+
+	// Authenticate as orgUser2 and try to edit orgUser1's image
+	tc.setAuthenticatedUser(orgUser2)
+
+	var resp struct {
+		ApplyWatermark *struct {
+			Image *struct{ ID string }
+		}
+	}
+
+	err := tc.client.Post(`
+	mutation applyWatermark($input: ApplyWatermarkInput!) {
+		applyWatermark(input: $input) {
+			image {
+				id
+			}
+		}
+	}`, &resp, client.Var("input", map[string]interface{}{
+		"baseImageId":    baseImage.Id,
+		"overlayImageId": overlayImage.Id,
+		"position":       map[string]float64{"x": 0.5, "y": 0.5},
+		"anchor":         "CENTER",
+		"opacity":        1.0,
+		"scale":          0.1,
+	}))
+	require.Error(t, err)
+}
+
+func tApplyWatermarkInvalidImageId(t *testing.T, tc *TestContext) {
+	tc.forceAuthenticate()
+
+	var resp struct {
+		ApplyWatermark *struct {
+			Image *struct{ ID string }
+		}
+	}
+
+	err := tc.client.Post(`
+	mutation applyWatermark($input: ApplyWatermarkInput!) {
+		applyWatermark(input: $input) {
+			image {
+				id
+			}
+		}
+	}`, &resp, client.Var("input", map[string]interface{}{
+		"baseImageId":    uuid.New().String(),
+		"overlayImageId": uuid.New().String(),
+		"position":       map[string]float64{"x": 0.5, "y": 0.5},
+		"anchor":         "CENTER",
+		"opacity":        1.0,
+		"scale":          0.1,
+	}))
+	require.Error(t, err)
+}
+
 func TestImageResolvers(t *testing.T) {
 	tc := newTestContext(t)
 	tc.runTestCases(
@@ -471,5 +683,9 @@ func TestImageResolvers(t *testing.T) {
 		tDeletingImage,
 		tImageCreatedByIsPopulated,
 		tImageCreatedByNullWhenNoCreator,
+		tApplyWatermark,
+		tApplyWatermarkUnauthenticated,
+		tApplyWatermarkUnauthorizedImage,
+		tApplyWatermarkInvalidImageId,
 	)
 }
