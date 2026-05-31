@@ -7,12 +7,17 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/editing"
 	"github.com/ericls/imgdd/graph/model"
 	"github.com/ericls/imgdd/identity"
 	"github.com/ericls/imgdd/image"
+	"github.com/ericls/imgdd/storage"
+	"github.com/ericls/imgdd/utils"
+	"github.com/google/uuid"
 )
 
 // URL is the resolver for the url field.
@@ -44,6 +49,29 @@ func (r *imageResolver) URL(ctx context.Context, obj *model.Image) (string, erro
 func (r *imageResolver) Root(ctx context.Context, obj *model.Image) (*model.Image, error) {
 	// TODO: Implement this
 	return nil, nil
+}
+
+// Parent is the resolver for the parent field.
+func (r *imageResolver) Parent(ctx context.Context, obj *model.Image) (*model.Image, error) {
+	if obj.ParentId == "" {
+		return nil, nil
+	}
+	parent, err := r.ImageRepo.GetImageById(obj.ParentId)
+	if err != nil {
+		return nil, err
+	}
+	if parent == nil {
+		return nil, nil
+	}
+	return model.FromImage(parent), nil
+}
+
+// Changes is the resolver for the changes field.
+func (r *imageResolver) Changes(ctx context.Context, obj *model.Image) (*string, error) {
+	if obj.RawChanges == "" || obj.RawChanges == "{}" {
+		return nil, nil
+	}
+	return &obj.RawChanges, nil
 }
 
 // Revisions is the resolver for the revisions field.
@@ -84,6 +112,131 @@ func (r *mutationResolver) DeleteImage(ctx context.Context, input model.DeleteIm
 			return &model.DeleteImageResult{ID: &input.ID}, nil
 		}
 	}
+}
+
+// ApplyWatermark is the resolver for the applyWatermark field.
+func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.ApplyWatermarkInput) (*model.ApplyWatermarkResult, error) {
+	currentUser := identity.GetCurrentOrganizationUser(r.ContextUserManager, ctx)
+	if currentUser == nil {
+		return nil, fmt.Errorf("unauthorized")
+	}
+
+	// Validate both images exist and are owned by the current user
+	baseImage, err := r.ImageRepo.GetImageById(input.BaseImageID)
+	if err != nil || baseImage == nil {
+		return nil, fmt.Errorf("base image not found")
+	}
+	if baseImage.CreatedById != currentUser.Id && !currentUser.IsSiteOwner() {
+		return nil, fmt.Errorf("unauthorized")
+	}
+
+	overlayImage, err := r.ImageRepo.GetImageById(input.OverlayImageID)
+	if err != nil || overlayImage == nil {
+		return nil, fmt.Errorf("overlay image not found")
+	}
+
+	// Map GraphQL anchor to editing anchor
+	anchorMap := map[model.Anchor]editing.Anchor{
+		model.AnchorTopLeft:     editing.AnchorTopLeft,
+		model.AnchorTopRight:    editing.AnchorTopRight,
+		model.AnchorBottomLeft:  editing.AnchorBottomLeft,
+		model.AnchorBottomRight: editing.AnchorBottomRight,
+		model.AnchorCenter:      editing.AnchorCenter,
+	}
+
+	params := editing.WatermarkParams{
+		OverlayImageID: input.OverlayImageID,
+		Position: editing.WatermarkPosition{
+			X: input.Position.X,
+			Y: input.Position.Y,
+		},
+		Anchor:  anchorMap[input.Anchor],
+		Opacity: input.Opacity,
+		Scale:   input.Scale,
+	}
+	paramsJSON, err := json.Marshal(params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize params: %w", err)
+	}
+
+	cs := editing.ChangeSet{
+		Type:   "watermark",
+		Params: paramsJSON,
+	}
+
+	// Get editor
+	editor, err := editing.GetEditor(cs.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch base image bytes
+	fetchImage := editing.NewFetchImageFunc(r.StoredImageRepo, r.StorageDefRepo)
+	baseBytes, err := fetchImage(input.BaseImageID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch base image: %w", err)
+	}
+
+	// Apply the edit
+	resultBytes, resultMime, err := editor.Apply(baseBytes, cs, fetchImage)
+	if err != nil {
+		return nil, fmt.Errorf("failed to apply watermark: %w", err)
+	}
+
+	// Serialize the change set for storage
+	changesJSON, err := json.Marshal(cs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize changes: %w", err)
+	}
+
+	// Get dimensions of the result
+	width, height, err := utils.GetImageDimensions(resultBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get result dimensions: %w", err)
+	}
+
+	// Find storage backend
+	storageDefs, err := r.StorageDefRepo.ListStorageDefinitions()
+	if err != nil {
+		return nil, fmt.Errorf("failed to list storage definitions: %w", err)
+	}
+	var storageDef *domainmodels.StorageDefinition
+	for _, def := range storageDefs {
+		if def.IsEnabled {
+			storageDef = def
+			break
+		}
+	}
+	if storageDef == nil {
+		return nil, fmt.Errorf("no enabled storage backend")
+	}
+
+	storageInstance, err := storage.GetStorage(storageDef)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get storage: %w", err)
+	}
+
+	// Create the new derived image
+	newImage := domainmodels.Image{
+		Identifier:      uuid.New().String(),
+		Name:            baseImage.Name,
+		ParentId:        baseImage.Id,
+		Changes:         string(changesJSON),
+		CreatedById:     currentUser.Id,
+		MIMEType:        resultMime,
+		NominalWidth:    width,
+		NominalHeight:   height,
+		NominalByteSize: int32(len(resultBytes)),
+	}
+
+	storedImage, err := r.ImageRepo.CreateAndSaveUploadedImage(&newImage, resultMime, resultBytes, storageDef.Id, storageInstance.Save)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save result image: %w", err)
+	}
+
+	return &model.ApplyWatermarkResult{
+		Image: model.FromImage(storedImage.Image),
+	}, nil
 }
 
 // Images is the resolver for the images field.

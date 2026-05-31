@@ -70,6 +70,7 @@ func (repo *DBImageRepo) GetImageById(id string) (*dm.Image, error) {
 		Name:            dest.Name,
 		ParentId:        parentId,
 		RootId:          rootId,
+		Changes:         dest.Changes,
 		UploaderIP:      utils.SafeDeref(dest.UploaderIP),
 		MIMEType:        dest.MimeType,
 		NominalWidth:    dest.NominalWidth,
@@ -103,11 +104,22 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 		createdById = nil
 	}
 
+	var uploaderIP *string
+	if image.UploaderIP != "" {
+		uploaderIP = &image.UploaderIP
+	}
+
+	changes := image.Changes
+	if changes == "" {
+		changes = "{}"
+	}
+
 	stmt := ImageTable.INSERT(
 		ImageTable.Identifier,
 		ImageTable.Name,
 		ImageTable.ParentID,
 		ImageTable.RootID,
+		ImageTable.Changes,
 		ImageTable.UploaderIP,
 		ImageTable.CreatedByID,
 		ImageTable.MimeType,
@@ -119,7 +131,8 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 		image.Name,
 		parentId,
 		rootId,
-		image.UploaderIP,
+		changes,
+		uploaderIP,
 		createdById,
 		image.MIMEType,
 		image.NominalByteSize,
@@ -370,6 +383,7 @@ func (repo *DBImageRepo) ListImages(
 			Name:            image.Name,
 			ParentId:        utils.SafeDeref(image.ParentID).String(),
 			RootId:          utils.SafeDeref(image.RootID).String(),
+			Changes:         image.Changes,
 			UploaderIP:      utils.SafeDeref(image.UploaderIP),
 			MIMEType:        image.MimeType,
 			NominalWidth:    image.NominalWidth,

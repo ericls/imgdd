@@ -13,11 +13,39 @@ type Image {
   nominalHeight: Int!
   nominalByteSize: Int!
   root: Image
+  parent: Image
+  changes: String
   revisions: [Image!]!
   createdAt: Time!
   storedImages: [StoredImage!]!
   MIMEType: String!
   createdBy: OrganizationUser
+}
+
+enum Anchor {
+  TOP_LEFT
+  TOP_RIGHT
+  BOTTOM_LEFT
+  BOTTOM_RIGHT
+  CENTER
+}
+
+input WatermarkPositionInput {
+  x: Float!
+  y: Float!
+}
+
+input ApplyWatermarkInput {
+  baseImageId: ID!
+  overlayImageId: ID!
+  position: WatermarkPositionInput!
+  anchor: Anchor!
+  opacity: Float!
+  scale: Float!
+}
+
+type ApplyWatermarkResult {
+  image: Image
 }
 
 input ImageOrderByInput {
@@ -71,4 +99,5 @@ type DeleteImageResult {
 
 extend type Mutation {
   deleteImage(input: DeleteImageInput!): DeleteImageResult! @isAuthenticated
+  applyWatermark(input: ApplyWatermarkInput!): ApplyWatermarkResult! @isAuthenticated
 }

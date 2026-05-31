@@ -94,6 +94,7 @@ func newTestContext(tObj *testing.T) *TestContext {
 	resolver := httpserver.NewGqlResolver(
 		identityManager,
 		storageDefRepo,
+		storedImageRepo,
 		imageRepo,
 		"",
 		domainmodels.ImageURLFormat_CANONICAL,
