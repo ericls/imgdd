@@ -47,8 +47,17 @@ func (r *imageResolver) URL(ctx context.Context, obj *model.Image) (string, erro
 
 // Root is the resolver for the root field.
 func (r *imageResolver) Root(ctx context.Context, obj *model.Image) (*model.Image, error) {
-	// TODO: Implement this
-	return nil, nil
+	if obj.RootId == "" {
+		return nil, nil
+	}
+	root, err := r.ImageRepo.GetImageById(obj.RootId)
+	if err != nil {
+		return nil, err
+	}
+	if root == nil {
+		return nil, nil
+	}
+	return model.FromImage(root), nil
 }
 
 // Parent is the resolver for the parent field.
@@ -74,6 +83,36 @@ func (r *imageResolver) Changes(ctx context.Context, obj *model.Image) (*string,
 	return &obj.RawChanges, nil
 }
 
+// Lineage is the resolver for the lineage field.
+// Returns the chain of ancestors from root to this image (inclusive).
+func (r *imageResolver) Lineage(ctx context.Context, obj *model.Image) ([]*model.Image, error) {
+	if obj.ParentId == "" {
+		return []*model.Image{obj}, nil
+	}
+
+	// Walk up the parent chain collecting ancestors
+	var chain []*model.Image
+	chain = append(chain, obj)
+	currentParentId := obj.ParentId
+	for currentParentId != "" {
+		parent, err := r.ImageRepo.GetImageById(currentParentId)
+		if err != nil {
+			return nil, err
+		}
+		if parent == nil {
+			break
+		}
+		chain = append(chain, model.FromImage(parent))
+		currentParentId = parent.ParentId
+	}
+
+	// Reverse so root comes first
+	for i, j := 0, len(chain)-1; i < j; i, j = i+1, j-1 {
+		chain[i], chain[j] = chain[j], chain[i]
+	}
+	return chain, nil
+}
+
 // Revisions is the resolver for the revisions field.
 func (r *imageResolver) Revisions(ctx context.Context, obj *model.Image) ([]*model.Image, error) {
 	// TODO: Implement this method after we support revisions.
@@ -96,6 +135,9 @@ func (r *imageResolver) CreatedBy(ctx context.Context, obj *model.Image) (*model
 
 // DeleteImage is the resolver for the deleteImage field.
 func (r *mutationResolver) DeleteImage(ctx context.Context, input model.DeleteImageInput) (*model.DeleteImageResult, error) {
+	if _, err := uuid.Parse(input.ID); err != nil {
+		return nil, fmt.Errorf("image not found")
+	}
 	currentUser := identity.GetCurrentOrganizationUser(r.ContextUserManager, ctx)
 	if img, err := r.ImageRepo.GetImageById(input.ID); err != nil {
 		return nil, err
@@ -119,6 +161,14 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 	currentUser := identity.GetCurrentOrganizationUser(r.ContextUserManager, ctx)
 	if currentUser == nil {
 		return nil, fmt.Errorf("unauthorized")
+	}
+
+	// Validate IDs
+	if _, err := uuid.Parse(input.BaseImageID); err != nil {
+		return nil, fmt.Errorf("base image not found")
+	}
+	if _, err := uuid.Parse(input.OverlayImageID); err != nil {
+		return nil, fmt.Errorf("overlay image not found")
 	}
 
 	// Validate both images exist and are owned by the current user
@@ -239,6 +289,29 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 	}, nil
 }
 
+// Image is the resolver for the image field.
+func (r *viewerResolver) Image(ctx context.Context, obj *model.Viewer, id string) (*model.Image, error) {
+	currentUser := identity.GetCurrentOrganizationUser(r.ContextUserManager, ctx)
+	if currentUser == nil {
+		return nil, fmt.Errorf("unauthorized")
+	}
+
+	if _, err := uuid.Parse(id); err != nil {
+		return nil, fmt.Errorf("image not found")
+	}
+
+	img, err := r.ImageRepo.GetImageById(id)
+	if err != nil || img == nil {
+		return nil, fmt.Errorf("image not found")
+	}
+	// TODO: make permission checks more structured.
+	if img.CreatedById != currentUser.Id && !currentUser.IsSiteOwner() {
+		return nil, fmt.Errorf("unauthorized")
+	}
+
+	return model.FromImage(img), nil
+}
+
 // Images is the resolver for the images field.
 func (r *viewerResolver) Images(ctx context.Context, obj *model.Viewer, orderBy *model.ImageOrderByInput, filters *model.ImageFilterInput, after *string, before *string) (*model.ImagesResult, error) {
 	currentUser := identity.GetCurrentOrganizationUser(r.ContextUserManager, ctx)
@@ -252,6 +325,7 @@ func (r *viewerResolver) Images(ctx context.Context, obj *model.Viewer, orderBy 
 		filters = &model.ImageFilterInput{}
 	}
 	if !currentUser.IsSiteOwner() {
+		// TODO: make permission checks more structured.
 		if filters.CreatedBy == nil {
 			filters.CreatedBy = &currentUser.Id
 		}

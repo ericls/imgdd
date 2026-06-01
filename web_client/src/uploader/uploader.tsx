@@ -15,6 +15,9 @@ import { useTranslation } from "react-i18next";
 import { addSessionHeaderToXMLHttpRequest } from "~src/lib/sessionToken";
 import { absoluteURL } from "~src/lib/url";
 import { track } from "~src/lib/analytics";
+import { useAuth } from "~src/lib/auth";
+import { routes } from "~src/routes";
+import { useNavigate } from "react-router";
 
 type UploadSource = "file_input" | "drag_drop" | "paste";
 
@@ -30,10 +33,14 @@ export type UploadingFile = {
   aborted: boolean;
   uploadedFileName?: string;
   url?: string;
+  imageId?: string;
 };
 
 export function Uplodaer() {
   const { t } = useTranslation();
+  const { data: authData } = useAuth();
+  const isAuthenticated = !!authData?.viewer.organizationUser;
+  const navigate = useNavigate();
   const [uploadingFiles, setUploadingFiles] = React.useState<UploadingFile[]>(
     [],
   );
@@ -79,10 +86,13 @@ export function Uplodaer() {
         const resp = request.responseText;
         let filename: string;
         let url: string;
+        let imageId: string | undefined;
         try {
-          const payload: { filename: string; url: string } = JSON.parse(resp);
+          const payload: { id?: string; filename: string; url: string } =
+            JSON.parse(resp);
           filename = payload.filename;
           url = payload.url;
+          imageId = payload.id;
         } catch {
           setCurrentFile({ errored: true });
           track("upload_failed", { ...baseProps, reason: "bad_response" });
@@ -96,6 +106,7 @@ export function Uplodaer() {
             loaded: true,
             uploadedFileName: filename,
             url,
+            imageId,
           });
           track("upload_succeeded", baseProps);
         } else {
@@ -188,6 +199,15 @@ export function Uplodaer() {
   React.useEffect(() => {
     window.document.body.focus();
   }, []);
+
+  // Navigate to detail page when authenticated user uploads a single image
+  React.useEffect(() => {
+    if (!isAuthenticated || uploadingFiles.length !== 1) return;
+    const file = uploadingFiles[0];
+    if (file.loaded && file.imageId) {
+      navigate(routes.profile.image(file.imageId));
+    }
+  }, [isAuthenticated, uploadingFiles, navigate]);
   const handleDrop = React.useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();

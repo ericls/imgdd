@@ -15,6 +15,7 @@ type Image {
   root: Image
   parent: Image
   changes: String
+  lineage: [Image!]!
   revisions: [Image!]!
   createdAt: Time!
   storedImages: [StoredImage!]!
@@ -81,6 +82,7 @@ type ImagesResult {
 }
 
 extend type Viewer {
+  image(id: ID!): Image @isAuthenticated
   images(
     orderBy: ImageOrderByInput
     filters: ImageFilterInput

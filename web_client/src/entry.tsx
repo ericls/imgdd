@@ -103,12 +103,34 @@ const router = createBrowserRouter([
         element: <Navigate to={routes.profile.images} replace />,
       },
       {
-        path: `${routeSegments.images}/*`,
+        path: routeSegments.images,
+        element: <Navigate to="list" replace />,
+      },
+      {
+        path: `${routeSegments.images}/list`,
         lazy: async () => {
-          const { Images } =
-            await import("~src/profile/pages/images/imagesIndex");
+          const { ListImages } =
+            await import("~src/profile/pages/images/listImages");
           return {
-            element: <Images />,
+            element: <ListImages />,
+          };
+        },
+      },
+      {
+        path: `${routeSegments.images}/:imageId`,
+        lazy: async () => {
+          const { ImageDetail } = await import("~src/editor/ImageDetail");
+          return {
+            element: <ImageDetail />,
+          };
+        },
+      },
+      {
+        path: `${routeSegments.images}/:imageId/edit`,
+        lazy: async () => {
+          const { ImageEditor } = await import("~src/editor/ImageEditor");
+          return {
+            element: <ImageEditor />,
           };
         },
       },

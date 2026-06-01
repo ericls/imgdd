@@ -23,6 +23,7 @@ import (
 )
 
 type UploadReturn struct {
+	ID         string `json:"id"`
 	Filename   string `json:"filename"`
 	URL        string `json:"url"`
 	Identifier string `json:"identifier"`
@@ -162,6 +163,7 @@ func makeUploadHandler(
 			},
 		}
 		ret := UploadReturn{
+			ID:         storedImage.Image.Id,
 			Filename:   storedImage.Image.Name,
 			URL:        image.GetURL(conf.ImageDomain, IsSecure(r), externalImageIdentifiers, conf.DefaultURLFormat),
 			Identifier: storedImage.Image.Identifier,

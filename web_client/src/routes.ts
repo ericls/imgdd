@@ -17,5 +17,9 @@ export const routes = {
   profile: {
     root: `/${routeSegments.profile}`,
     images: `/${routeSegments.profile}/${routeSegments.images}`,
+    image: (imageId: string) =>
+      `/${routeSegments.profile}/${routeSegments.images}/${imageId}`,
+    editImage: (imageId: string) =>
+      `/${routeSegments.profile}/${routeSegments.images}/${imageId}/edit`,
   },
 };
