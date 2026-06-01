@@ -5,7 +5,8 @@
             "save": "儲存",
             "cancel": "取消",
             "delete": "刪除",
-            "deleteWithConfirm": "刪除…"
+            "deleteWithConfirm": "刪除…",
+            "back": "返回"
         },
         "toast": {
           "copied": "已複製",
@@ -131,7 +132,8 @@
       "showingResults": "顯示第 {{from}} 到 {{to}} 筆，共 {{total}} 筆",
       "previous": "上一頁",
       "next": "下一頁",
-      "pageInfo": "第 {{current}} 頁，共 {{total}} 頁"
+      "pageInfo": "第 {{current}} 頁，共 {{total}} 頁",
+      "pageSize": "每頁"
     },
     "usersTable": {
       "name": "姓名",
@@ -141,9 +143,48 @@
       "viewImagesButton": "檢視圖片"
     },
     "imageItem": {
+      "details": "詳細資訊",
+      "edit": "編輯",
       "copyURL": "複製連結",
       "download": "下載",
       "confirmDelete": "確定要刪除這張圖片嗎？<br/><b>{{name}}</b>"
+    },
+    "imageDetail": {
+      "errorLoading": "載入圖片時出錯",
+      "imageNotFound": "找不到圖片",
+      "editHistory": "編輯歷史",
+      "original": "原圖",
+      "editFallback": "編輯",
+      "copyReferences": "複製參照",
+      "copy": "複製"
+    },
+    "imageEditor": {
+      "title": "編輯: {{name}}",
+      "errorLoading": "載入圖片時出錯",
+      "imageNotFound": "找不到圖片",
+      "derivedFrom": "來源: {{name}}",
+      "watermarkApplied": "浮水印已成功套用",
+      "watermarkFailed": "浮水印套用失敗",
+      "watermark": "浮水印"
+    },
+    "watermarkTool": {
+      "overlayImage": "疊加圖片",
+      "change": "更換",
+      "selectOverlay": "選擇疊加圖片",
+      "opacity": "不透明度: {{value}}%",
+      "scale": "縮放: {{value}}%",
+      "anchor": "錨點",
+      "applying": "套用中...",
+      "applyWatermark": "套用浮水印",
+      "searchPlaceholder": "依名稱搜尋...",
+      "selectHint": "選擇一張圖片作為浮水印（原圖顯示為半透明）",
+      "anchorOption": {
+        "topLeft": "左上",
+        "topRight": "右上",
+        "bottomLeft": "左下",
+        "bottomRight": "右下",
+        "center": "置中"
+      }
     },
     "profile": {
       "nav": {

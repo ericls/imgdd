@@ -5,7 +5,8 @@
             "save": "บันทึก",
             "cancel": "ยกเลิก",
             "delete": "ลบ",
-            "deleteWithConfirm": "ลบ…"
+            "deleteWithConfirm": "ลบ…",
+            "back": "กลับ"
         },
         "toast": {
           "copied": "คัดลอกแล้ว",
@@ -131,7 +132,8 @@
       "showingResults": "แสดง {{from}} ถึง {{to}} จากทั้งหมด {{total}} รายการ",
       "previous": "ก่อนหน้า",
       "next": "ถัดไป",
-      "pageInfo": "หน้า {{current}} จาก {{total}}"
+      "pageInfo": "หน้า {{current}} จาก {{total}}",
+      "pageSize": "ต่อหน้า"
     },
     "usersTable": {
       "name": "ชื่อ",
@@ -141,9 +143,48 @@
       "viewImagesButton": "ดูภาพ"
     },
     "imageItem": {
+      "details": "รายละเอียด",
+      "edit": "แก้ไข",
       "copyURL": "คัดลอก URL",
       "download": "ดาวน์โหลด",
       "confirmDelete": "คุณแน่ใจหรือไม่ว่าต้องการลบภาพนี้?<br/><b>{{name}}</b>"
+    },
+    "imageDetail": {
+      "errorLoading": "เกิดข้อผิดพลาดในการโหลดภาพ",
+      "imageNotFound": "ไม่พบภาพ",
+      "editHistory": "ประวัติการแก้ไข",
+      "original": "ต้นฉบับ",
+      "editFallback": "แก้ไข",
+      "copyReferences": "คัดลอกลิงก์อ้างอิง",
+      "copy": "คัดลอก"
+    },
+    "imageEditor": {
+      "title": "แก้ไข: {{name}}",
+      "errorLoading": "เกิดข้อผิดพลาดในการโหลดภาพ",
+      "imageNotFound": "ไม่พบภาพ",
+      "derivedFrom": "ต้นฉบับ: {{name}}",
+      "watermarkApplied": "ใส่ลายน้ำสำเร็จ",
+      "watermarkFailed": "ใส่ลายน้ำไม่สำเร็จ",
+      "watermark": "ลายน้ำ"
+    },
+    "watermarkTool": {
+      "overlayImage": "ภาพซ้อนทับ",
+      "change": "เปลี่ยน",
+      "selectOverlay": "เลือกภาพซ้อนทับ",
+      "opacity": "ความทึบ: {{value}}%",
+      "scale": "ขนาด: {{value}}%",
+      "anchor": "จุดยึด",
+      "applying": "กำลังใช้งาน...",
+      "applyWatermark": "ใส่ลายน้ำ",
+      "searchPlaceholder": "ค้นหาด้วยชื่อ...",
+      "selectHint": "เลือกภาพเพื่อใช้เป็นลายน้ำ (ภาพต้นฉบับจะแสดงจางลง)",
+      "anchorOption": {
+        "topLeft": "บนซ้าย",
+        "topRight": "บนขวา",
+        "bottomLeft": "ล่างซ้าย",
+        "bottomRight": "ล่างขวา",
+        "center": "กลาง"
+      }
     },
     "profile": {
       "nav": {
