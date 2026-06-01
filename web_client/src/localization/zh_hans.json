@@ -5,7 +5,8 @@
             "save": "保存",
             "cancel": "取消",
             "delete": "删除",
-            "deleteWithConfirm": "删除…"
+            "deleteWithConfirm": "删除…",
+            "back": "返回"
         },
         "toast": {
           "copied": "已复制",
@@ -131,7 +132,8 @@
       "showingResults": "显示第 {{from}} 到 {{to}} 条,共 {{total}} 条",
       "previous": "上一页",
       "next": "下一页",
-      "pageInfo": "第 {{current}} 页,共 {{total}} 页"
+      "pageInfo": "第 {{current}} 页,共 {{total}} 页",
+      "pageSize": "每页"
     },
     "usersTable": {
       "name": "姓名",
@@ -141,9 +143,48 @@
       "viewImagesButton": "查看图片"
     },
     "imageItem": {
+      "details": "详情",
+      "edit": "编辑",
       "copyURL": "复制链接",
       "download": "下载",
       "confirmDelete": "确定要删除这张图片吗?<br/><b>{{name}}</b>"
+    },
+    "imageDetail": {
+      "errorLoading": "加载图片出错",
+      "imageNotFound": "未找到图片",
+      "editHistory": "编辑历史",
+      "original": "原图",
+      "editFallback": "编辑",
+      "copyReferences": "复制引用",
+      "copy": "复制"
+    },
+    "imageEditor": {
+      "title": "编辑: {{name}}",
+      "errorLoading": "加载图片出错",
+      "imageNotFound": "未找到图片",
+      "derivedFrom": "来源: {{name}}",
+      "watermarkApplied": "水印已成功应用",
+      "watermarkFailed": "水印应用失败",
+      "watermark": "水印"
+    },
+    "watermarkTool": {
+      "overlayImage": "叠加图片",
+      "change": "更换",
+      "selectOverlay": "选择叠加图片",
+      "opacity": "不透明度: {{value}}%",
+      "scale": "缩放: {{value}}%",
+      "anchor": "锚点",
+      "applying": "应用中...",
+      "applyWatermark": "应用水印",
+      "searchPlaceholder": "按名称搜索...",
+      "selectHint": "选择一张图片作为水印（原图显示为半透明）",
+      "anchorOption": {
+        "topLeft": "左上",
+        "topRight": "右上",
+        "bottomLeft": "左下",
+        "bottomRight": "右下",
+        "center": "居中"
+      }
     },
     "profile": {
       "nav": {

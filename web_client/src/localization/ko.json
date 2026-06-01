@@ -5,7 +5,8 @@
             "save": "저장",
             "cancel": "취소",
             "delete": "삭제",
-            "deleteWithConfirm": "삭제…"
+            "deleteWithConfirm": "삭제…",
+            "back": "뒤로"
         },
         "toast": {
           "copied": "복사됨",
@@ -131,7 +132,8 @@
       "showingResults": "전체 {{total}}개 중 {{from}}–{{to}}개 표시",
       "previous": "이전",
       "next": "다음",
-      "pageInfo": "{{total}} 페이지 중 {{current}} 페이지"
+      "pageInfo": "{{total}} 페이지 중 {{current}} 페이지",
+      "pageSize": "페이지 당"
     },
     "usersTable": {
       "name": "이름",
@@ -141,9 +143,48 @@
       "viewImagesButton": "이미지 보기"
     },
     "imageItem": {
+      "details": "상세 정보",
+      "edit": "편집",
       "copyURL": "URL 복사",
       "download": "다운로드",
       "confirmDelete": "이 이미지를 삭제하시겠습니까?<br/><b>{{name}}</b>"
+    },
+    "imageDetail": {
+      "errorLoading": "이미지 로드 오류",
+      "imageNotFound": "이미지를 찾을 수 없습니다",
+      "editHistory": "편집 이력",
+      "original": "원본",
+      "editFallback": "편집",
+      "copyReferences": "참조 복사",
+      "copy": "복사"
+    },
+    "imageEditor": {
+      "title": "편집: {{name}}",
+      "errorLoading": "이미지 로드 오류",
+      "imageNotFound": "이미지를 찾을 수 없습니다",
+      "derivedFrom": "원본: {{name}}",
+      "watermarkApplied": "워터마크가 적용되었습니다",
+      "watermarkFailed": "워터마크 적용에 실패했습니다",
+      "watermark": "워터마크"
+    },
+    "watermarkTool": {
+      "overlayImage": "오버레이 이미지",
+      "change": "변경",
+      "selectOverlay": "오버레이 이미지 선택",
+      "opacity": "불투명도: {{value}}%",
+      "scale": "크기: {{value}}%",
+      "anchor": "기준점",
+      "applying": "적용 중...",
+      "applyWatermark": "워터마크 적용",
+      "searchPlaceholder": "이름으로 검색...",
+      "selectHint": "워터마크로 사용할 이미지를 선택하세요 (원본 이미지는 흐리게 표시됩니다)",
+      "anchorOption": {
+        "topLeft": "왼쪽 상단",
+        "topRight": "오른쪽 상단",
+        "bottomLeft": "왼쪽 하단",
+        "bottomRight": "오른쪽 하단",
+        "center": "중앙"
+      }
     },
     "profile": {
       "nav": {

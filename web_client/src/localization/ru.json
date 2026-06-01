@@ -5,7 +5,8 @@
             "save": "Сохранить",
             "cancel": "Отмена",
             "delete": "Удалить",
-            "deleteWithConfirm": "Удалить…"
+            "deleteWithConfirm": "Удалить…",
+            "back": "Назад"
         },
         "toast": {
           "copied": "Скопировано",
@@ -131,7 +132,8 @@
       "showingResults": "Показано с {{from}} по {{to}} из {{total}} результатов",
       "previous": "Назад",
       "next": "Вперёд",
-      "pageInfo": "Страница {{current}} из {{total}}"
+      "pageInfo": "Страница {{current}} из {{total}}",
+      "pageSize": "На странице"
     },
     "usersTable": {
       "name": "Имя",
@@ -141,9 +143,48 @@
       "viewImagesButton": "Просмотр изображений"
     },
     "imageItem": {
+      "details": "Подробности",
+      "edit": "Изменить",
       "copyURL": "Копировать URL",
       "download": "Скачать",
       "confirmDelete": "Вы уверены, что хотите удалить это изображение?<br/><b>{{name}}</b>"
+    },
+    "imageDetail": {
+      "errorLoading": "Ошибка загрузки изображения",
+      "imageNotFound": "Изображение не найдено",
+      "editHistory": "История изменений",
+      "original": "Оригинал",
+      "editFallback": "Изменение",
+      "copyReferences": "Копировать ссылки",
+      "copy": "Копировать"
+    },
+    "imageEditor": {
+      "title": "Редактирование: {{name}}",
+      "errorLoading": "Ошибка загрузки изображения",
+      "imageNotFound": "Изображение не найдено",
+      "derivedFrom": "Источник: {{name}}",
+      "watermarkApplied": "Водяной знак успешно применён",
+      "watermarkFailed": "Не удалось применить водяной знак",
+      "watermark": "Водяной знак"
+    },
+    "watermarkTool": {
+      "overlayImage": "Накладываемое изображение",
+      "change": "Изменить",
+      "selectOverlay": "Выбрать накладываемое изображение",
+      "opacity": "Непрозрачность: {{value}}%",
+      "scale": "Масштаб: {{value}}%",
+      "anchor": "Привязка",
+      "applying": "Применение...",
+      "applyWatermark": "Применить водяной знак",
+      "searchPlaceholder": "Поиск по имени...",
+      "selectHint": "Выберите изображение для водяного знака (исходное изображение затемнено)",
+      "anchorOption": {
+        "topLeft": "Верх слева",
+        "topRight": "Верх справа",
+        "bottomLeft": "Низ слева",
+        "bottomRight": "Низ справа",
+        "center": "По центру"
+      }
     },
     "profile": {
       "nav": {
