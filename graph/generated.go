@@ -68,6 +68,7 @@ type ComplexityRoot struct {
 		CreatedBy       func(childComplexity int) int
 		ID              func(childComplexity int) int
 		Identifier      func(childComplexity int) int
+		Lineage         func(childComplexity int) int
 		MIMEType        func(childComplexity int) int
 		Name            func(childComplexity int) int
 		NominalByteSize func(childComplexity int) int
@@ -202,6 +203,7 @@ type ComplexityRoot struct {
 		GetStorageDefinition func(childComplexity int, id string) int
 		HasPermission        func(childComplexity int, permission model.PermissionNameEnum) int
 		ID                   func(childComplexity int) int
+		Image                func(childComplexity int, id string) int
 		Images               func(childComplexity int, orderBy *model.ImageOrderByInput, filters *model.ImageFilterInput, after *string, before *string) int
 		OrganizationUser     func(childComplexity int) int
 		OrganizationUserByID func(childComplexity int, id string) int
@@ -227,6 +229,7 @@ type ImageResolver interface {
 	Root(ctx context.Context, obj *model.Image) (*model.Image, error)
 	Parent(ctx context.Context, obj *model.Image) (*model.Image, error)
 	Changes(ctx context.Context, obj *model.Image) (*string, error)
+	Lineage(ctx context.Context, obj *model.Image) ([]*model.Image, error)
 	Revisions(ctx context.Context, obj *model.Image) ([]*model.Image, error)
 
 	StoredImages(ctx context.Context, obj *model.Image) ([]*model.StoredImage, error)
@@ -258,6 +261,7 @@ type ViewerResolver interface {
 	ID(ctx context.Context, obj *model.Viewer) (string, error)
 	OrganizationUser(ctx context.Context, obj *model.Viewer) (*model.OrganizationUser, error)
 	OrganizationUserByID(ctx context.Context, obj *model.Viewer, id string) (*model.OrganizationUser, error)
+	Image(ctx context.Context, obj *model.Viewer, id string) (*model.Image, error)
 	Images(ctx context.Context, obj *model.Viewer, orderBy *model.ImageOrderByInput, filters *model.ImageFilterInput, after *string, before *string) (*model.ImagesResult, error)
 	HasPermission(ctx context.Context, obj *model.Viewer, permission model.PermissionNameEnum) (bool, error)
 	StorageDefinitions(ctx context.Context, obj *model.Viewer) ([]*model.StorageDefinition, error)
@@ -350,6 +354,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Image.Identifier(childComplexity), true
+	case "Image.lineage":
+		if e.ComplexityRoot.Image.Lineage == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Image.Lineage(childComplexity), true
 	case "Image.MIMEType":
 		if e.ComplexityRoot.Image.MIMEType == nil {
 			break
@@ -874,6 +884,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Viewer.ID(childComplexity), true
+	case "Viewer.image":
+		if e.ComplexityRoot.Viewer.Image == nil {
+			break
+		}
+
+		args, err := ec.field_Viewer_image_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Viewer.Image(childComplexity, args["id"].(string)), true
 	case "Viewer.images":
 		if e.ComplexityRoot.Viewer.Images == nil {
 			break
@@ -1250,6 +1271,17 @@ func (ec *executionContext) field_Viewer_hasPermission_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Viewer_image_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Viewer_images_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1404,6 +1436,8 @@ func (ec *executionContext) fieldContext_ApplyWatermarkResult_image(_ context.Co
 				return ec.fieldContext_Image_parent(ctx, field)
 			case "changes":
 				return ec.fieldContext_Image_changes(ctx, field)
+			case "lineage":
+				return ec.fieldContext_Image_lineage(ctx, field)
 			case "revisions":
 				return ec.fieldContext_Image_revisions(ctx, field)
 			case "createdAt":
@@ -1813,6 +1847,8 @@ func (ec *executionContext) fieldContext_Image_root(_ context.Context, field gra
 				return ec.fieldContext_Image_parent(ctx, field)
 			case "changes":
 				return ec.fieldContext_Image_changes(ctx, field)
+			case "lineage":
+				return ec.fieldContext_Image_lineage(ctx, field)
 			case "revisions":
 				return ec.fieldContext_Image_revisions(ctx, field)
 			case "createdAt":
@@ -1874,6 +1910,8 @@ func (ec *executionContext) fieldContext_Image_parent(_ context.Context, field g
 				return ec.fieldContext_Image_parent(ctx, field)
 			case "changes":
 				return ec.fieldContext_Image_changes(ctx, field)
+			case "lineage":
+				return ec.fieldContext_Image_lineage(ctx, field)
 			case "revisions":
 				return ec.fieldContext_Image_revisions(ctx, field)
 			case "createdAt":
@@ -1915,6 +1953,69 @@ func (ec *executionContext) fieldContext_Image_changes(_ context.Context, field 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Image_lineage(ctx context.Context, field graphql.CollectedField, obj *model.Image) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Image_lineage,
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Image().Lineage(ctx, obj)
+		},
+		nil,
+		ec.marshalNImage2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImageᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Image_lineage(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Image",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Image_id(ctx, field)
+			case "url":
+				return ec.fieldContext_Image_url(ctx, field)
+			case "name":
+				return ec.fieldContext_Image_name(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Image_identifier(ctx, field)
+			case "nominalWidth":
+				return ec.fieldContext_Image_nominalWidth(ctx, field)
+			case "nominalHeight":
+				return ec.fieldContext_Image_nominalHeight(ctx, field)
+			case "nominalByteSize":
+				return ec.fieldContext_Image_nominalByteSize(ctx, field)
+			case "root":
+				return ec.fieldContext_Image_root(ctx, field)
+			case "parent":
+				return ec.fieldContext_Image_parent(ctx, field)
+			case "changes":
+				return ec.fieldContext_Image_changes(ctx, field)
+			case "lineage":
+				return ec.fieldContext_Image_lineage(ctx, field)
+			case "revisions":
+				return ec.fieldContext_Image_revisions(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Image_createdAt(ctx, field)
+			case "storedImages":
+				return ec.fieldContext_Image_storedImages(ctx, field)
+			case "MIMEType":
+				return ec.fieldContext_Image_MIMEType(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Image_createdBy(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Image", field.Name)
 		},
 	}
 	return fc, nil
@@ -1964,6 +2065,8 @@ func (ec *executionContext) fieldContext_Image_revisions(_ context.Context, fiel
 				return ec.fieldContext_Image_parent(ctx, field)
 			case "changes":
 				return ec.fieldContext_Image_changes(ctx, field)
+			case "lineage":
+				return ec.fieldContext_Image_lineage(ctx, field)
 			case "revisions":
 				return ec.fieldContext_Image_revisions(ctx, field)
 			case "createdAt":
@@ -2159,6 +2262,8 @@ func (ec *executionContext) fieldContext_ImageEdge_node(_ context.Context, field
 				return ec.fieldContext_Image_parent(ctx, field)
 			case "changes":
 				return ec.fieldContext_Image_changes(ctx, field)
+			case "lineage":
+				return ec.fieldContext_Image_lineage(ctx, field)
 			case "revisions":
 				return ec.fieldContext_Image_revisions(ctx, field)
 			case "createdAt":
@@ -3465,6 +3570,8 @@ func (ec *executionContext) fieldContext_Query_viewer(_ context.Context, field g
 				return ec.fieldContext_Viewer_organizationUser(ctx, field)
 			case "organizationUserById":
 				return ec.fieldContext_Viewer_organizationUserById(ctx, field)
+			case "image":
+				return ec.fieldContext_Viewer_image(ctx, field)
 			case "images":
 				return ec.fieldContext_Viewer_images(ctx, field)
 			case "hasPermission":
@@ -4502,6 +4609,94 @@ func (ec *executionContext) fieldContext_Viewer_organizationUserById(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _Viewer_image(ctx context.Context, field graphql.CollectedField, obj *model.Viewer) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Viewer_image,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Viewer().Image(ctx, obj, fc.Args["id"].(string))
+		},
+		func(ctx context.Context, next graphql.Resolver) graphql.Resolver {
+			directive0 := next
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.Directives.IsAuthenticated == nil {
+					var zeroVal *model.Image
+					return zeroVal, errors.New("directive isAuthenticated is not implemented")
+				}
+				return ec.Directives.IsAuthenticated(ctx, obj, directive0)
+			}
+
+			next = directive1
+			return next
+		},
+		ec.marshalOImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImage,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Viewer_image(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Viewer",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Image_id(ctx, field)
+			case "url":
+				return ec.fieldContext_Image_url(ctx, field)
+			case "name":
+				return ec.fieldContext_Image_name(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Image_identifier(ctx, field)
+			case "nominalWidth":
+				return ec.fieldContext_Image_nominalWidth(ctx, field)
+			case "nominalHeight":
+				return ec.fieldContext_Image_nominalHeight(ctx, field)
+			case "nominalByteSize":
+				return ec.fieldContext_Image_nominalByteSize(ctx, field)
+			case "root":
+				return ec.fieldContext_Image_root(ctx, field)
+			case "parent":
+				return ec.fieldContext_Image_parent(ctx, field)
+			case "changes":
+				return ec.fieldContext_Image_changes(ctx, field)
+			case "lineage":
+				return ec.fieldContext_Image_lineage(ctx, field)
+			case "revisions":
+				return ec.fieldContext_Image_revisions(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Image_createdAt(ctx, field)
+			case "storedImages":
+				return ec.fieldContext_Image_storedImages(ctx, field)
+			case "MIMEType":
+				return ec.fieldContext_Image_MIMEType(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Image_createdBy(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Image", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Viewer_image_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Viewer_images(ctx context.Context, field graphql.CollectedField, obj *model.Viewer) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -4868,6 +5063,8 @@ func (ec *executionContext) fieldContext_ViewerResult_viewer(_ context.Context, 
 				return ec.fieldContext_Viewer_organizationUser(ctx, field)
 			case "organizationUserById":
 				return ec.fieldContext_Viewer_organizationUserById(ctx, field)
+			case "image":
+				return ec.fieldContext_Viewer_image(ctx, field)
 			case "images":
 				return ec.fieldContext_Viewer_images(ctx, field)
 			case "hasPermission":
@@ -7318,6 +7515,42 @@ func (ec *executionContext) _Image(ctx context.Context, sel ast.SelectionSet, ob
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "lineage":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Image_lineage(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "revisions":
 			field := field
 
@@ -8588,6 +8821,39 @@ func (ec *executionContext) _Viewer(ctx context.Context, sel ast.SelectionSet, o
 					}
 				}()
 				res = ec._Viewer_organizationUserById(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "image":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Viewer_image(ctx, field, obj)
 				return res
 			}
 

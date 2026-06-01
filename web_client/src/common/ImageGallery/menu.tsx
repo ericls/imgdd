@@ -5,11 +5,14 @@ import { useDeleteImage } from "./data";
 import { copyText } from "~src/lib/copyText";
 import { toast } from "react-toastify";
 import { absoluteURL } from "~src/lib/url";
+import { routes } from "~src/routes";
 import { prompt } from "~src/ui/prompt";
 import type { i18n as i18nType } from "i18next";
 import { Trans, useTranslation } from "react-i18next";
 
 enum ImageMenuItemName {
+  DETAILS = "details",
+  EDIT = "edit",
   DOWNLOAD = "download",
   COPY_URL = "copy-url",
   DELETE = "delete",
@@ -23,7 +26,12 @@ export const DEFAULT_MENU_CONFIG: ImageItemMenuConfig = {
   sections: [
     {
       id: "actions",
-      names: [ImageMenuItemName.DOWNLOAD, ImageMenuItemName.COPY_URL],
+      names: [
+        ImageMenuItemName.DETAILS,
+        ImageMenuItemName.EDIT,
+        ImageMenuItemName.DOWNLOAD,
+        ImageMenuItemName.COPY_URL,
+      ],
     },
     {
       id: "delete",
@@ -41,6 +49,8 @@ type MenuItemGetterProps = {
 type MenuItemGetter = (props: MenuItemGetterProps) => MenuItem;
 
 const MENU_ITEM_GETTERS: Record<ImageMenuItemName, MenuItemGetter> = {
+  [ImageMenuItemName.DETAILS]: getDetailsMenuItem,
+  [ImageMenuItemName.EDIT]: getEditMenuItem,
   [ImageMenuItemName.DOWNLOAD]: getDownloadMenuItem,
   [ImageMenuItemName.COPY_URL]: getCopyURLMenuItem,
   [ImageMenuItemName.DELETE]: getDeleteMenuItem,
@@ -51,6 +61,32 @@ function getMenuItemByName(
   props: MenuItemGetterProps,
 ): MenuItem {
   return MENU_ITEM_GETTERS[name](props);
+}
+
+function getDetailsMenuItem({
+  image: { id },
+  i18n,
+}: MenuItemGetterProps): MenuItem {
+  return {
+    id: ImageMenuItemName.DETAILS,
+    children: i18n.t("imageItem.details", "Details"),
+    action: () => {
+      window.location.href = routes.profile.image(id);
+    },
+  };
+}
+
+function getEditMenuItem({
+  image: { id },
+  i18n,
+}: MenuItemGetterProps): MenuItem {
+  return {
+    id: ImageMenuItemName.EDIT,
+    children: i18n.t("imageItem.edit", "Edit"),
+    action: () => {
+      window.location.href = routes.profile.editImage(id);
+    },
+  };
 }
 
 function getDownloadMenuItem({
