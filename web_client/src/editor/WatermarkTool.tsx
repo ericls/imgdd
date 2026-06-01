@@ -8,6 +8,7 @@ import { useAuth } from "~src/lib/auth";
 import { RenderingImageItem } from "~src/common/ImageGallery/types";
 import classNames from "classnames";
 import { TEXT_COLOR, SECONDARY_TEXT_COLOR_DIM } from "~src/ui/classNames";
+import { useTranslation } from "react-i18next";
 
 export type WatermarkSettings = {
   overlayImageId: string;
@@ -27,12 +28,12 @@ type WatermarkToolProps = {
   applying: boolean;
 };
 
-const ANCHOR_LABELS: Record<Anchor, string> = {
-  [Anchor.TopLeft]: "Top Left",
-  [Anchor.TopRight]: "Top Right",
-  [Anchor.BottomLeft]: "Bottom Left",
-  [Anchor.BottomRight]: "Bottom Right",
-  [Anchor.Center]: "Center",
+const ANCHOR_KEYS: Record<Anchor, string> = {
+  [Anchor.TopLeft]: "watermarkTool.anchorOption.topLeft",
+  [Anchor.TopRight]: "watermarkTool.anchorOption.topRight",
+  [Anchor.BottomLeft]: "watermarkTool.anchorOption.bottomLeft",
+  [Anchor.BottomRight]: "watermarkTool.anchorOption.bottomRight",
+  [Anchor.Center]: "watermarkTool.anchorOption.center",
 };
 
 export function WatermarkTool({
@@ -42,6 +43,7 @@ export function WatermarkTool({
   onApply,
   applying,
 }: WatermarkToolProps) {
+  const { t } = useTranslation();
   const [showPicker, setShowPicker] = React.useState(false);
   const { data: authData } = useAuth();
   const userId = authData?.viewer.organizationUser?.id;
@@ -94,7 +96,7 @@ export function WatermarkTool({
     <div className="space-y-4">
       <div>
         <label className={classNames("block mb-1 font-medium", TEXT_COLOR)}>
-          Overlay Image
+          {t("watermarkTool.overlayImage")}
         </label>
         {settings.overlayImageUrl ? (
           <div className="flex items-center gap-3">
@@ -107,7 +109,7 @@ export function WatermarkTool({
               variant="secondary"
               onClick={() => setShowPicker(!showPicker)}
             >
-              Change
+              {t("watermarkTool.change")}
             </Button>
           </div>
         ) : (
@@ -115,7 +117,7 @@ export function WatermarkTool({
             variant="secondary"
             onClick={() => setShowPicker(!showPicker)}
           >
-            Select overlay image
+            {t("watermarkTool.selectOverlay")}
           </Button>
         )}
       </div>
@@ -127,7 +129,9 @@ export function WatermarkTool({
       {settings.overlayImageId && (
         <>
           <InputWithLabel
-            label={`Opacity: ${Math.round(settings.opacity * 100)}%`}
+            label={t("watermarkTool.opacity", {
+              value: Math.round(settings.opacity * 100),
+            })}
             type="range"
             min="0"
             max="1"
@@ -142,7 +146,9 @@ export function WatermarkTool({
           />
 
           <InputWithLabel
-            label={`Scale: ${Math.round(settings.scale * 100)}%`}
+            label={t("watermarkTool.scale", {
+              value: Math.round(settings.scale * 100),
+            })}
             type="range"
             min="0.01"
             max="1"
@@ -157,7 +163,7 @@ export function WatermarkTool({
           />
 
           <SelectWithLabel
-            label="Anchor"
+            label={t("watermarkTool.anchor")}
             value={settings.anchor}
             onChange={(e) =>
               onSettingsChange({
@@ -166,9 +172,9 @@ export function WatermarkTool({
               })
             }
           >
-            {Object.entries(ANCHOR_LABELS).map(([value, label]) => (
+            {Object.entries(ANCHOR_KEYS).map(([value, key]) => (
               <option key={value} value={value}>
-                {label}
+                {t(key)}
               </option>
             ))}
           </SelectWithLabel>
@@ -178,7 +184,9 @@ export function WatermarkTool({
             disabled={applying || !settings.overlayImageId}
             className="w-full"
           >
-            {applying ? "Applying..." : "Apply Watermark"}
+            {applying
+              ? t("watermarkTool.applying")
+              : t("watermarkTool.applyWatermark")}
           </Button>
         </>
       )}
@@ -193,6 +201,7 @@ function OverlayPicker({
   userId: string;
   itemRenderer: (image: RenderingImageItem) => React.ReactNode;
 }) {
+  const { t } = useTranslation();
   const [search, setSearch] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
 
@@ -205,13 +214,13 @@ function OverlayPicker({
     <div className="border border-gray-300 dark:border-neutral-700 rounded-md p-3 max-h-96 overflow-y-auto">
       <Input
         type="text"
-        placeholder="Search by name..."
+        placeholder={t("watermarkTool.searchPlaceholder")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="mb-2 w-full"
       />
       <p className={classNames("text-xs mb-2", SECONDARY_TEXT_COLOR_DIM)}>
-        Select an image to use as watermark (base image is dimmed)
+        {t("watermarkTool.selectHint")}
       </p>
       <ImageGallery
         createdById={userId}

@@ -71,9 +71,14 @@ func NewFetchImageFunc(
 		}
 		defer reader.Close()
 
-		data, err := io.ReadAll(reader)
+		const maxImageBytes = 10 * 1024 * 1024 // 10 MB
+		limitedReader := io.LimitReader(reader, maxImageBytes+1)
+		data, err := io.ReadAll(limitedReader)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read image data: %w", err)
+		}
+		if len(data) > maxImageBytes {
+			return nil, fmt.Errorf("image exceeds maximum size of %d bytes", maxImageBytes)
 		}
 		return data, nil
 	}

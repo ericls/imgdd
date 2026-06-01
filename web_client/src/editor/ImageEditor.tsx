@@ -7,6 +7,7 @@ import { EditorCanvas, OverlayState } from "./EditorCanvas";
 import { WatermarkTool, WatermarkSettings } from "./WatermarkTool";
 import { useApplyWatermark } from "./data";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import classNames from "classnames";
 import {
   HEADING_2,
@@ -46,6 +47,7 @@ export function ImageEditor() {
   const navigate = useNavigate();
   const [fetchImage, { data, loading, error }] =
     useLazyQuery(ImageForEditorDoc);
+  const { t } = useTranslation();
   const { execute: applyWatermark, loading: applying } = useApplyWatermark();
 
   const [settings, setSettings] = React.useState<WatermarkSettings>({
@@ -127,38 +129,42 @@ export function ImageEditor() {
       });
       const newImage = result.data?.applyWatermark.image;
       if (newImage) {
-        toast("Watermark applied successfully");
+        toast(t("imageEditor.watermarkApplied"));
         navigate(routes.profile.image(newImage.id), { replace: true });
       }
     } catch (_err) {
-      toast.error("Failed to apply watermark");
+      toast.error(t("imageEditor.watermarkFailed"));
     }
-  }, [imageId, settings, applyWatermark, navigate]);
+  }, [t, imageId, settings, applyWatermark, navigate]);
 
   if (loading) return <FullScreenLoader />;
   if (error)
     return (
       <div className={classNames("p-8", TEXT_COLOR)}>
-        Error loading image: {error.message}
+        {t("imageEditor.errorLoading")}: {error.message}
       </div>
     );
   if (!image)
-    return <div className={classNames("p-8", TEXT_COLOR)}>Image not found</div>;
+    return (
+      <div className={classNames("p-8", TEXT_COLOR)}>
+        {t("imageEditor.imageNotFound")}
+      </div>
+    );
 
   return (
     <div className="mx-8 my-4 max-w-full">
       <div className="flex items-center justify-between mb-4">
         <h1 className={classNames(HEADING_2, "font-poppins")}>
-          Edit: {image.name}
+          {t("imageEditor.title", { name: image.name })}
         </h1>
         <Button variant="secondary" onClick={() => navigate(-1)}>
-          Back
+          {t("common.buttonLabel.back")}
         </Button>
       </div>
 
       {image.parent && (
         <p className={classNames("text-sm mb-3", SECONDARY_TEXT_COLOR_DIM)}>
-          Derived from: {image.parent.name}
+          {t("imageEditor.derivedFrom", { name: image.parent.name })}
         </p>
       )}
 
@@ -182,7 +188,7 @@ export function ImageEditor() {
         <div className="w-full lg:w-80 flex-shrink-0">
           <div className={classNames("rounded-md p-4", SECOND_LAYER)}>
             <h2 className={classNames("text-lg font-medium mb-4", TEXT_COLOR)}>
-              Watermark
+              {t("imageEditor.watermark")}
             </h2>
             <WatermarkTool
               baseImageId={image.id}

@@ -672,6 +672,208 @@ func tApplyWatermarkInvalidImageId(t *testing.T, tc *TestContext) {
 	require.Error(t, err)
 }
 
+func tViewerImage(t *testing.T, tc *TestContext) {
+	orgUser := tc.forceAuthenticate()
+	sd, tempDir := createFSStorageDefinition(t, tc)
+	defer os.RemoveAll(tempDir)
+
+	imgBytes := makeTestPNGBytes(100, 100, color.RGBA{255, 0, 0, 255})
+	img := createRealImage(t, tc, orgUser.Id, sd.Id, imgBytes)
+
+	var resp struct {
+		Viewer struct {
+			Image *struct {
+				ID       string
+				Name     string
+				MIMEType string
+			}
+		}
+	}
+
+	err := tc.client.Post(`
+	query viewerImage($id: ID!) {
+		viewer {
+			image(id: $id) {
+				id
+				name
+				MIMEType
+			}
+		}
+	}`, &resp, client.Var("id", img.Id))
+	require.NoError(t, err)
+	require.NotNil(t, resp.Viewer.Image)
+	require.Equal(t, img.Id, resp.Viewer.Image.ID)
+	require.Equal(t, img.Name, resp.Viewer.Image.Name)
+}
+
+func tViewerImageUnauthorized(t *testing.T, tc *TestContext) {
+	orgUser1 := tc.forceAuthenticate()
+	orgUser2 := tc.forceAuthenticate()
+	sd, tempDir := createFSStorageDefinition(t, tc)
+	defer os.RemoveAll(tempDir)
+
+	imgBytes := makeTestPNGBytes(100, 100, color.White)
+	img := createRealImage(t, tc, orgUser1.Id, sd.Id, imgBytes)
+
+	// Authenticate as orgUser2 and try to access orgUser1's image
+	tc.setAuthenticatedUser(orgUser2)
+
+	var resp struct {
+		Viewer struct {
+			Image *struct{ ID string }
+		}
+	}
+
+	err := tc.client.Post(`
+	query viewerImage($id: ID!) {
+		viewer {
+			image(id: $id) {
+				id
+			}
+		}
+	}`, &resp, client.Var("id", img.Id))
+	require.Error(t, err)
+}
+
+func tViewerImageInvalidId(t *testing.T, tc *TestContext) {
+	tc.forceAuthenticate()
+
+	var resp struct {
+		Viewer struct {
+			Image *struct{ ID string }
+		}
+	}
+
+	err := tc.client.Post(`
+	query viewerImage($id: ID!) {
+		viewer {
+			image(id: $id) {
+				id
+			}
+		}
+	}`, &resp, client.Var("id", "not-a-uuid"))
+	require.Error(t, err)
+}
+
+func tImageLineageAndRoot(t *testing.T, tc *TestContext) {
+	orgUser := tc.forceAuthenticate()
+	sd, tempDir := createFSStorageDefinition(t, tc)
+	defer os.RemoveAll(tempDir)
+
+	baseBytes := makeTestPNGBytes(200, 200, color.RGBA{255, 0, 0, 255})
+	overlayBytes := makeTestPNGBytes(50, 50, color.RGBA{0, 0, 255, 255})
+	baseImage := createRealImage(t, tc, orgUser.Id, sd.Id, baseBytes)
+	overlayImage := createRealImage(t, tc, orgUser.Id, sd.Id, overlayBytes)
+
+	// Apply watermark to create a child image
+	var applyResp struct {
+		ApplyWatermark *struct {
+			Image *struct{ ID string }
+		}
+	}
+	err := tc.client.Post(`
+	mutation applyWatermark($input: ApplyWatermarkInput!) {
+		applyWatermark(input: $input) {
+			image { id }
+		}
+	}`, &applyResp, client.Var("input", map[string]interface{}{
+		"baseImageId":    baseImage.Id,
+		"overlayImageId": overlayImage.Id,
+		"position":       map[string]float64{"x": 0.5, "y": 0.5},
+		"anchor":         "CENTER",
+		"opacity":        0.5,
+		"scale":          0.2,
+	}))
+	require.NoError(t, err)
+	childId := applyResp.ApplyWatermark.Image.ID
+
+	// Query the child image for lineage and root
+	var resp struct {
+		Viewer struct {
+			Image *struct {
+				ID   string
+				Root *struct {
+					ID string
+				}
+				Lineage []struct {
+					ID      string
+					Changes *string
+				}
+			}
+		}
+	}
+	err = tc.client.Post(`
+	query viewerImage($id: ID!) {
+		viewer {
+			image(id: $id) {
+				id
+				root { id }
+				lineage {
+					id
+					changes
+				}
+			}
+		}
+	}`, &resp, client.Var("id", childId))
+	require.NoError(t, err)
+	require.NotNil(t, resp.Viewer.Image)
+
+	// Root should be the base image
+	require.NotNil(t, resp.Viewer.Image.Root)
+	require.Equal(t, baseImage.Id, resp.Viewer.Image.Root.ID)
+
+	// Lineage should be [baseImage, childImage]
+	require.Len(t, resp.Viewer.Image.Lineage, 2)
+	require.Equal(t, baseImage.Id, resp.Viewer.Image.Lineage[0].ID)
+	require.Equal(t, childId, resp.Viewer.Image.Lineage[1].ID)
+
+	// First in lineage (root) should have no changes
+	require.Nil(t, resp.Viewer.Image.Lineage[0].Changes)
+	// Second (child) should have watermark changes
+	require.NotNil(t, resp.Viewer.Image.Lineage[1].Changes)
+	require.Contains(t, *resp.Viewer.Image.Lineage[1].Changes, "watermark")
+}
+
+func tImageNoParentLineage(t *testing.T, tc *TestContext) {
+	orgUser := tc.forceAuthenticate()
+	sd, tempDir := createFSStorageDefinition(t, tc)
+	defer os.RemoveAll(tempDir)
+
+	imgBytes := makeTestPNGBytes(100, 100, color.White)
+	img := createRealImage(t, tc, orgUser.Id, sd.Id, imgBytes)
+
+	var resp struct {
+		Viewer struct {
+			Image *struct {
+				ID   string
+				Root *struct {
+					ID string
+				}
+				Lineage []struct{ ID string }
+			}
+		}
+	}
+	err := tc.client.Post(`
+	query viewerImage($id: ID!) {
+		viewer {
+			image(id: $id) {
+				id
+				root { id }
+				lineage { id }
+			}
+		}
+	}`, &resp, client.Var("id", img.Id))
+	require.NoError(t, err)
+	require.NotNil(t, resp.Viewer.Image)
+
+	// Root should be nil for an original image
+	require.Nil(t, resp.Viewer.Image.Root)
+
+	// Lineage should be just the image itself
+	require.Len(t, resp.Viewer.Image.Lineage, 1)
+	require.Equal(t, img.Id, resp.Viewer.Image.Lineage[0].ID)
+}
+
 func TestImageResolvers(t *testing.T) {
 	tc := newTestContext(t)
 	tc.runTestCases(
@@ -687,5 +889,10 @@ func TestImageResolvers(t *testing.T) {
 		tApplyWatermarkUnauthenticated,
 		tApplyWatermarkUnauthorizedImage,
 		tApplyWatermarkInvalidImageId,
+		tViewerImage,
+		tViewerImageUnauthorized,
+		tViewerImageInvalidId,
+		tImageLineageAndRoot,
+		tImageNoParentLineage,
 	)
 }
