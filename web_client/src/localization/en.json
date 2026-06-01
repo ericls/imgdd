@@ -5,7 +5,8 @@
             "save": "Save",
             "cancel": "Cancel",
             "delete": "Delete",
-            "deleteWithConfirm": "Delete…"
+            "deleteWithConfirm": "Delete…",
+            "back": "Back"
         },
         "toast": {
           "copied": "Copied",
@@ -142,9 +143,48 @@
       "viewImagesButton": "View Images"
     },
     "imageItem": {
+      "details": "Details",
+      "edit": "Edit",
       "copyURL": "Copy URL",
       "download": "Download",
       "confirmDelete": "Are you sure you want to delete this image?<br/><b>{{name}}</b>"
+    },
+    "imageDetail": {
+      "errorLoading": "Error loading image",
+      "imageNotFound": "Image not found",
+      "editHistory": "Edit History",
+      "original": "Original",
+      "editFallback": "Edit",
+      "copyReferences": "Copy References",
+      "copy": "Copy"
+    },
+    "imageEditor": {
+      "title": "Edit: {{name}}",
+      "errorLoading": "Error loading image",
+      "imageNotFound": "Image not found",
+      "derivedFrom": "Derived from: {{name}}",
+      "watermarkApplied": "Watermark applied successfully",
+      "watermarkFailed": "Failed to apply watermark",
+      "watermark": "Watermark"
+    },
+    "watermarkTool": {
+      "overlayImage": "Overlay Image",
+      "change": "Change",
+      "selectOverlay": "Select overlay image",
+      "opacity": "Opacity: {{value}}%",
+      "scale": "Scale: {{value}}%",
+      "anchor": "Anchor",
+      "applying": "Applying...",
+      "applyWatermark": "Apply Watermark",
+      "searchPlaceholder": "Search by name...",
+      "selectHint": "Select an image to use as watermark (base image is dimmed)",
+      "anchorOption": {
+        "topLeft": "Top Left",
+        "topRight": "Top Right",
+        "bottomLeft": "Bottom Left",
+        "bottomRight": "Bottom Right",
+        "center": "Center"
+      }
     },
     "profile": {
       "nav": {

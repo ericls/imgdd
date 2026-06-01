@@ -3,6 +3,7 @@ package editing
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
@@ -185,5 +186,104 @@ func TestWatermarkCornerPositions(t *testing.T) {
 	r, _, b, _ := resultImg.At(199, 199).RGBA()
 	if b == 0 && r == 0xffff {
 		t.Fatal("expected bottom-right corner to have overlay color")
+	}
+}
+
+func TestWatermarkNegativeOpacity(t *testing.T) {
+	base := makeTestPNG(100, 100, color.White)
+	overlay := makeTestPNG(10, 10, color.Black)
+
+	cs := makeParams("o", 0.5, 0.5, AnchorCenter, -0.5, 0.1)
+	editor := &WatermarkEditor{}
+	_, _, err := editor.Apply(base, cs, func(id string) ([]byte, error) {
+		return overlay, nil
+	})
+	if err == nil {
+		t.Fatal("expected error for negative opacity")
+	}
+}
+
+func TestWatermarkInvalidBaseImage(t *testing.T) {
+	base := []byte("not a valid image")
+	overlay := makeTestPNG(10, 10, color.Black)
+
+	cs := makeParams("o", 0.5, 0.5, AnchorCenter, 0.5, 0.1)
+	editor := &WatermarkEditor{}
+	_, _, err := editor.Apply(base, cs, func(id string) ([]byte, error) {
+		return overlay, nil
+	})
+	if err == nil {
+		t.Fatal("expected error for invalid base image")
+	}
+}
+
+func TestWatermarkInvalidOverlayImage(t *testing.T) {
+	base := makeTestPNG(100, 100, color.White)
+
+	cs := makeParams("bad", 0.5, 0.5, AnchorCenter, 0.5, 0.1)
+	editor := &WatermarkEditor{}
+	_, _, err := editor.Apply(base, cs, func(id string) ([]byte, error) {
+		return []byte("not a valid image"), nil
+	})
+	if err == nil {
+		t.Fatal("expected error for invalid overlay image")
+	}
+}
+
+func TestWatermarkFetchFailure(t *testing.T) {
+	base := makeTestPNG(100, 100, color.White)
+
+	cs := makeParams("missing", 0.5, 0.5, AnchorCenter, 0.5, 0.1)
+	editor := &WatermarkEditor{}
+	_, _, err := editor.Apply(base, cs, func(id string) ([]byte, error) {
+		return nil, fmt.Errorf("image not found")
+	})
+	if err == nil {
+		t.Fatal("expected error when fetch fails")
+	}
+}
+
+func TestWatermarkInvalidJSON(t *testing.T) {
+	base := makeTestPNG(100, 100, color.White)
+
+	cs := ChangeSet{Type: "watermark", Params: []byte("not json")}
+	editor := &WatermarkEditor{}
+	_, _, err := editor.Apply(base, cs, func(id string) ([]byte, error) {
+		return base, nil
+	})
+	if err == nil {
+		t.Fatal("expected error for invalid JSON params")
+	}
+}
+
+func TestWatermarkScaleGreaterThanOne(t *testing.T) {
+	base := makeTestPNG(100, 100, color.White)
+	overlay := makeTestPNG(10, 10, color.Black)
+
+	cs := makeParams("o", 0.5, 0.5, AnchorCenter, 0.5, 1.5)
+	editor := &WatermarkEditor{}
+	_, _, err := editor.Apply(base, cs, func(id string) ([]byte, error) {
+		return overlay, nil
+	})
+	if err == nil {
+		t.Fatal("expected error for scale > 1")
+	}
+}
+
+func TestWatermarkExtremeScale(t *testing.T) {
+	base := makeTestPNG(100, 100, color.White)
+	overlay := makeTestPNG(10, 10, color.RGBA{0, 0, 255, 255})
+
+	// Scale at maximum (1.0) should still work
+	cs := makeParams("o", 0.5, 0.5, AnchorCenter, 0.5, 1.0)
+	editor := &WatermarkEditor{}
+	result, _, err := editor.Apply(base, cs, func(id string) ([]byte, error) {
+		return overlay, nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result) == 0 {
+		t.Fatal("expected non-empty result")
 	}
 }

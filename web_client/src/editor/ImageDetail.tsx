@@ -46,6 +46,7 @@ const ImageDetailDoc = gql(`
 export function ImageDetail() {
   const { imageId } = useParams<{ imageId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [fetchImage, { data, loading, error }] = useLazyQuery(ImageDetailDoc);
 
   React.useEffect(() => {
@@ -60,11 +61,15 @@ export function ImageDetail() {
   if (error)
     return (
       <div className={classNames("p-8", TEXT_COLOR)}>
-        Error loading image: {error.message}
+        {t("imageDetail.errorLoading")}: {error.message}
       </div>
     );
   if (!image)
-    return <div className={classNames("p-8", TEXT_COLOR)}>Image not found</div>;
+    return (
+      <div className={classNames("p-8", TEXT_COLOR)}>
+        {t("imageDetail.imageNotFound")}
+      </div>
+    );
 
   const lineage = image.lineage;
   const currentIndex = lineage.findIndex((img) => img.id === image.id);
@@ -80,10 +85,10 @@ export function ImageDetail() {
             variant="secondary"
             onClick={() => navigate(routes.profile.editImage(image.id))}
           >
-            Edit
+            {t("common.buttonLabel.edit")}
           </Button>
           <Button variant="secondary" onClick={() => navigate(-1)}>
-            Back
+            {t("common.buttonLabel.back")}
           </Button>
         </div>
       </div>
@@ -115,7 +120,7 @@ export function ImageDetail() {
               <h2
                 className={classNames("text-lg font-medium mb-4", TEXT_COLOR)}
               >
-                Edit History
+                {t("imageDetail.editHistory")}
               </h2>
               <div className="space-y-3">
                 {lineage.map((ancestor, i) => {
@@ -163,10 +168,10 @@ export function ImageDetail() {
                           )}
                         >
                           {i === 0
-                            ? "Original"
+                            ? t("imageDetail.original")
                             : changeSet
                               ? changeSet
-                              : "Edit"}
+                              : t("imageDetail.editFallback")}
                         </span>
                       </div>
                     </div>
@@ -182,6 +187,7 @@ export function ImageDetail() {
 }
 
 function CopyURLs({ url, name }: { url: string; name: string }) {
+  const { t } = useTranslation();
   const formats = React.useMemo(
     () => [
       { label: "URL", value: url },
@@ -195,7 +201,7 @@ function CopyURLs({ url, name }: { url: string; name: string }) {
   return (
     <div className="mt-4">
       <h2 className={classNames("text-lg font-medium mb-3", TEXT_COLOR)}>
-        Copy References
+        {t("imageDetail.copyReferences")}
       </h2>
       <div className={classNames("space-y-2 rounded-md p-4", SECOND_LAYER)}>
         {formats.map((fmt) => (
@@ -251,7 +257,7 @@ function CopyRow({ label, value }: { label: string; value: string }) {
         onClick={handleCopy}
         disabled={justCopied}
       >
-        {justCopied ? t("common.toast.copied", "Copied!") : "Copy"}
+        {justCopied ? t("common.toast.copied") : t("imageDetail.copy")}
       </Button>
     </div>
   );

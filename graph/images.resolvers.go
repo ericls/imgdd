@@ -90,11 +90,12 @@ func (r *imageResolver) Lineage(ctx context.Context, obj *model.Image) ([]*model
 		return []*model.Image{obj}, nil
 	}
 
-	// Walk up the parent chain collecting ancestors
+	// Walk up the parent chain collecting ancestors (max 100 to guard against cycles)
+	const maxDepth = 100
 	var chain []*model.Image
 	chain = append(chain, obj)
 	currentParentId := obj.ParentId
-	for currentParentId != "" {
+	for currentParentId != "" && len(chain) < maxDepth {
 		parent, err := r.ImageRepo.GetImageById(currentParentId)
 		if err != nil {
 			return nil, err
@@ -183,6 +184,20 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 	overlayImage, err := r.ImageRepo.GetImageById(input.OverlayImageID)
 	if err != nil || overlayImage == nil {
 		return nil, fmt.Errorf("overlay image not found")
+	}
+	if overlayImage.CreatedById != currentUser.Id && !currentUser.IsSiteOwner() {
+		return nil, fmt.Errorf("unauthorized")
+	}
+
+	// Validate input ranges
+	if input.Position.X < 0 || input.Position.X > 1 || input.Position.Y < 0 || input.Position.Y > 1 {
+		return nil, fmt.Errorf("position values must be between 0 and 1")
+	}
+	if input.Opacity < 0 || input.Opacity > 1 {
+		return nil, fmt.Errorf("opacity must be between 0 and 1")
+	}
+	if input.Scale <= 0 || input.Scale > 1 {
+		return nil, fmt.Errorf("scale must be between 0 (exclusive) and 1")
 	}
 
 	// Map GraphQL anchor to editing anchor

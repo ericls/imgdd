@@ -1,11 +1,15 @@
 import React from "react";
-import { Outlet } from "react-router";
+import { Navigate, Outlet } from "react-router";
 import { PiImages as ImagesIcon } from "react-icons/pi";
 import { DashboardLayout } from "~src/common/layout/dashboardLayout";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "~src/lib/auth";
+import { FullScreenLoader } from "~src/ui/fullscreenLoader";
 
 export function ProfileLayout() {
   const { t } = useTranslation();
+  const { data: authData, isLoading } = useAuth();
+
   const sideBarMenuGroups = React.useMemo(
     () => [
       {
@@ -23,6 +27,9 @@ export function ProfileLayout() {
     ],
     [t],
   );
+
+  if (isLoading) return <FullScreenLoader />;
+  if (!authData?.viewer.organizationUser) return <Navigate to="/" replace />;
 
   return (
     <DashboardLayout
