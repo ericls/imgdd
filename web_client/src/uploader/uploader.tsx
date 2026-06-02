@@ -201,11 +201,14 @@ export function Uplodaer() {
   }, []);
 
   // Navigate to detail page when authenticated user uploads a single image
+  const hasNavigated = React.useRef(false);
   React.useEffect(() => {
+    if (hasNavigated.current) return;
     if (!isAuthenticated || uploadingFiles.length !== 1) return;
     const file = uploadingFiles[0];
     if (file.loaded && file.imageId) {
-      navigate(routes.profile.image(file.imageId));
+      hasNavigated.current = true;
+      navigate(routes.profile.image(file.imageId), { replace: true });
     }
   }, [isAuthenticated, uploadingFiles, navigate]);
   const handleDrop = React.useCallback(
