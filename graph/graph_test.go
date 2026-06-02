@@ -43,6 +43,7 @@ type TestContext struct {
 	identityRepo       identity.IdentityRepo
 	storageDefRepo     storage.StorageDefRepo
 	imageRepo          image.ImageRepo
+	imageRelRepo       image.ImageRelationshipRepo
 	identityManager    *httpserver.IdentityManager
 	tObj               *testing.T
 	server             *httptest.Server
@@ -90,12 +91,14 @@ func newTestContext(tObj *testing.T) *TestContext {
 	storageDefRepo := storage.NewDBStorageConfig(conn).MakeStorageDefRepo()
 	storedImageRepo := storage.NewDBStoredImageRepo(conn)
 	imageRepo := image.NewDBImageRepo(conn)
+	imageRelRepo := image.NewDBImageRelationshipRepo(conn)
 	dummyEmailBackend := email.NewDummyBackend()
 	resolver := httpserver.NewGqlResolver(
 		identityManager,
 		storageDefRepo,
 		storedImageRepo,
 		imageRepo,
+		imageRelRepo,
 		"",
 		domainmodels.ImageURLFormat_CANONICAL,
 		func(c context.Context) email.EmailBackend {
@@ -123,6 +126,7 @@ func newTestContext(tObj *testing.T) *TestContext {
 		identityRepo:       identityRepo,
 		storageDefRepo:     storageDefRepo,
 		imageRepo:          imageRepo,
+		imageRelRepo:       imageRelRepo,
 		identityManager:    identityManager,
 		tObj:               tObj,
 		server:             server,

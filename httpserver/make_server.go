@@ -75,6 +75,7 @@ func MakeServer(
 	storageDefRepo := storageConf.MakeStorageDefRepo()
 	storedImageRepo := storage.NewDBStoredImageRepo(conn)
 	imageRepo := image.NewDBImageRepo(conn)
+	imageRelRepo := image.NewDBImageRelationshipRepo(conn)
 	appRouter.Use(graph.NewLoadersMiddleware(identityRepo, storageDefRepo, storedImageRepo))
 	identityManager := NewIdentityManager(identityRepo, sessionPersister)
 
@@ -93,6 +94,7 @@ func MakeServer(
 		storageDefRepo,
 		storedImageRepo,
 		imageRepo,
+		imageRelRepo,
 		conf.ImageDomain,
 		conf.DefaultURLFormat,
 		getEmailBackend,

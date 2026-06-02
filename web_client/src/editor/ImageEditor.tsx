@@ -154,7 +154,7 @@ export function ImageEditor() {
   return (
     <div className="mx-8 my-4 max-w-full">
       <div className="flex items-center justify-between mb-4">
-        <h1 className={classNames(HEADING_2, "font-poppins")}>
+        <h1 className={classNames(HEADING_2, "font-poppins", "wrap-anywhere")}>
           {t("imageEditor.title", { name: image.name })}
         </h1>
         <Button variant="secondary" onClick={() => navigate(-1)}>

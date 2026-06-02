@@ -149,6 +149,14 @@ func (r *mutationResolver) DeleteImage(ctx context.Context, input model.DeleteIm
 		if !currentUser.CanManage(createdBy) {
 			return nil, fmt.Errorf("unauthorized")
 		}
+		// Block deletion if image has relationships (as parent or child)
+		hasRels, err := r.ImageRelRepo.HasRelationships(input.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check image relationships: %w", err)
+		}
+		if hasRels {
+			return nil, fmt.Errorf("cannot delete image with edit relationships")
+		}
 		if err := r.ImageRepo.DeleteImageById(input.ID); err != nil {
 			return nil, err
 		} else {
@@ -297,6 +305,15 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 	storedImage, err := r.ImageRepo.CreateAndSaveUploadedImage(&newImage, resultMime, resultBytes, storageDef.Id, storageInstance.Save)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save result image: %w", err)
+	}
+
+	// Record DAG relationships
+	newImageId := storedImage.Image.Id
+	if _, err := r.ImageRelRepo.CreateRelationship(newImageId, input.BaseImageID, image.RelationshipTypeBase); err != nil {
+		return nil, fmt.Errorf("failed to create base relationship: %w", err)
+	}
+	if _, err := r.ImageRelRepo.CreateRelationship(newImageId, input.OverlayImageID, image.RelationshipTypeOverlay); err != nil {
+		return nil, fmt.Errorf("failed to create overlay relationship: %w", err)
 	}
 
 	return &model.ApplyWatermarkResult{

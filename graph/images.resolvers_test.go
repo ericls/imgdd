@@ -10,6 +10,7 @@ import (
 
 	"github.com/ericls/imgdd/domainmodels"
 	"github.com/ericls/imgdd/graph/model"
+	imgddimage "github.com/ericls/imgdd/image"
 	"github.com/ericls/imgdd/storage"
 	"github.com/ericls/imgdd/utils"
 
@@ -577,6 +578,28 @@ func tApplyWatermark(t *testing.T, tc *TestContext) {
 	require.NoError(t, err)
 	require.Equal(t, baseImage.Id, newImage.ParentId)
 	require.Equal(t, baseImage.Id, newImage.RootId)
+
+	// Verify DAG relationships were created
+	parents, err := tc.imageRelRepo.GetParentsByImageId(newImage.Id)
+	require.NoError(t, err)
+	require.Len(t, parents, 2)
+	relTypes := map[string]string{}
+	for _, p := range parents {
+		relTypes[p.RelationshipType] = p.ParentImageId
+	}
+	require.Equal(t, baseImage.Id, relTypes["base"])
+	require.Equal(t, overlayImage.Id, relTypes["overlay"])
+
+	// Verify children queries work
+	baseChildren, err := tc.imageRelRepo.GetChildrenByImageId(baseImage.Id)
+	require.NoError(t, err)
+	require.Len(t, baseChildren, 1)
+	require.Equal(t, newImage.Id, baseChildren[0].ImageId)
+
+	overlayChildren, err := tc.imageRelRepo.GetChildrenByImageId(overlayImage.Id)
+	require.NoError(t, err)
+	require.Len(t, overlayChildren, 1)
+	require.Equal(t, newImage.Id, overlayChildren[0].ImageId)
 }
 
 func tApplyWatermarkUnauthenticated(t *testing.T, tc *TestContext) {
@@ -874,6 +897,265 @@ func tImageNoParentLineage(t *testing.T, tc *TestContext) {
 	require.Equal(t, img.Id, resp.Viewer.Image.Lineage[0].ID)
 }
 
+func tDeleteImageBlockedByRelationship(t *testing.T, tc *TestContext) {
+	orgUser := tc.forceAuthenticate()
+	sd, tempDir := createFSStorageDefinition(t, tc)
+	defer os.RemoveAll(tempDir)
+
+	baseBytes := makeTestPNGBytes(100, 100, color.RGBA{255, 0, 0, 255})
+	overlayBytes := makeTestPNGBytes(20, 20, color.RGBA{0, 0, 255, 255})
+	baseImage := createRealImage(t, tc, orgUser.Id, sd.Id, baseBytes)
+	overlayImage := createRealImage(t, tc, orgUser.Id, sd.Id, overlayBytes)
+
+	// Apply watermark to create relationships
+	var applyResp struct {
+		ApplyWatermark *struct {
+			Image *struct{ ID string }
+		}
+	}
+	err := tc.client.Post(`
+	mutation applyWatermark($input: ApplyWatermarkInput!) {
+		applyWatermark(input: $input) {
+			image { id }
+		}
+	}`, &applyResp, client.Var("input", map[string]interface{}{
+		"baseImageId":    baseImage.Id,
+		"overlayImageId": overlayImage.Id,
+		"position":       map[string]float64{"x": 0.5, "y": 0.5},
+		"anchor":         "CENTER",
+		"opacity":        0.5,
+		"scale":          0.2,
+	}))
+	require.NoError(t, err)
+	childId := applyResp.ApplyWatermark.Image.ID
+
+	// Try to delete the base image — should fail
+	var deleteResp struct {
+		DeleteImage *struct{ ID *string }
+	}
+	err = tc.client.Post(`
+	mutation deleteImage($input: DeleteImageInput!) {
+		deleteImage(input: $input) { id }
+	}`, &deleteResp, client.Var("input", map[string]interface{}{
+		"id": baseImage.Id,
+	}))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "edit relationships")
+
+	// Try to delete the overlay image — should fail
+	err = tc.client.Post(`
+	mutation deleteImage($input: DeleteImageInput!) {
+		deleteImage(input: $input) { id }
+	}`, &deleteResp, client.Var("input", map[string]interface{}{
+		"id": overlayImage.Id,
+	}))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "edit relationships")
+
+	// Try to delete the child image — should also fail (it has relationships as child)
+	err = tc.client.Post(`
+	mutation deleteImage($input: DeleteImageInput!) {
+		deleteImage(input: $input) { id }
+	}`, &deleteResp, client.Var("input", map[string]interface{}{
+		"id": childId,
+	}))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "edit relationships")
+}
+
+func tDAGNoCycles(t *testing.T, tc *TestContext) {
+	orgUser := tc.forceAuthenticate()
+	sd, tempDir := createFSStorageDefinition(t, tc)
+	defer os.RemoveAll(tempDir)
+
+	imgBytes := makeTestPNGBytes(100, 100, color.White)
+	imgA := createRealImage(t, tc, orgUser.Id, sd.Id, imgBytes)
+	imgB := createRealImage(t, tc, orgUser.Id, sd.Id, imgBytes)
+	imgC := createRealImage(t, tc, orgUser.Id, sd.Id, imgBytes)
+
+	// A -> B -> C (B is child of A, C is child of B)
+	_, err := tc.imageRelRepo.CreateRelationship(imgB.Id, imgA.Id, imgddimage.RelationshipTypeBase)
+	require.NoError(t, err)
+	_, err = tc.imageRelRepo.CreateRelationship(imgC.Id, imgB.Id, imgddimage.RelationshipTypeBase)
+	require.NoError(t, err)
+
+	// Self-reference: A -> A should fail
+	_, err = tc.imageRelRepo.CreateRelationship(imgA.Id, imgA.Id, imgddimage.RelationshipTypeBase)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "cannot be its own parent")
+
+	// Direct cycle: A -> C (C is already a descendant of A) should fail
+	_, err = tc.imageRelRepo.CreateRelationship(imgA.Id, imgC.Id, imgddimage.RelationshipTypeBase)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "would form a cycle")
+
+	// Adding A as a parent of C is NOT a cycle — it's a diamond (A -> B -> C, A -> C)
+	_, err = tc.imageRelRepo.CreateRelationship(imgC.Id, imgA.Id, "overlay")
+	require.NoError(t, err)
+
+	// A valid new relationship that doesn't form a cycle should succeed
+	imgD := createRealImage(t, tc, orgUser.Id, sd.Id, imgBytes)
+	_, err = tc.imageRelRepo.CreateRelationship(imgD.Id, imgC.Id, imgddimage.RelationshipTypeBase)
+	require.NoError(t, err)
+
+	// Making A a child of D should fail (A -> B -> C -> D already exists, D -> A would be a cycle)
+	_, err = tc.imageRelRepo.CreateRelationship(imgA.Id, imgD.Id, "overlay")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "would form a cycle")
+}
+
+func tDAGQueriesDescendantsAncestorsRelated(t *testing.T, tc *TestContext) {
+	orgUser := tc.forceAuthenticate()
+	sd, tempDir := createFSStorageDefinition(t, tc)
+	defer os.RemoveAll(tempDir)
+
+	imgBytes := makeTestPNGBytes(100, 100, color.White)
+	// Build: root -> mid -> leaf, root -> mid2 (diamond doesn't apply here, just a tree with branch)
+	root := createRealImage(t, tc, orgUser.Id, sd.Id, imgBytes)
+	mid := createRealImage(t, tc, orgUser.Id, sd.Id, imgBytes)
+	leaf := createRealImage(t, tc, orgUser.Id, sd.Id, imgBytes)
+	unrelated := createRealImage(t, tc, orgUser.Id, sd.Id, imgBytes)
+
+	_, err := tc.imageRelRepo.CreateRelationship(mid.Id, root.Id, imgddimage.RelationshipTypeBase)
+	require.NoError(t, err)
+	_, err = tc.imageRelRepo.CreateRelationship(leaf.Id, mid.Id, imgddimage.RelationshipTypeBase)
+	require.NoError(t, err)
+
+	// GetDescendantIds from root should return mid + leaf
+	descendants, err := tc.imageRelRepo.GetDescendantIds(root.Id)
+	require.NoError(t, err)
+	require.Len(t, descendants, 2)
+	descSet := map[string]bool{}
+	for _, id := range descendants {
+		descSet[id] = true
+	}
+	require.True(t, descSet[mid.Id])
+	require.True(t, descSet[leaf.Id])
+
+	// GetDescendantIds from mid should return leaf only
+	descendants, err = tc.imageRelRepo.GetDescendantIds(mid.Id)
+	require.NoError(t, err)
+	require.Len(t, descendants, 1)
+	require.Equal(t, leaf.Id, descendants[0])
+
+	// GetDescendantIds from leaf should return empty
+	descendants, err = tc.imageRelRepo.GetDescendantIds(leaf.Id)
+	require.NoError(t, err)
+	require.Empty(t, descendants)
+
+	// GetAncestorIds from leaf should return mid + root
+	ancestors, err := tc.imageRelRepo.GetAncestorIds(leaf.Id)
+	require.NoError(t, err)
+	require.Len(t, ancestors, 2)
+	ancSet := map[string]bool{}
+	for _, id := range ancestors {
+		ancSet[id] = true
+	}
+	require.True(t, ancSet[mid.Id])
+	require.True(t, ancSet[root.Id])
+
+	// GetAncestorIds from root should return empty
+	ancestors, err = tc.imageRelRepo.GetAncestorIds(root.Id)
+	require.NoError(t, err)
+	require.Empty(t, ancestors)
+
+	// AreRelated
+	related, err := tc.imageRelRepo.AreRelated(root.Id, leaf.Id)
+	require.NoError(t, err)
+	require.True(t, related)
+
+	related, err = tc.imageRelRepo.AreRelated(leaf.Id, root.Id)
+	require.NoError(t, err)
+	require.True(t, related)
+
+	related, err = tc.imageRelRepo.AreRelated(root.Id, unrelated.Id)
+	require.NoError(t, err)
+	require.False(t, related)
+
+	related, err = tc.imageRelRepo.AreRelated(mid.Id, leaf.Id)
+	require.NoError(t, err)
+	require.True(t, related)
+
+	// IsAncestor
+	isAnc, err := tc.imageRelRepo.IsAncestor(leaf.Id, root.Id)
+	require.NoError(t, err)
+	require.True(t, isAnc)
+
+	isAnc, err = tc.imageRelRepo.IsAncestor(root.Id, leaf.Id)
+	require.NoError(t, err)
+	require.False(t, isAnc)
+}
+
+func tDAGDiamondShape(t *testing.T, tc *TestContext) {
+	orgUser := tc.forceAuthenticate()
+	sd, tempDir := createFSStorageDefinition(t, tc)
+	defer os.RemoveAll(tempDir)
+
+	imgBytes := makeTestPNGBytes(100, 100, color.White)
+	//     A
+	//    / \
+	//   B   C
+	//    \ /
+	//     D
+	imgA := createRealImage(t, tc, orgUser.Id, sd.Id, imgBytes)
+	imgB := createRealImage(t, tc, orgUser.Id, sd.Id, imgBytes)
+	imgC := createRealImage(t, tc, orgUser.Id, sd.Id, imgBytes)
+	imgD := createRealImage(t, tc, orgUser.Id, sd.Id, imgBytes)
+
+	_, err := tc.imageRelRepo.CreateRelationship(imgB.Id, imgA.Id, imgddimage.RelationshipTypeBase)
+	require.NoError(t, err)
+	_, err = tc.imageRelRepo.CreateRelationship(imgC.Id, imgA.Id, imgddimage.RelationshipTypeBase)
+	require.NoError(t, err)
+	_, err = tc.imageRelRepo.CreateRelationship(imgD.Id, imgB.Id, imgddimage.RelationshipTypeBase)
+	require.NoError(t, err)
+	_, err = tc.imageRelRepo.CreateRelationship(imgD.Id, imgC.Id, imgddimage.RelationshipTypeOverlay)
+	require.NoError(t, err)
+
+	// D has two parents: B and C
+	parents, err := tc.imageRelRepo.GetParentsByImageId(imgD.Id)
+	require.NoError(t, err)
+	require.Len(t, parents, 2)
+
+	// A has two children: B and C
+	children, err := tc.imageRelRepo.GetChildrenByImageId(imgA.Id)
+	require.NoError(t, err)
+	require.Len(t, children, 2)
+
+	// All descendants of A: B, C, D
+	desc, err := tc.imageRelRepo.GetDescendantIds(imgA.Id)
+	require.NoError(t, err)
+	require.Len(t, desc, 3)
+
+	// All ancestors of D: B, C, A
+	anc, err := tc.imageRelRepo.GetAncestorIds(imgD.Id)
+	require.NoError(t, err)
+	require.Len(t, anc, 3)
+
+	// A and D are related
+	related, err := tc.imageRelRepo.AreRelated(imgA.Id, imgD.Id)
+	require.NoError(t, err)
+	require.True(t, related)
+
+	// B and C are both related to D
+	related, err = tc.imageRelRepo.AreRelated(imgB.Id, imgD.Id)
+	require.NoError(t, err)
+	require.True(t, related)
+
+	// B and C are siblings (both children of A) but not ancestor/descendant of each other
+	related, err = tc.imageRelRepo.AreRelated(imgB.Id, imgC.Id)
+	require.NoError(t, err)
+	require.False(t, related)
+
+	// D -> A (adding A as parent of D) is valid — A is already an ancestor, this just adds a shortcut
+	_, err = tc.imageRelRepo.CreateRelationship(imgD.Id, imgA.Id, "overlay")
+	require.NoError(t, err)
+
+	// A -> D (making D a parent of A) would create a cycle: A -> B -> D -> A
+	_, err = tc.imageRelRepo.CreateRelationship(imgA.Id, imgD.Id, "overlay")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "would form a cycle")
+}
+
 func TestImageResolvers(t *testing.T) {
 	tc := newTestContext(t)
 	tc.runTestCases(
@@ -894,5 +1176,9 @@ func TestImageResolvers(t *testing.T) {
 		tViewerImageInvalidId,
 		tImageLineageAndRoot,
 		tImageNoParentLineage,
+		tDeleteImageBlockedByRelationship,
+		tDAGNoCycles,
+		tDAGQueriesDescendantsAncestorsRelated,
+		tDAGDiamondShape,
 	)
 }

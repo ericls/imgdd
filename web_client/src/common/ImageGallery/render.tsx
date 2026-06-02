@@ -90,8 +90,6 @@ export function ImageItemRenderer({
       />
     ) : null;
 
-  console.log(showCreatorInfo, image);
-
   return (
     <div
       className="group flex flex-col overflow-hidden rounded-md"
