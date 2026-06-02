@@ -75,11 +75,15 @@ export function ImageEditor() {
     if (!settings.overlayImageUrl) {
       return;
     }
+    let cancelled = false;
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.onload = () => setOverlayImg(img);
+    img.onload = () => {
+      if (!cancelled) setOverlayImg(img);
+    };
     img.src = absoluteURL(settings.overlayImageUrl);
     return () => {
+      cancelled = true;
       setOverlayImg(null);
     };
   }, [settings.overlayImageUrl]);

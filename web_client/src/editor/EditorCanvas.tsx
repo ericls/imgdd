@@ -30,13 +30,20 @@ export function EditorCanvas({
 
   // Load base image
   React.useEffect(() => {
+    let cancelled = false;
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
-      baseImgRef.current = img;
-      setBaseLoaded(true);
+      if (!cancelled) {
+        baseImgRef.current = img;
+        setBaseLoaded(true);
+      }
     };
     img.src = baseImageUrl;
+    return () => {
+      cancelled = true;
+      setBaseLoaded(false);
+    };
   }, [baseImageUrl]);
 
   // Draw canvas

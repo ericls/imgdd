@@ -288,8 +288,16 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 	}
 	defer tx.Rollback()
 
-	txImageRepo := r.ImageRepo.(db.DBRepo).WithTransaction(tx).(*image.DBImageRepo)
-	txImageRelRepo := r.ImageRelRepo.(db.DBRepo).WithTransaction(tx).(*image.DBImageRelationshipRepo)
+	dbImageRepo, ok := r.ImageRepo.(db.DBRepo)
+	if !ok {
+		return nil, fmt.Errorf("image repo does not support transactions")
+	}
+	dbImageRelRepo, ok := r.ImageRelRepo.(db.DBRepo)
+	if !ok {
+		return nil, fmt.Errorf("image relationship repo does not support transactions")
+	}
+	txImageRepo := dbImageRepo.WithTransaction(tx).(*image.DBImageRepo)
+	txImageRelRepo := dbImageRelRepo.WithTransaction(tx).(*image.DBImageRelationshipRepo)
 
 	newImage := domainmodels.Image{
 		Identifier:      uuid.New().String(),
