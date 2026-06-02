@@ -9,6 +9,7 @@ import { routes } from "~src/routes";
 import { prompt } from "~src/ui/prompt";
 import type { i18n as i18nType } from "i18next";
 import { Trans, useTranslation } from "react-i18next";
+import { useNavigate, type NavigateFunction } from "react-router";
 
 enum ImageMenuItemName {
   DETAILS = "details",
@@ -60,6 +61,7 @@ export const ADMIN_MENU_CONFIG: ImageItemMenuConfig = {
 type MenuItemGetterProps = {
   image: RenderingImageItem;
   i18n: i18nType;
+  navigate: NavigateFunction;
   onDelete?: () => PromiseLike<unknown>;
 };
 
@@ -83,12 +85,13 @@ function getMenuItemByName(
 function getDetailsMenuItem({
   image: { id },
   i18n,
+  navigate,
 }: MenuItemGetterProps): MenuItem {
   return {
     id: ImageMenuItemName.DETAILS,
     children: i18n.t("imageItem.details", "Details"),
     action: () => {
-      window.location.href = routes.profile.image(id);
+      navigate(routes.profile.image(id));
     },
   };
 }
@@ -96,12 +99,13 @@ function getDetailsMenuItem({
 function getEditMenuItem({
   image: { id },
   i18n,
+  navigate,
 }: MenuItemGetterProps): MenuItem {
   return {
     id: ImageMenuItemName.EDIT,
     children: i18n.t("imageItem.edit", "Edit"),
     action: () => {
-      window.location.href = routes.profile.editImage(id);
+      navigate(routes.profile.editImage(id));
     },
   };
 }
@@ -169,6 +173,7 @@ export function useImageItemMenu(
   config?: ImageItemMenuConfig,
 ): MenuSections | null {
   const { i18n } = useTranslation();
+  const navigate = useNavigate();
   const { execute: executeDelete } = useDeleteImage(image.id);
   const menuSections = React.useMemo(() => {
     if (!config) return null;
@@ -178,11 +183,12 @@ export function useImageItemMenu(
           image,
           onDelete: executeDelete,
           i18n,
+          navigate,
         }),
       );
       return { id: section.id, items };
     });
-  }, [image, config, executeDelete, i18n]);
+  }, [image, config, executeDelete, i18n, navigate]);
   if (!menuSections) return null;
   return {
     children: menuSections,

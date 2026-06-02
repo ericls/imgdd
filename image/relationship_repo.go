@@ -73,13 +73,22 @@ func (repo *DBImageRelationshipRepo) CreateRelationship(imageId, parentImageId, 
 		return nil, fmt.Errorf("cannot create relationship: would form a cycle")
 	}
 
+	parsedImageId, err := uuid.Parse(imageId)
+	if err != nil {
+		return nil, fmt.Errorf("invalid image ID: %w", err)
+	}
+	parsedParentId, err := uuid.Parse(parentImageId)
+	if err != nil {
+		return nil, fmt.Errorf("invalid parent image ID: %w", err)
+	}
+
 	stmt := ImageParentTable.INSERT(
 		ImageParentTable.ImageID,
 		ImageParentTable.ParentImageID,
 		ImageParentTable.RelationshipType,
 	).VALUES(
-		UUID(uuid.MustParse(imageId)),
-		UUID(uuid.MustParse(parentImageId)),
+		UUID(parsedImageId),
+		UUID(parsedParentId),
 		relationshipType,
 	).RETURNING(
 		ImageParentTable.AllColumns,
@@ -99,19 +108,22 @@ func (repo *DBImageRelationshipRepo) CreateRelationship(imageId, parentImageId, 
 }
 
 func (repo *DBImageRelationshipRepo) GetParentsByImageId(imageId string) ([]ImageRelationship, error) {
+	parsed, err := uuid.Parse(imageId)
+	if err != nil {
+		return nil, fmt.Errorf("invalid image ID: %w", err)
+	}
 	stmt := ImageParentTable.SELECT(
 		ImageParentTable.AllColumns,
 	).FROM(
 		ImageParentTable,
 	).WHERE(
-		ImageParentTable.ImageID.EQ(UUID(uuid.MustParse(imageId))),
+		ImageParentTable.ImageID.EQ(UUID(parsed)),
 	).ORDER_BY(
 		ImageParentTable.CreatedAt.ASC(),
 	)
 
 	var dest []model.ImageParentTable
-	err := stmt.Query(repo.DB, &dest)
-	if err != nil {
+	if err = stmt.Query(repo.DB, &dest); err != nil {
 		return nil, err
 	}
 	return mapRelationships(dest), nil
@@ -123,7 +135,11 @@ func (repo *DBImageRelationshipRepo) GetParentsByImageIds(imageIds []string) (ma
 	}
 	uuids := make([]Expression, len(imageIds))
 	for i, id := range imageIds {
-		uuids[i] = UUID(uuid.MustParse(id))
+		parsed, err := uuid.Parse(id)
+		if err != nil {
+			return nil, fmt.Errorf("invalid image ID %q: %w", id, err)
+		}
+		uuids[i] = UUID(parsed)
 	}
 	stmt := ImageParentTable.SELECT(
 		ImageParentTable.AllColumns,
@@ -149,26 +165,33 @@ func (repo *DBImageRelationshipRepo) GetParentsByImageIds(imageIds []string) (ma
 }
 
 func (repo *DBImageRelationshipRepo) GetChildrenByImageId(imageId string) ([]ImageRelationship, error) {
+	parsed, err := uuid.Parse(imageId)
+	if err != nil {
+		return nil, fmt.Errorf("invalid image ID: %w", err)
+	}
 	stmt := ImageParentTable.SELECT(
 		ImageParentTable.AllColumns,
 	).FROM(
 		ImageParentTable,
 	).WHERE(
-		ImageParentTable.ParentImageID.EQ(UUID(uuid.MustParse(imageId))),
+		ImageParentTable.ParentImageID.EQ(UUID(parsed)),
 	).ORDER_BY(
 		ImageParentTable.CreatedAt.ASC(),
 	)
 
 	var dest []model.ImageParentTable
-	err := stmt.Query(repo.DB, &dest)
-	if err != nil {
+	if err = stmt.Query(repo.DB, &dest); err != nil {
 		return nil, err
 	}
 	return mapRelationships(dest), nil
 }
 
 func (repo *DBImageRelationshipRepo) HasRelationships(imageId string) (bool, error) {
-	id := UUID(uuid.MustParse(imageId))
+	parsed, err := uuid.Parse(imageId)
+	if err != nil {
+		return false, fmt.Errorf("invalid image ID: %w", err)
+	}
+	id := UUID(parsed)
 	stmt := ImageParentTable.SELECT(
 		ImageParentTable.ID,
 	).FROM(
@@ -178,8 +201,7 @@ func (repo *DBImageRelationshipRepo) HasRelationships(imageId string) (bool, err
 	).LIMIT(1)
 
 	var dest []model.ImageParentTable
-	err := stmt.Query(repo.DB, &dest)
-	if err != nil {
+	if err = stmt.Query(repo.DB, &dest); err != nil {
 		return false, err
 	}
 	return len(dest) > 0, nil

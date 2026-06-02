@@ -48,31 +48,15 @@ func (r *imageResolver) URL(ctx context.Context, obj *model.Image) (string, erro
 // Root is the resolver for the root field.
 // Walks up the "base" parent chain to find the ultimate ancestor.
 func (r *imageResolver) Root(ctx context.Context, obj *model.Image) (*model.Image, error) {
-	ancestors, err := r.ImageRelRepo.GetAncestorIds(obj.ID)
+	lineage, err := r.Lineage(ctx, obj)
 	if err != nil {
 		return nil, err
 	}
-	if len(ancestors) == 0 {
+	// Lineage returns [root, ..., current]. If only current, no root.
+	if len(lineage) <= 1 {
 		return nil, nil
 	}
-	// The last ancestor in the list is the most distant (root)
-	// But GetAncestorIds returns unordered, so find the one with no parents
-	for _, id := range ancestors {
-		parents, err := r.ImageRelRepo.GetParentsByImageId(id)
-		if err != nil {
-			return nil, err
-		}
-		if len(parents) == 0 {
-			root, err := r.ImageRepo.GetImageById(id)
-			if err != nil {
-				return nil, err
-			}
-			if root != nil {
-				return model.FromImage(root), nil
-			}
-		}
-	}
-	return nil, nil
+	return lineage[0], nil
 }
 
 // Parent is the resolver for the parent field.
@@ -237,6 +221,10 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 		return nil, fmt.Errorf("unauthorized")
 	}
 
+	if input.Position == nil {
+		return nil, fmt.Errorf("position is required")
+	}
+
 	// Map GraphQL anchor to editing anchor
 	anchorMap := map[model.Anchor]editing.Anchor{
 		model.AnchorTopLeft:     editing.AnchorTopLeft,
@@ -245,11 +233,15 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 		model.AnchorBottomRight: editing.AnchorBottomRight,
 		model.AnchorCenter:      editing.AnchorCenter,
 	}
+	anchor, ok := anchorMap[input.Anchor]
+	if !ok {
+		return nil, fmt.Errorf("invalid anchor: %s", input.Anchor)
+	}
 
 	cs, err := editing.NewWatermarkChangeSet(editing.WatermarkParams{
 		OverlayImageID: input.OverlayImageID,
 		Position:       editing.WatermarkPosition{X: input.Position.X, Y: input.Position.Y},
-		Anchor:         anchorMap[input.Anchor],
+		Anchor:         anchor,
 		Opacity:        input.Opacity,
 		Scale:          input.Scale,
 	})
@@ -348,8 +340,8 @@ func (r *viewerResolver) Image(ctx context.Context, obj *model.Viewer, id string
 	if err != nil || img == nil {
 		return nil, fmt.Errorf("image not found")
 	}
-	// TODO: make permission checks more structured.
-	if img.CreatedById != currentUser.Id && !currentUser.IsSiteOwner() {
+	createdBy := r.IdentityRepo.GetOrganizationUserById(img.CreatedById)
+	if !currentUser.CanManage(createdBy) {
 		return nil, fmt.Errorf("unauthorized")
 	}
 
