@@ -40,6 +40,23 @@ export const DEFAULT_MENU_CONFIG: ImageItemMenuConfig = {
   ],
 };
 
+export const ADMIN_MENU_CONFIG: ImageItemMenuConfig = {
+  sections: [
+    {
+      id: "actions",
+      names: [
+        ImageMenuItemName.DETAILS,
+        ImageMenuItemName.DOWNLOAD,
+        ImageMenuItemName.COPY_URL,
+      ],
+    },
+    {
+      id: "delete",
+      names: [ImageMenuItemName.DELETE],
+    },
+  ],
+};
+
 type MenuItemGetterProps = {
   image: RenderingImageItem;
   i18n: i18nType;

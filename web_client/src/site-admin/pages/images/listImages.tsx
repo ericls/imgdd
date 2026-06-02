@@ -1,7 +1,7 @@
 import { t } from "i18next";
 import React from "react";
 import classNames from "classnames";
-import { DEFAULT_MENU_CONFIG } from "~src/common/ImageGallery/menu";
+import { ADMIN_MENU_CONFIG } from "~src/common/ImageGallery/menu";
 import { ImageGallery } from "~src/common/ImageGallery/render";
 import { useDebounce } from "~src/lib/hooks";
 import { HEADING_2 } from "~src/ui/classNames";
@@ -25,7 +25,7 @@ export function ListImages() {
       </div>
       <div className="mt-6">
         <ImageGallery
-          menuConfig={DEFAULT_MENU_CONFIG}
+          menuConfig={ADMIN_MENU_CONFIG}
           nameContains={debouncedSearchTerm || undefined}
           showCreatorInfo
         />

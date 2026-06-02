@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams } from "react-router";
-import { DEFAULT_MENU_CONFIG } from "~src/common/ImageGallery/menu";
+import { ADMIN_MENU_CONFIG } from "~src/common/ImageGallery/menu";
 import { ImageGallery } from "~src/common/ImageGallery/render";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@apollo/client/react";
@@ -46,7 +46,7 @@ export function UserImageGallery() {
         </h2>
       </div>
       <div className="p-4">
-        <ImageGallery createdById={userId} menuConfig={DEFAULT_MENU_CONFIG} />
+        <ImageGallery createdById={userId} menuConfig={ADMIN_MENU_CONFIG} />
       </div>
     </>
   );
