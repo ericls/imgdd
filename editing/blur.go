@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
-	"image/color"
 	"image/gif"
 	"image/jpeg"
 	"image/png"
@@ -134,14 +133,13 @@ func (e *BlurEditor) Apply(baseBytes []byte, cs Change, _ FetchImageFunc) ([]byt
 }
 
 // applyBoxBlurRegion copies the full image into an RGBA buffer and applies a
-// box blur (iterated 3× for a Gaussian-like effect) only to the specified
-// pixel rectangle.
+// separable box blur (3 passes for a Gaussian-like effect) to the specified
+// pixel rectangle. Each pass is O(region_pixels) regardless of radius.
 func applyBoxBlurRegion(src image.Image, rx1, ry1, rx2, ry2, radius int) *image.RGBA {
 	bounds := src.Bounds()
 	w := bounds.Dx()
 	h := bounds.Dy()
 
-	// Copy source into an RGBA buffer
 	rgba := image.NewRGBA(bounds)
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
@@ -149,64 +147,143 @@ func applyBoxBlurRegion(src image.Image, rx1, ry1, rx2, ry2, radius int) *image.
 		}
 	}
 
-	// Extract the region pixels, blur, write back – three passes for smoother result
-	for pass := 0; pass < 3; pass++ {
-		blurred := boxBlurPass(rgba, bounds, rx1, ry1, rx2, ry2, radius)
-		for y := ry1; y < ry2; y++ {
-			for x := rx1; x < rx2; x++ {
-				p := blurred[(y-ry1)*(rx2-rx1)+(x-rx1)]
-				rgba.SetRGBA(bounds.Min.X+x, bounds.Min.Y+y, color.RGBA{R: p.R, G: p.G, B: p.B, A: p.A})
-			}
-		}
+	rw := rx2 - rx1
+	rh := ry2 - ry1
+	kw := 2*radius + 1
+	// tmp holds RGBA bytes for the blur region after the horizontal pass.
+	tmp := make([]byte, rw*rh*4)
+
+	for range 3 {
+		hBoxBlur(rgba, tmp, rx1, ry1, rx2, ry2, rw, radius, kw)
+		vBoxBlur(rgba, tmp, rx1, ry1, rx2, ry2, rw, radius, kw)
 	}
 
 	return rgba
 }
 
-type rgbaPixel struct {
-	R, G, B, A uint8
-}
-
-func boxBlurPass(src *image.RGBA, bounds image.Rectangle, rx1, ry1, rx2, ry2, radius int) []rgbaPixel {
-	rw := rx2 - rx1
-	rh := ry2 - ry1
-	out := make([]rgbaPixel, rw*rh)
-
+// hBoxBlur performs a horizontal sliding-window box blur over the region
+// [rx1,rx2) × [ry1,ry2), reading from rgba.Pix and writing to tmp.
+// Samples outside the region are clamped to the nearest edge pixel.
+// rx1,ry1,rx2,ry2 are relative (0-based) pixel coordinates within the image.
+func hBoxBlur(rgba *image.RGBA, tmp []byte, rx1, ry1, rx2, ry2, rw, radius, kw int) {
 	for y := ry1; y < ry2; y++ {
-		for x := rx1; x < rx2; x++ {
-			var rSum, gSum, bSum, aSum int
-			count := 0
-			for dy := -radius; dy <= radius; dy++ {
-				sy := bounds.Min.Y + y + dy
-				if sy < bounds.Min.Y+ry1 {
-					sy = bounds.Min.Y + ry1
-				}
-				if sy >= bounds.Min.Y+ry2 {
-					sy = bounds.Min.Y + ry2 - 1
-				}
-				for dx := -radius; dx <= radius; dx++ {
-					sx := bounds.Min.X + x + dx
-					if sx < bounds.Min.X+rx1 {
-						sx = bounds.Min.X + rx1
-					}
-					if sx >= bounds.Min.X+rx2 {
-						sx = bounds.Min.X + rx2 - 1
-					}
-					c := src.RGBAAt(sx, sy)
-					rSum += int(c.R)
-					gSum += int(c.G)
-					bSum += int(c.B)
-					aSum += int(c.A)
-					count++
-				}
+		var r0, g0, b0, a0 int
+
+		// Build initial sum for x = rx1 by summing the full kernel window.
+		for k := -radius; k <= radius; k++ {
+			sx := rx1 + k
+			if sx < rx1 {
+				sx = rx1
+			} else if sx >= rx2 {
+				sx = rx2 - 1
 			}
-			out[(y-ry1)*rw+(x-rx1)] = rgbaPixel{
-				R: uint8(rSum / count),
-				G: uint8(gSum / count),
-				B: uint8(bSum / count),
-				A: uint8(aSum / count),
+			off := y*rgba.Stride + sx*4
+			r0 += int(rgba.Pix[off])
+			g0 += int(rgba.Pix[off+1])
+			b0 += int(rgba.Pix[off+2])
+			a0 += int(rgba.Pix[off+3])
+		}
+		tidx := (y - ry1) * rw * 4
+		tmp[tidx] = byte(r0 / kw)
+		tmp[tidx+1] = byte(g0 / kw)
+		tmp[tidx+2] = byte(b0 / kw)
+		tmp[tidx+3] = byte(a0 / kw)
+
+		for x := rx1 + 1; x < rx2; x++ {
+			// Slide: remove the pixel that left the window (clamped to region).
+			lx := x - radius - 1
+			if lx < rx1 {
+				lx = rx1
+			} else if lx >= rx2 {
+				lx = rx2 - 1
 			}
+			loff := y*rgba.Stride + lx*4
+			r0 -= int(rgba.Pix[loff])
+			g0 -= int(rgba.Pix[loff+1])
+			b0 -= int(rgba.Pix[loff+2])
+			a0 -= int(rgba.Pix[loff+3])
+
+			// Add the pixel that entered the window (clamped to region).
+			nx := x + radius
+			if nx < rx1 {
+				nx = rx1
+			} else if nx >= rx2 {
+				nx = rx2 - 1
+			}
+			noff := y*rgba.Stride + nx*4
+			r0 += int(rgba.Pix[noff])
+			g0 += int(rgba.Pix[noff+1])
+			b0 += int(rgba.Pix[noff+2])
+			a0 += int(rgba.Pix[noff+3])
+
+			tidx = ((y-ry1)*rw + (x - rx1)) * 4
+			tmp[tidx] = byte(r0 / kw)
+			tmp[tidx+1] = byte(g0 / kw)
+			tmp[tidx+2] = byte(b0 / kw)
+			tmp[tidx+3] = byte(a0 / kw)
 		}
 	}
-	return out
+}
+
+// vBoxBlur performs a vertical sliding-window box blur over the region,
+// reading from tmp (horizontal-pass output) and writing back to rgba.Pix.
+func vBoxBlur(rgba *image.RGBA, tmp []byte, rx1, ry1, rx2, ry2, rw, radius, kw int) {
+	for x := rx1; x < rx2; x++ {
+		xi := x - rx1
+		var r0, g0, b0, a0 int
+
+		// Build initial sum for y = ry1.
+		for k := -radius; k <= radius; k++ {
+			sy := ry1 + k
+			if sy < ry1 {
+				sy = ry1
+			} else if sy >= ry2 {
+				sy = ry2 - 1
+			}
+			tidx := ((sy-ry1)*rw + xi) * 4
+			r0 += int(tmp[tidx])
+			g0 += int(tmp[tidx+1])
+			b0 += int(tmp[tidx+2])
+			a0 += int(tmp[tidx+3])
+		}
+		off := ry1*rgba.Stride + x*4
+		rgba.Pix[off] = byte(r0 / kw)
+		rgba.Pix[off+1] = byte(g0 / kw)
+		rgba.Pix[off+2] = byte(b0 / kw)
+		rgba.Pix[off+3] = byte(a0 / kw)
+
+		for y := ry1 + 1; y < ry2; y++ {
+			// Remove pixel that left the window (clamped to region).
+			ly := y - radius - 1
+			if ly < ry1 {
+				ly = ry1
+			} else if ly >= ry2 {
+				ly = ry2 - 1
+			}
+			ltidx := ((ly-ry1)*rw + xi) * 4
+			r0 -= int(tmp[ltidx])
+			g0 -= int(tmp[ltidx+1])
+			b0 -= int(tmp[ltidx+2])
+			a0 -= int(tmp[ltidx+3])
+
+			// Add pixel that entered the window (clamped to region).
+			ny := y + radius
+			if ny < ry1 {
+				ny = ry1
+			} else if ny >= ry2 {
+				ny = ry2 - 1
+			}
+			ntidx := ((ny-ry1)*rw + xi) * 4
+			r0 += int(tmp[ntidx])
+			g0 += int(tmp[ntidx+1])
+			b0 += int(tmp[ntidx+2])
+			a0 += int(tmp[ntidx+3])
+
+			off = y*rgba.Stride + x*4
+			rgba.Pix[off] = byte(r0 / kw)
+			rgba.Pix[off+1] = byte(g0 / kw)
+			rgba.Pix[off+2] = byte(b0 / kw)
+			rgba.Pix[off+3] = byte(a0 / kw)
+		}
+	}
 }
