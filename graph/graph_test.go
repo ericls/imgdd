@@ -94,6 +94,7 @@ func newTestContext(tObj *testing.T) *TestContext {
 	imageRelRepo := image.NewDBImageRelationshipRepo(conn)
 	dummyEmailBackend := email.NewDummyBackend()
 	resolver := httpserver.NewGqlResolver(
+		conn,
 		identityManager,
 		storageDefRepo,
 		storedImageRepo,

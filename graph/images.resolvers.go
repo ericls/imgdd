@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ericls/imgdd/db"
 	"github.com/ericls/imgdd/domainmodels"
 	"github.com/ericls/imgdd/editing"
 	"github.com/ericls/imgdd/graph/model"
@@ -288,7 +289,16 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 		return nil, fmt.Errorf("failed to get storage: %w", err)
 	}
 
-	// Create the new derived image
+	// Create image and relationships in a single transaction
+	tx, err := r.DBConn.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	txImageRepo := r.ImageRepo.(db.DBRepo).WithTransaction(tx).(*image.DBImageRepo)
+	txImageRelRepo := r.ImageRelRepo.(db.DBRepo).WithTransaction(tx).(*image.DBImageRelationshipRepo)
+
 	newImage := domainmodels.Image{
 		Identifier:      uuid.New().String(),
 		Name:            baseImage.Name,
@@ -301,18 +311,21 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 		NominalByteSize: int32(len(result.Bytes)),
 	}
 
-	storedImage, err := r.ImageRepo.CreateAndSaveUploadedImage(&newImage, result.MIMEType, result.Bytes, storageDef.Id, storageInstance.Save)
+	storedImage, err := txImageRepo.CreateAndSaveUploadedImage(&newImage, result.MIMEType, result.Bytes, storageDef.Id, storageInstance.Save)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save result image: %w", err)
 	}
 
-	// Record DAG relationships
 	newImageId := storedImage.Image.Id
-	if _, err := r.ImageRelRepo.CreateRelationship(newImageId, input.BaseImageID, image.RelationshipTypeBase); err != nil {
+	if _, err := txImageRelRepo.CreateRelationship(newImageId, input.BaseImageID, image.RelationshipTypeBase); err != nil {
 		return nil, fmt.Errorf("failed to create base relationship: %w", err)
 	}
-	if _, err := r.ImageRelRepo.CreateRelationship(newImageId, input.OverlayImageID, image.RelationshipTypeOverlay); err != nil {
+	if _, err := txImageRelRepo.CreateRelationship(newImageId, input.OverlayImageID, image.RelationshipTypeOverlay); err != nil {
 		return nil, fmt.Errorf("failed to create overlay relationship: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return &model.ApplyWatermarkResult{

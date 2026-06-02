@@ -90,6 +90,7 @@ func MakeServer(
 	captchaClient := captcha.MakeClient(conf.CaptchaProvider, conf.RecaptchaServerKey, conf.TurnstileSecretKey)
 
 	gqlResolver := NewGqlResolver(
+		conn,
 		identityManager,
 		storageDefRepo,
 		storedImageRepo,
