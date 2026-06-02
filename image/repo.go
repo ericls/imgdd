@@ -4,6 +4,7 @@ package image
 import (
 	"bytes"
 	"database/sql"
+	"fmt"
 
 	"github.com/ericls/imgdd/db"
 	"github.com/ericls/imgdd/db/.gen/imgdd/public/model"
@@ -86,7 +87,11 @@ func (repo *DBImageRepo) GetImagesByIds(ids []string) ([]*dm.Image, error) {
 	}
 	uuids := make([]Expression, len(ids))
 	for i, id := range ids {
-		uuids[i] = UUID(uuid.MustParse(id))
+		parsed, err := uuid.Parse(id)
+		if err != nil {
+			return nil, fmt.Errorf("invalid image ID %q: %w", id, err)
+		}
+		uuids[i] = UUID(parsed)
 	}
 	stmt := ImageTable.
 		SELECT(ImageTable.AllColumns).
