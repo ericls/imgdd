@@ -96,6 +96,22 @@ func (e *BlurEditor) Apply(baseBytes []byte, cs Change, _ FetchImageFunc) ([]byt
 	if ry2 > h {
 		ry2 = h
 	}
+	// Truncation of small normalized coords can collapse the region to 0×0;
+	// expand to at least 1px so the blur is always applied.
+	if rx2 <= rx1 {
+		if rx1 > 0 {
+			rx1--
+		} else {
+			rx2++
+		}
+	}
+	if ry2 <= ry1 {
+		if ry1 > 0 {
+			ry1--
+		} else {
+			ry2++
+		}
+	}
 
 	result := applyBoxBlurRegion(baseImg, rx1, ry1, rx2, ry2, params.Radius)
 

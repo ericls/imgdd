@@ -1,7 +1,7 @@
--- Migrate single-change objects to single-element arrays
+-- Migrate single-change objects to single-element arrays (skip rows already in array form)
 UPDATE image_table
   SET changes = jsonb_build_array(changes)
-  WHERE changes != '{}' AND changes != '[]';
+  WHERE jsonb_typeof(changes) = 'object' AND changes != '{}';
 
 -- Convert legacy empty-object default to empty array
 UPDATE image_table SET changes = '[]' WHERE changes = '{}';

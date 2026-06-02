@@ -244,6 +244,7 @@ export function ImageEditor() {
             <div className="flex gap-2 mb-4">
               <button
                 type="button"
+                aria-pressed={activeTab === "watermark"}
                 onClick={() => setActiveTab("watermark")}
                 className={classNames(
                   "flex-1 py-1.5 rounded-md text-sm font-medium transition-colors",
@@ -259,6 +260,7 @@ export function ImageEditor() {
               </button>
               <button
                 type="button"
+                aria-pressed={activeTab === "blur"}
                 onClick={() => setActiveTab("blur")}
                 className={classNames(
                   "flex-1 py-1.5 rounded-md text-sm font-medium transition-colors",

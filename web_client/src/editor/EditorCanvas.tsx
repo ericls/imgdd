@@ -225,11 +225,11 @@ export function EditorCanvas({
   const handleTouchStart = React.useCallback(
     (e: React.TouchEvent<HTMLCanvasElement>) => {
       if (e.touches.length === 0) return;
+      if (mode === "watermark" && !overlay.image) return;
       e.preventDefault();
       setDragging(true);
       const { x, y } = getCanvasCoords(e.touches[0]);
       if (mode === "watermark") {
-        if (!overlay.image) return;
         onPositionChange(x, y);
       } else {
         dragStartRef.current = { x, y };
