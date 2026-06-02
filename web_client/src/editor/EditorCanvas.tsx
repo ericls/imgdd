@@ -51,21 +51,28 @@ export function EditorCanvas({
     // Size canvas to fit container while maintaining aspect ratio
     const container = canvas.parentElement;
     if (!container) return;
-    const maxW = container.clientWidth;
+    const dpr = window.devicePixelRatio || 1;
+    const maxCssW = container.clientWidth;
     const ratio = baseImg.naturalWidth / baseImg.naturalHeight;
-    const displayW = Math.min(maxW, baseImg.naturalWidth);
-    const displayH = displayW / ratio;
+    // CSS display size accounts for DPR
+    const cssW = Math.min(maxCssW, Math.round(baseImg.naturalWidth / dpr));
+    const cssH = Math.round(cssW / ratio);
+    // Canvas buffer renders at full resolution for sharpness
+    const bufferW = Math.round(cssW * dpr);
+    const bufferH = Math.round(cssH * dpr);
 
-    canvas.width = displayW;
-    canvas.height = displayH;
+    canvas.width = bufferW;
+    canvas.height = bufferH;
+    canvas.style.width = cssW + "px";
+    canvas.style.height = cssH + "px";
 
     // Draw base
-    ctx.clearRect(0, 0, displayW, displayH);
-    ctx.drawImage(baseImg, 0, 0, displayW, displayH);
+    ctx.clearRect(0, 0, bufferW, bufferH);
+    ctx.drawImage(baseImg, 0, 0, bufferW, bufferH);
 
     // Draw overlay
     if (overlay.image) {
-      const shortSide = Math.min(displayW, displayH);
+      const shortSide = Math.min(bufferW, bufferH);
       const targetSize = shortSide * overlay.scale;
       const overlayRatio =
         overlay.image.naturalWidth / overlay.image.naturalHeight;
@@ -78,8 +85,8 @@ export function EditorCanvas({
         ow = targetSize * overlayRatio;
       }
 
-      const px = overlay.x * displayW;
-      const py = overlay.y * displayH;
+      const px = overlay.x * bufferW;
+      const py = overlay.y * bufferH;
 
       // Apply anchor offset to match backend behavior
       let ox: number, oy: number;

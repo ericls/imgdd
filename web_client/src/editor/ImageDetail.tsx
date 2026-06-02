@@ -105,6 +105,11 @@ export function ImageDetail() {
               src={absoluteURL(image.url)}
               alt={image.name}
               className="max-w-full h-auto rounded mx-auto block"
+              style={{
+                width: Math.round(
+                  image.nominalWidth / (window.devicePixelRatio || 1),
+                ),
+              }}
             />
           </div>
           <div className={classNames("mt-2 text-sm", SECONDARY_TEXT_COLOR_DIM)}>
