@@ -21,6 +21,9 @@ const ImageDetailDoc = gql(`
   query ImageDetail($id: ID!) {
     viewer {
       id
+      organizationUser {
+        id
+      }
       image(id: $id) {
         id
         url
@@ -31,6 +34,9 @@ const ImageDetailDoc = gql(`
         MIMEType
         createdAt
         changes
+        createdBy {
+          id
+        }
         lineage {
           id
           url
@@ -56,6 +62,10 @@ export function ImageDetail() {
   }, [imageId, fetchImage]);
 
   const image = data?.viewer.image;
+  const currentUserId = data?.viewer.organizationUser?.id;
+  const isOwnImage = !!(
+    currentUserId && image?.createdBy?.id === currentUserId
+  );
 
   if (loading) return <FullScreenLoader />;
   if (error)
@@ -81,12 +91,14 @@ export function ImageDetail() {
           {image.name}
         </h1>
         <div className="flex gap-2 flex-shrink-0">
-          <Button
-            variant="secondary"
-            onClick={() => navigate(routes.profile.editImage(image.id))}
-          >
-            {t("common.buttonLabel.edit")}
-          </Button>
+          {isOwnImage && (
+            <Button
+              variant="secondary"
+              onClick={() => navigate(routes.profile.editImage(image.id))}
+            >
+              {t("common.buttonLabel.edit")}
+            </Button>
+          )}
           <Button variant="secondary" onClick={() => navigate(-1)}>
             {t("common.buttonLabel.back")}
           </Button>
