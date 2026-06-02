@@ -180,7 +180,7 @@ export function ImageEditor() {
               baseImageUrl={absoluteURL(image.url)}
               overlay={overlay}
               onPositionChange={handlePositionChange}
-              className="w-full"
+              className="max-w-full mx-auto block"
             />
           </div>
         </div>

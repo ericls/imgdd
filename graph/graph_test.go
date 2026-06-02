@@ -114,7 +114,7 @@ func newTestContext(tObj *testing.T) *TestContext {
 	gqlServer.AddTransport(transport.POST{})
 	// NOTE: the order of code should be reversed compared to Mux.use
 	handler := identityManager.Middleware(gqlServer)
-	handler = graph.NewLoadersMiddleware(identityRepo, storageDefRepo, storedImageRepo)(handler)
+	handler = graph.NewLoadersMiddleware(identityRepo, storageDefRepo, storedImageRepo, imageRepo, imageRelRepo)(handler)
 	handler = httpserver.RWContextMiddleware(handler)
 	handler = sessionPersister.Middleware(handler)
 	server := httptest.NewServer(handler)

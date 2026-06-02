@@ -16,6 +16,7 @@ import { DefaultMenuIcon } from "~src/ui/menu";
 import { Link } from "react-router";
 import { useAuth } from "~src/lib/auth";
 import { routes } from "~src/routes";
+import { useTranslation } from "react-i18next";
 
 type DumbImageGalleryProps = {
   images: RenderingImageItem[];
@@ -73,6 +74,7 @@ export function ImageItemRenderer({
   showCreatorInfo?: boolean;
 }) {
   const menuSections = useImageItemMenu(image, image.menuConfig);
+  const { t } = useTranslation();
   const { url, name, nominalWidth, nominalHeight, nominalByteSize, createdAt } =
     image;
   const { data: authData } = useAuth();
@@ -95,9 +97,15 @@ export function ImageItemRenderer({
       className="group flex flex-col overflow-hidden rounded-md"
       tabIndex={0}
     >
-      <div className="relative w-full pb-[80%] overflow-hidden bg-transparent rounded-md [&_.menu-trigger]:focus-within:opacity-100">
+      <Link
+        to={routes.profile.image(image.id)}
+        className="relative w-full pb-[80%] overflow-hidden bg-transparent rounded-md [&_.menu-trigger]:focus-within:opacity-100 block"
+      >
         {menuSections && (
-          <div className="absolute menu-trigger top-2 right-2 z-10 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity">
+          <div
+            className="absolute menu-trigger top-2 right-2 z-10 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity"
+            onClick={(e) => e.preventDefault()}
+          >
             <MenuWithTrigger
               menuSections={menuSections}
               trigger={
@@ -117,12 +125,17 @@ export function ImageItemRenderer({
             />
           </div>
         )}
+        {image.parent && (
+          <span className="absolute top-2 left-2 z-10 bg-indigo-600 text-white text-xs px-2 py-0.5 rounded">
+            {t("imageItem.revision")}
+          </span>
+        )}
         <img
           src={url}
           alt={`preview of image file: ${name}`}
           className="absolute top-0 left-0 w-full h-full object-cover"
         />
-      </div>
+      </Link>
       <div className="flex items-center p-2 space-x-3">
         {avatarEl && image.createdBy && canLinkToUser ? (
           <Link

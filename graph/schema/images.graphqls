@@ -101,5 +101,6 @@ type DeleteImageResult {
 
 extend type Mutation {
   deleteImage(input: DeleteImageInput!): DeleteImageResult! @isAuthenticated
-  applyWatermark(input: ApplyWatermarkInput!): ApplyWatermarkResult! @isAuthenticated
+  applyWatermark(input: ApplyWatermarkInput!): ApplyWatermarkResult!
+    @isAuthenticated
 }

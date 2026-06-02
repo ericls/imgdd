@@ -147,7 +147,8 @@
       "edit": "編輯",
       "copyURL": "複製連結",
       "download": "下載",
-      "confirmDelete": "確定要刪除這張圖片嗎？<br/><b>{{name}}</b>"
+      "confirmDelete": "確定要刪除這張圖片嗎？<br/><b>{{name}}</b>",
+      "revision": "修訂版"
     },
     "imageDetail": {
       "errorLoading": "載入圖片時出錯",

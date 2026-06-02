@@ -121,5 +121,6 @@ type ImageRepo interface {
 	ListImages(filtersWithoutCursor *ListImagesFilters, filtersWithCursor *ListImagesFilters, ordering *ListImagesOrdering, reverse bool) (dm.ListImageResult, error)
 	CountImages(filters *ListImagesFilters) (int, error)
 	GetImageById(id string) (*dm.Image, error)
+	GetImagesByIds(ids []string) ([]*dm.Image, error)
 	DeleteImageById(id string) error
 }

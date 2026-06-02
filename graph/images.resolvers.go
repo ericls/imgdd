@@ -46,33 +46,38 @@ func (r *imageResolver) URL(ctx context.Context, obj *model.Image) (string, erro
 }
 
 // Root is the resolver for the root field.
+// Walks up the "base" parent chain to find the ultimate ancestor.
 func (r *imageResolver) Root(ctx context.Context, obj *model.Image) (*model.Image, error) {
-	if obj.RootId == "" {
-		return nil, nil
-	}
-	root, err := r.ImageRepo.GetImageById(obj.RootId)
+	ancestors, err := r.ImageRelRepo.GetAncestorIds(obj.ID)
 	if err != nil {
 		return nil, err
 	}
-	if root == nil {
+	if len(ancestors) == 0 {
 		return nil, nil
 	}
-	return model.FromImage(root), nil
+	// The last ancestor in the list is the most distant (root)
+	// But GetAncestorIds returns unordered, so find the one with no parents
+	for _, id := range ancestors {
+		parents, err := r.ImageRelRepo.GetParentsByImageId(id)
+		if err != nil {
+			return nil, err
+		}
+		if len(parents) == 0 {
+			root, err := r.ImageRepo.GetImageById(id)
+			if err != nil {
+				return nil, err
+			}
+			if root != nil {
+				return model.FromImage(root), nil
+			}
+		}
+	}
+	return nil, nil
 }
 
 // Parent is the resolver for the parent field.
 func (r *imageResolver) Parent(ctx context.Context, obj *model.Image) (*model.Image, error) {
-	if obj.ParentId == "" {
-		return nil, nil
-	}
-	parent, err := r.ImageRepo.GetImageById(obj.ParentId)
-	if err != nil {
-		return nil, err
-	}
-	if parent == nil {
-		return nil, nil
-	}
-	return model.FromImage(parent), nil
+	return LoadersFor(ctx).BaseParentByImageIdLoader.Load(ctx, obj.ID)
 }
 
 // Changes is the resolver for the changes field.
@@ -84,19 +89,31 @@ func (r *imageResolver) Changes(ctx context.Context, obj *model.Image) (*string,
 }
 
 // Lineage is the resolver for the lineage field.
-// Returns the chain of ancestors from root to this image (inclusive).
+// Returns the chain of ancestors from root to this image (inclusive),
+// walking "base" parent relationships via the DAG table.
 func (r *imageResolver) Lineage(ctx context.Context, obj *model.Image) ([]*model.Image, error) {
-	if obj.ParentId == "" {
-		return []*model.Image{obj}, nil
-	}
-
-	// Walk up the parent chain collecting ancestors (max 100 to guard against cycles)
+	// Walk up the base-parent chain collecting ancestors (max 100 to guard against cycles)
 	const maxDepth = 100
 	var chain []*model.Image
 	chain = append(chain, obj)
-	currentParentId := obj.ParentId
-	for currentParentId != "" && len(chain) < maxDepth {
-		parent, err := r.ImageRepo.GetImageById(currentParentId)
+	currentId := obj.ID
+	for len(chain) < maxDepth {
+		parents, err := r.ImageRelRepo.GetParentsByImageId(currentId)
+		if err != nil {
+			return nil, err
+		}
+		// Follow the "base" parent
+		var baseParentId string
+		for _, rel := range parents {
+			if rel.RelationshipType == image.RelationshipTypeBase {
+				baseParentId = rel.ParentImageId
+				break
+			}
+		}
+		if baseParentId == "" {
+			break
+		}
+		parent, err := r.ImageRepo.GetImageById(baseParentId)
 		if err != nil {
 			return nil, err
 		}
@@ -104,7 +121,7 @@ func (r *imageResolver) Lineage(ctx context.Context, obj *model.Image) ([]*model
 			break
 		}
 		chain = append(chain, model.FromImage(parent))
-		currentParentId = parent.ParentId
+		currentId = baseParentId
 	}
 
 	// Reverse so root comes first

@@ -80,6 +80,62 @@ func (repo *DBImageRepo) GetImageById(id string) (*dm.Image, error) {
 	}, nil
 }
 
+func (repo *DBImageRepo) GetImagesByIds(ids []string) ([]*dm.Image, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	uuids := make([]Expression, len(ids))
+	for i, id := range ids {
+		uuids[i] = UUID(uuid.MustParse(id))
+	}
+	stmt := ImageTable.
+		SELECT(ImageTable.AllColumns).
+		FROM(ImageTable).
+		WHERE(
+			ImageTable.ID.IN(uuids...).AND(ImageTable.DeletedAt.IS_NULL()),
+		)
+
+	var dest []model.ImageTable
+	err := stmt.Query(repo.DB, &dest)
+	if err != nil {
+		return nil, err
+	}
+
+	idToImage := make(map[string]*dm.Image, len(dest))
+	for _, d := range dest {
+		var parentId string
+		if d.ParentID != nil {
+			parentId = d.ParentID.String()
+		}
+		var rootId string
+		if d.RootID != nil {
+			rootId = d.RootID.String()
+		}
+		img := &dm.Image{
+			Id:              d.ID.String(),
+			Identifier:      d.Identifier,
+			CreatedAt:       d.CreatedAt,
+			Name:            d.Name,
+			ParentId:        parentId,
+			RootId:          rootId,
+			Changes:         d.Changes,
+			UploaderIP:      utils.SafeDeref(d.UploaderIP),
+			MIMEType:        d.MimeType,
+			NominalWidth:    d.NominalWidth,
+			NominalHeight:   d.NominalHeight,
+			NominalByteSize: d.NominalByteSize,
+			CreatedById:     utils.SafeDerefWithDefault(d.CreatedByID, ZeroUUID).String(),
+		}
+		idToImage[img.Id] = img
+	}
+
+	result := make([]*dm.Image, len(ids))
+	for i, id := range ids {
+		result[i] = idToImage[id]
+	}
+	return result, nil
+}
+
 func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 	var parentId *string
 	var rootId *string
