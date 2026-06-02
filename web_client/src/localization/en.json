@@ -147,7 +147,8 @@
       "edit": "Edit",
       "copyURL": "Copy URL",
       "download": "Download",
-      "confirmDelete": "Are you sure you want to delete this image?<br/><b>{{name}}</b>"
+      "confirmDelete": "Are you sure you want to delete this image?<br/><b>{{name}}</b>",
+      "revision": "Revision"
     },
     "imageDetail": {
       "errorLoading": "Error loading image",

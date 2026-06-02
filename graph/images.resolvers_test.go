@@ -1156,6 +1156,105 @@ func tDAGDiamondShape(t *testing.T, tc *TestContext) {
 	require.Contains(t, err.Error(), "would form a cycle")
 }
 
+func tImagesListParentField(t *testing.T, tc *TestContext) {
+	orgUser := tc.forceAuthenticate()
+	sd, tempDir := createFSStorageDefinition(t, tc)
+	defer os.RemoveAll(tempDir)
+
+	baseBytes := makeTestPNGBytes(200, 200, color.RGBA{255, 0, 0, 255})
+	overlayBytes := makeTestPNGBytes(50, 50, color.RGBA{0, 0, 255, 255})
+	baseImage := createRealImage(t, tc, orgUser.Id, sd.Id, baseBytes)
+	overlayImage := createRealImage(t, tc, orgUser.Id, sd.Id, overlayBytes)
+
+	// Create a derived image via watermark
+	var applyResp struct {
+		ApplyWatermark *struct {
+			Image *struct{ ID string }
+		}
+	}
+	err := tc.client.Post(`
+	mutation applyWatermark($input: ApplyWatermarkInput!) {
+		applyWatermark(input: $input) {
+			image { id }
+		}
+	}`, &applyResp, client.Var("input", map[string]any{
+		"baseImageId":    baseImage.Id,
+		"overlayImageId": overlayImage.Id,
+		"position":       map[string]float64{"x": 0.5, "y": 0.5},
+		"anchor":         "CENTER",
+		"opacity":        0.5,
+		"scale":          0.2,
+	}))
+	require.NoError(t, err)
+	childId := applyResp.ApplyWatermark.Image.ID
+
+	// Query images list with parent field — exercises the dataloader
+	var resp struct {
+		Viewer struct {
+			Images struct {
+				Edges []struct {
+					Node struct {
+						ID     string
+						Name   string
+						Parent *struct {
+							ID   string
+							Name string
+						}
+					}
+				}
+			}
+		}
+	}
+	err = tc.client.Post(`
+	query {
+		viewer {
+			images {
+				edges {
+					node {
+						id
+						name
+						parent {
+							id
+							name
+						}
+					}
+				}
+			}
+		}
+	}`, &resp)
+	require.NoError(t, err)
+
+	// Should have 3 images: base, overlay, child
+	require.Len(t, resp.Viewer.Images.Edges, 3)
+
+	// Build a map for easier assertions
+	nodeById := map[string]struct {
+		Name   string
+		Parent *struct {
+			ID   string
+			Name string
+		}
+	}{}
+	for _, edge := range resp.Viewer.Images.Edges {
+		nodeById[edge.Node.ID] = struct {
+			Name   string
+			Parent *struct {
+				ID   string
+				Name string
+			}
+		}{edge.Node.Name, edge.Node.Parent}
+	}
+
+	// Base and overlay images should have no parent
+	require.Nil(t, nodeById[baseImage.Id].Parent)
+	require.Nil(t, nodeById[overlayImage.Id].Parent)
+
+	// Child image should have base image as parent
+	require.NotNil(t, nodeById[childId].Parent)
+	require.Equal(t, baseImage.Id, nodeById[childId].Parent.ID)
+	require.Equal(t, baseImage.Name, nodeById[childId].Parent.Name)
+}
+
 func TestImageResolvers(t *testing.T) {
 	tc := newTestContext(t)
 	tc.runTestCases(
@@ -1180,5 +1279,6 @@ func TestImageResolvers(t *testing.T) {
 		tDAGNoCycles,
 		tDAGQueriesDescendantsAncestorsRelated,
 		tDAGDiamondShape,
+		tImagesListParentField,
 	)
 }

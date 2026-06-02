@@ -147,7 +147,8 @@
       "edit": "แก้ไข",
       "copyURL": "คัดลอก URL",
       "download": "ดาวน์โหลด",
-      "confirmDelete": "คุณแน่ใจหรือไม่ว่าต้องการลบภาพนี้?<br/><b>{{name}}</b>"
+      "confirmDelete": "คุณแน่ใจหรือไม่ว่าต้องการลบภาพนี้?<br/><b>{{name}}</b>",
+      "revision": "ฉบับแก้ไข"
     },
     "imageDetail": {
       "errorLoading": "เกิดข้อผิดพลาดในการโหลดภาพ",

@@ -29,6 +29,7 @@ type ImageRelationship struct {
 type ImageRelationshipRepo interface {
 	CreateRelationship(imageId, parentImageId, relationshipType string) (*ImageRelationship, error)
 	GetParentsByImageId(imageId string) ([]ImageRelationship, error)
+	GetParentsByImageIds(imageIds []string) (map[string][]ImageRelationship, error)
 	GetChildrenByImageId(imageId string) ([]ImageRelationship, error)
 	HasRelationships(imageId string) (bool, error)
 	// GetDescendantIds returns all transitive children of the given image (not including itself).
@@ -114,6 +115,37 @@ func (repo *DBImageRelationshipRepo) GetParentsByImageId(imageId string) ([]Imag
 		return nil, err
 	}
 	return mapRelationships(dest), nil
+}
+
+func (repo *DBImageRelationshipRepo) GetParentsByImageIds(imageIds []string) (map[string][]ImageRelationship, error) {
+	if len(imageIds) == 0 {
+		return nil, nil
+	}
+	uuids := make([]Expression, len(imageIds))
+	for i, id := range imageIds {
+		uuids[i] = UUID(uuid.MustParse(id))
+	}
+	stmt := ImageParentTable.SELECT(
+		ImageParentTable.AllColumns,
+	).FROM(
+		ImageParentTable,
+	).WHERE(
+		ImageParentTable.ImageID.IN(uuids...),
+	).ORDER_BY(
+		ImageParentTable.CreatedAt.ASC(),
+	)
+
+	var dest []model.ImageParentTable
+	err := stmt.Query(repo.DB, &dest)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string][]ImageRelationship, len(imageIds))
+	for _, r := range mapRelationships(dest) {
+		result[r.ImageId] = append(result[r.ImageId], r)
+	}
+	return result, nil
 }
 
 func (repo *DBImageRelationshipRepo) GetChildrenByImageId(imageId string) ([]ImageRelationship, error) {

@@ -147,7 +147,8 @@
       "edit": "编辑",
       "copyURL": "复制链接",
       "download": "下载",
-      "confirmDelete": "确定要删除这张图片吗?<br/><b>{{name}}</b>"
+      "confirmDelete": "确定要删除这张图片吗?<br/><b>{{name}}</b>",
+      "revision": "修订版"
     },
     "imageDetail": {
       "errorLoading": "加载图片出错",

@@ -8,6 +8,7 @@ import (
 	dm "github.com/ericls/imgdd/domainmodels"
 	"github.com/ericls/imgdd/graph/model"
 	"github.com/ericls/imgdd/identity"
+	"github.com/ericls/imgdd/image"
 	"github.com/ericls/imgdd/storage"
 
 	"github.com/vikstrous/dataloadgen"
@@ -23,6 +24,7 @@ type Loaders struct {
 	StoredImagesLoader           *dataloadgen.Loader[string, *model.StoredImage]
 	StoredImagesByImageIdsLoader *dataloadgen.Loader[string, []*model.StoredImage]
 	StorageDefinitionsLoader     *dataloadgen.Loader[string, *model.StorageDefinition]
+	BaseParentByImageIdLoader    *dataloadgen.Loader[string, *model.Image]
 }
 
 func makeUserLoader(identityRepo identity.IdentityRepo) func(c context.Context, keys []string) ([]*model.User, []error) {
@@ -159,17 +161,67 @@ func makeStorageDefinitionsLoader(storageDefRepo storage.StorageDefRepo) func(c 
 	}
 }
 
-func NewLoaders(identityRepo identity.IdentityRepo, storageDefRepo storage.StorageDefRepo, storedImageRepo storage.StoredImageRepo) *Loaders {
+func makeBaseParentByImageIdLoader(imageRelRepo image.ImageRelationshipRepo, imageRepo image.ImageRepo) func(c context.Context, imageIds []string) ([]*model.Image, []error) {
+	return func(c context.Context, imageIds []string) ([]*model.Image, []error) {
+		parentsByImageId, err := imageRelRepo.GetParentsByImageIds(imageIds)
+		if err != nil {
+			return nil, []error{err}
+		}
+
+		// Collect all base parent image IDs
+		parentImageIds := make([]string, 0)
+		baseParentMap := make(map[string]string, len(imageIds)) // imageId -> parentImageId
+		for _, imageId := range imageIds {
+			rels := parentsByImageId[imageId]
+			for _, rel := range rels {
+				if rel.RelationshipType == image.RelationshipTypeBase {
+					baseParentMap[imageId] = rel.ParentImageId
+					parentImageIds = append(parentImageIds, rel.ParentImageId)
+					break
+				}
+			}
+		}
+
+		// Batch fetch all parent images
+		var images []*dm.Image
+		if len(parentImageIds) > 0 {
+			images, err = imageRepo.GetImagesByIds(parentImageIds)
+			if err != nil {
+				return nil, []error{err}
+			}
+		}
+		imageById := make(map[string]*dm.Image, len(images))
+		for _, img := range images {
+			if img != nil {
+				imageById[img.Id] = img
+			}
+		}
+
+		result := make([]*model.Image, len(imageIds))
+		for i, imageId := range imageIds {
+			if parentId, ok := baseParentMap[imageId]; ok {
+				if img, ok := imageById[parentId]; ok {
+					result[i] = model.FromImage(img)
+				}
+			}
+		}
+		return result, nil
+	}
+}
+
+func NewLoaders(identityRepo identity.IdentityRepo, storageDefRepo storage.StorageDefRepo, storedImageRepo storage.StoredImageRepo, imageRepo image.ImageRepo, imageRelRepo image.ImageRelationshipRepo) *Loaders {
 	userLoader := dataloadgen.NewLoader(makeUserLoader(identityRepo), dataloadgen.WithWait(time.Millisecond))
 	organizationUserLoader := dataloadgen.NewLoader(makeOrganizationUserLoader(identityRepo), dataloadgen.WithWait(time.Millisecond))
 	storageDefinitionsLoader := dataloadgen.NewLoader(makeStorageDefinitionsLoader(storageDefRepo), dataloadgen.WithWait(time.Millisecond))
 	storedImagesLoader := dataloadgen.NewLoader(makeStoredImagesLoader(storedImageRepo, storageDefinitionsLoader), dataloadgen.WithWait(time.Millisecond))
 	storedImagesByImageIdsLoader := dataloadgen.NewLoader(makeStoredImagesByImageIdsLoader(storedImageRepo, storedImagesLoader), dataloadgen.WithWait(time.Millisecond))
+	baseParentByImageIdLoader := dataloadgen.NewLoader(makeBaseParentByImageIdLoader(imageRelRepo, imageRepo), dataloadgen.WithWait(time.Millisecond))
 	return &Loaders{
 		UserLoader:                   userLoader,
 		OrganizationUserLoader:       organizationUserLoader,
 		StoredImagesLoader:           storedImagesLoader,
 		StoredImagesByImageIdsLoader: storedImagesByImageIdsLoader,
+		BaseParentByImageIdLoader:    baseParentByImageIdLoader,
 	}
 }
 
@@ -177,9 +229,11 @@ func NewLoadersMiddleware(
 	identityRepo identity.IdentityRepo,
 	storageDefRepo storage.StorageDefRepo,
 	storedImageRepo storage.StoredImageRepo,
+	imageRepo image.ImageRepo,
+	imageRelRepo image.ImageRelationshipRepo,
 ) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		l := NewLoaders(identityRepo, storageDefRepo, storedImageRepo)
+		l := NewLoaders(identityRepo, storageDefRepo, storedImageRepo, imageRepo, imageRelRepo)
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := context.WithValue(r.Context(), loadersKey, l)
 			next.ServeHTTP(w, r.WithContext(ctx))

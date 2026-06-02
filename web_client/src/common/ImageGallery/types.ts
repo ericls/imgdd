@@ -8,6 +8,10 @@ export type RenderingImageItem = {
   nominalHeight: number;
   nominalByteSize: number;
   createdAt: string;
+  parent?: {
+    id: string;
+    name: string;
+  } | null;
   createdBy?: {
     id: string;
     user: {

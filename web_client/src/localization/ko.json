@@ -147,7 +147,8 @@
       "edit": "편집",
       "copyURL": "URL 복사",
       "download": "다운로드",
-      "confirmDelete": "이 이미지를 삭제하시겠습니까?<br/><b>{{name}}</b>"
+      "confirmDelete": "이 이미지를 삭제하시겠습니까?<br/><b>{{name}}</b>",
+      "revision": "수정본"
     },
     "imageDetail": {
       "errorLoading": "이미지 로드 오류",
