@@ -22,6 +22,7 @@ type Resolver struct {
 	StorageDefRepo     storage.StorageDefRepo
 	StoredImageRepo    storage.StoredImageRepo
 	ImageRepo          image.ImageRepo
+	ImageRelRepo       image.ImageRelationshipRepo
 	ContextUserManager identity.ContextUserManager
 	LoginFn            func(c context.Context, userId string, organizationUserId string)
 	LogoutFn           func(c context.Context)
