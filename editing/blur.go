@@ -177,7 +177,7 @@ func hBoxBlur(rgba *image.RGBA, tmp []byte, rx1, ry1, rx2, ry2, rw, radius, kw i
 			} else if sx >= rx2 {
 				sx = rx2 - 1
 			}
-			off := y*rgba.Stride + sx*4
+			off := rgba.PixOffset(sx+rgba.Rect.Min.X, y+rgba.Rect.Min.Y)
 			r0 += int(rgba.Pix[off])
 			g0 += int(rgba.Pix[off+1])
 			b0 += int(rgba.Pix[off+2])
@@ -197,7 +197,7 @@ func hBoxBlur(rgba *image.RGBA, tmp []byte, rx1, ry1, rx2, ry2, rw, radius, kw i
 			} else if lx >= rx2 {
 				lx = rx2 - 1
 			}
-			loff := y*rgba.Stride + lx*4
+			loff := rgba.PixOffset(lx+rgba.Rect.Min.X, y+rgba.Rect.Min.Y)
 			r0 -= int(rgba.Pix[loff])
 			g0 -= int(rgba.Pix[loff+1])
 			b0 -= int(rgba.Pix[loff+2])
@@ -210,7 +210,7 @@ func hBoxBlur(rgba *image.RGBA, tmp []byte, rx1, ry1, rx2, ry2, rw, radius, kw i
 			} else if nx >= rx2 {
 				nx = rx2 - 1
 			}
-			noff := y*rgba.Stride + nx*4
+			noff := rgba.PixOffset(nx+rgba.Rect.Min.X, y+rgba.Rect.Min.Y)
 			r0 += int(rgba.Pix[noff])
 			g0 += int(rgba.Pix[noff+1])
 			b0 += int(rgba.Pix[noff+2])
@@ -246,7 +246,7 @@ func vBoxBlur(rgba *image.RGBA, tmp []byte, rx1, ry1, rx2, ry2, rw, radius, kw i
 			b0 += int(tmp[tidx+2])
 			a0 += int(tmp[tidx+3])
 		}
-		off := ry1*rgba.Stride + x*4
+		off := rgba.PixOffset(x+rgba.Rect.Min.X, ry1+rgba.Rect.Min.Y)
 		rgba.Pix[off] = byte(r0 / kw)
 		rgba.Pix[off+1] = byte(g0 / kw)
 		rgba.Pix[off+2] = byte(b0 / kw)
@@ -279,7 +279,7 @@ func vBoxBlur(rgba *image.RGBA, tmp []byte, rx1, ry1, rx2, ry2, rw, radius, kw i
 			b0 += int(tmp[ntidx+2])
 			a0 += int(tmp[ntidx+3])
 
-			off = y*rgba.Stride + x*4
+			off = rgba.PixOffset(x+rgba.Rect.Min.X, y+rgba.Rect.Min.Y)
 			rgba.Pix[off] = byte(r0 / kw)
 			rgba.Pix[off+1] = byte(g0 / kw)
 			rgba.Pix[off+2] = byte(b0 / kw)

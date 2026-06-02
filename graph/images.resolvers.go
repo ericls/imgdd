@@ -296,8 +296,14 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 	if !ok {
 		return nil, fmt.Errorf("image relationship repo does not support transactions")
 	}
-	txImageRepo := dbImageRepo.WithTransaction(tx).(*image.DBImageRepo)
-	txImageRelRepo := dbImageRelRepo.WithTransaction(tx).(*image.DBImageRelationshipRepo)
+	txImageRepo, ok := dbImageRepo.WithTransaction(tx).(*image.DBImageRepo)
+	if !ok {
+		return nil, fmt.Errorf("image repo does not support transactions")
+	}
+	txImageRelRepo, ok := dbImageRelRepo.WithTransaction(tx).(*image.DBImageRelationshipRepo)
+	if !ok {
+		return nil, fmt.Errorf("image relationship repo does not support transactions")
+	}
 
 	newImage := domainmodels.Image{
 		Identifier:      uuid.New().String(),
@@ -410,13 +416,19 @@ func (r *mutationResolver) ApplyBlur(ctx context.Context, input model.ApplyBlurI
 	if !ok {
 		return nil, fmt.Errorf("image repo does not support transactions")
 	}
-	txImageRepo := dbImageRepo.WithTransaction(tx).(*image.DBImageRepo)
+	txImageRepo, ok := dbImageRepo.WithTransaction(tx).(*image.DBImageRepo)
+	if !ok {
+		return nil, fmt.Errorf("image repo does not support transactions")
+	}
 
 	dbImageRelRepo, ok := r.ImageRelRepo.(db.DBRepo)
 	if !ok {
 		return nil, fmt.Errorf("image relationship repo does not support transactions")
 	}
-	txImageRelRepo := dbImageRelRepo.WithTransaction(tx).(*image.DBImageRelationshipRepo)
+	txImageRelRepo, ok := dbImageRelRepo.WithTransaction(tx).(*image.DBImageRelationshipRepo)
+	if !ok {
+		return nil, fmt.Errorf("image relationship repo does not support transactions")
+	}
 
 	newImage := domainmodels.Image{
 		Identifier:      uuid.New().String(),
