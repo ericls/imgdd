@@ -27,3 +27,30 @@ export function useApplyWatermark() {
   const [execute, { loading, error, data }] = useMutation(ApplyWatermarkDoc);
   return { execute, loading, error, data };
 }
+
+const ApplyBlurDoc = gql(`
+  mutation ApplyBlur($input: ApplyBlurInput!) {
+    applyBlur(input: $input) {
+      image {
+        id
+        url
+        name
+        identifier
+        nominalWidth
+        nominalHeight
+        nominalByteSize
+        MIMEType
+        parent {
+          id
+          name
+        }
+        changes
+      }
+    }
+  }
+`);
+
+export function useApplyBlur() {
+  const [execute, { loading, error, data }] = useMutation(ApplyBlurDoc);
+  return { execute, loading, error, data };
+}

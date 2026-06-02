@@ -44,6 +44,10 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	ApplyBlurResult struct {
+		Image func(childComplexity int) int
+	}
+
 	ApplyWatermarkResult struct {
 		Image func(childComplexity int) int
 	}
@@ -101,6 +105,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		ApplyBlur                          func(childComplexity int, input model.ApplyBlurInput) int
 		ApplyWatermark                     func(childComplexity int, input model.ApplyWatermarkInput) int
 		Authenticate                       func(childComplexity int, email string, password string, organizationID *string) int
 		CheckStorageDefinitionConnectivity func(childComplexity int, input model.CheckStorageDefinitionConnectivityInput) int
@@ -244,6 +249,7 @@ type MutationResolver interface {
 	ResetPassword(ctx context.Context, input model.ResetPasswordInput) (*model.ResetPasswordResult, error)
 	DeleteImage(ctx context.Context, input model.DeleteImageInput) (*model.DeleteImageResult, error)
 	ApplyWatermark(ctx context.Context, input model.ApplyWatermarkInput) (*model.ApplyWatermarkResult, error)
+	ApplyBlur(ctx context.Context, input model.ApplyBlurInput) (*model.ApplyBlurResult, error)
 	CreateStorageDefinition(ctx context.Context, input model.CreateStorageDefinitionInput) (*model.StorageDefinition, error)
 	UpdateStorageDefinition(ctx context.Context, input model.UpdateStorageDefinitionInput) (*model.StorageDefinition, error)
 	CheckStorageDefinitionConnectivity(ctx context.Context, input model.CheckStorageDefinitionConnectivityInput) (*model.StorageDefinitionConnectivityResult, error)
@@ -283,6 +289,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 	ec := newExecutionContext(nil, e, nil)
 	_ = ec
 	switch typeName + "." + field {
+
+	case "ApplyBlurResult.image":
+		if e.ComplexityRoot.ApplyBlurResult.Image == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ApplyBlurResult.Image(childComplexity), true
 
 	case "ApplyWatermarkResult.image":
 		if e.ComplexityRoot.ApplyWatermarkResult.Image == nil {
@@ -484,6 +497,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.ImagesResult.PageInfo(childComplexity), true
 
+	case "Mutation.applyBlur":
+		if e.ComplexityRoot.Mutation.ApplyBlur == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_applyBlur_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.ApplyBlur(childComplexity, args["input"].(model.ApplyBlurInput)), true
 	case "Mutation.applyWatermark":
 		if e.ComplexityRoot.Mutation.ApplyWatermark == nil {
 			break
@@ -981,7 +1005,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := newExecutionContext(opCtx, e, make(chan graphql.DeferredResult))
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputApplyBlurInput,
 		ec.unmarshalInputApplyWatermarkInput,
+		ec.unmarshalInputBlurRegionInput,
 		ec.unmarshalInputCreateUserWithOrganizationInput,
 		ec.unmarshalInputDeleteImageInput,
 		ec.unmarshalInputImageFilterInput,
@@ -1105,6 +1131,17 @@ func (ec *executionContext) dir_captchaProtected_args(ctx context.Context, rawAr
 		return nil, err
 	}
 	args["action"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_applyBlur_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNApplyBlurInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐApplyBlurInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -1391,6 +1428,69 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _ApplyBlurResult_image(ctx context.Context, field graphql.CollectedField, obj *model.ApplyBlurResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ApplyBlurResult_image,
+		func(ctx context.Context) (any, error) {
+			return obj.Image, nil
+		},
+		nil,
+		ec.marshalOImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImage,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ApplyBlurResult_image(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ApplyBlurResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Image_id(ctx, field)
+			case "url":
+				return ec.fieldContext_Image_url(ctx, field)
+			case "name":
+				return ec.fieldContext_Image_name(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Image_identifier(ctx, field)
+			case "nominalWidth":
+				return ec.fieldContext_Image_nominalWidth(ctx, field)
+			case "nominalHeight":
+				return ec.fieldContext_Image_nominalHeight(ctx, field)
+			case "nominalByteSize":
+				return ec.fieldContext_Image_nominalByteSize(ctx, field)
+			case "root":
+				return ec.fieldContext_Image_root(ctx, field)
+			case "parent":
+				return ec.fieldContext_Image_parent(ctx, field)
+			case "changes":
+				return ec.fieldContext_Image_changes(ctx, field)
+			case "lineage":
+				return ec.fieldContext_Image_lineage(ctx, field)
+			case "revisions":
+				return ec.fieldContext_Image_revisions(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Image_createdAt(ctx, field)
+			case "storedImages":
+				return ec.fieldContext_Image_storedImages(ctx, field)
+			case "MIMEType":
+				return ec.fieldContext_Image_MIMEType(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Image_createdBy(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Image", field.Name)
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _ApplyWatermarkResult_image(ctx context.Context, field graphql.CollectedField, obj *model.ApplyWatermarkResult) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
@@ -2921,6 +3021,64 @@ func (ec *executionContext) fieldContext_Mutation_applyWatermark(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_applyWatermark_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_applyBlur(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_applyBlur,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().ApplyBlur(ctx, fc.Args["input"].(model.ApplyBlurInput))
+		},
+		func(ctx context.Context, next graphql.Resolver) graphql.Resolver {
+			directive0 := next
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.Directives.IsAuthenticated == nil {
+					var zeroVal *model.ApplyBlurResult
+					return zeroVal, errors.New("directive isAuthenticated is not implemented")
+				}
+				return ec.Directives.IsAuthenticated(ctx, nil, directive0)
+			}
+
+			next = directive1
+			return next
+		},
+		ec.marshalNApplyBlurResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐApplyBlurResult,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_applyBlur(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "image":
+				return ec.fieldContext_ApplyBlurResult_image(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ApplyBlurResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_applyBlur_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -6646,6 +6804,50 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputApplyBlurInput(ctx context.Context, obj any) (model.ApplyBlurInput, error) {
+	var it model.ApplyBlurInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"baseImageId", "region", "radius"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "baseImageId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("baseImageId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BaseImageID = data
+		case "region":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("region"))
+			data, err := ec.unmarshalNBlurRegionInput2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐBlurRegionInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Region = data
+		case "radius":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("radius"))
+			data, err := ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Radius = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputApplyWatermarkInput(ctx context.Context, obj any) (model.ApplyWatermarkInput, error) {
 	var it model.ApplyWatermarkInput
 	if obj == nil {
@@ -6706,6 +6908,57 @@ func (ec *executionContext) unmarshalInputApplyWatermarkInput(ctx context.Contex
 				return it, err
 			}
 			it.Scale = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputBlurRegionInput(ctx context.Context, obj any) (model.BlurRegionInput, error) {
+	var it model.BlurRegionInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"x1", "y1", "x2", "y2"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "x1":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("x1"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.X1 = data
+		case "y1":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("y1"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Y1 = data
+		case "x2":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("x2"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.X2 = data
+		case "y2":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("y2"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Y2 = data
 		}
 	}
 	return it, nil
@@ -7178,6 +7431,42 @@ func (ec *executionContext) _StorageConfig(ctx context.Context, sel ast.Selectio
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var applyBlurResultImplementors = []string{"ApplyBlurResult"}
+
+func (ec *executionContext) _ApplyBlurResult(ctx context.Context, sel ast.SelectionSet, obj *model.ApplyBlurResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, applyBlurResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ApplyBlurResult")
+		case "image":
+			out.Values[i] = ec._ApplyBlurResult_image(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
 
 var applyWatermarkResultImplementors = []string{"ApplyWatermarkResult"}
 
@@ -7893,6 +8182,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "applyWatermark":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_applyWatermark(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "applyBlur":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_applyBlur(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -9551,6 +9847,25 @@ func (ec *executionContext) marshalNAnchor2githubᚗcomᚋericlsᚋimgddᚋgraph
 	return v
 }
 
+func (ec *executionContext) unmarshalNApplyBlurInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐApplyBlurInput(ctx context.Context, v any) (model.ApplyBlurInput, error) {
+	res, err := ec.unmarshalInputApplyBlurInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNApplyBlurResult2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐApplyBlurResult(ctx context.Context, sel ast.SelectionSet, v model.ApplyBlurResult) graphql.Marshaler {
+	return ec._ApplyBlurResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNApplyBlurResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐApplyBlurResult(ctx context.Context, sel ast.SelectionSet, v *model.ApplyBlurResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ApplyBlurResult(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNApplyWatermarkInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐApplyWatermarkInput(ctx context.Context, v any) (model.ApplyWatermarkInput, error) {
 	res, err := ec.unmarshalInputApplyWatermarkInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -9568,6 +9883,11 @@ func (ec *executionContext) marshalNApplyWatermarkResult2ᚖgithubᚗcomᚋericl
 		return graphql.Null
 	}
 	return ec._ApplyWatermarkResult(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNBlurRegionInput2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐBlurRegionInput(ctx context.Context, v any) (*model.BlurRegionInput, error) {
+	res, err := ec.unmarshalInputBlurRegionInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (bool, error) {

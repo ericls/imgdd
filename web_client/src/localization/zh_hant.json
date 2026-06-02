@@ -166,7 +166,18 @@
       "derivedFrom": "來源: {{name}}",
       "watermarkApplied": "浮水印已成功套用",
       "watermarkFailed": "浮水印套用失敗",
-      "watermark": "浮水印"
+      "watermark": "浮水印",
+      "blur": "模糊",
+      "blurApplied": "模糊效果套用成功",
+      "blurFailed": "模糊效果套用失敗"
+    },
+    "blurTool": {
+      "hint": "在圖片上拖曳以選取要模糊的區域。",
+      "noRegion": "未選取區域",
+      "regionSelected": "({{x1}}%, {{y1}}%) → ({{x2}}%, {{y2}}%)",
+      "radius": "模糊半徑：{{value}}",
+      "applying": "套用中...",
+      "applyBlur": "套用模糊"
     },
     "watermarkTool": {
       "overlayImage": "疊加圖片",

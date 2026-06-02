@@ -9,6 +9,16 @@ import (
 	"strconv"
 )
 
+type ApplyBlurInput struct {
+	BaseImageID string           `json:"baseImageId"`
+	Region      *BlurRegionInput `json:"region"`
+	Radius      int              `json:"radius"`
+}
+
+type ApplyBlurResult struct {
+	Image *Image `json:"image,omitempty"`
+}
+
 type ApplyWatermarkInput struct {
 	BaseImageID    string                  `json:"baseImageId"`
 	OverlayImageID string                  `json:"overlayImageId"`
@@ -20,6 +30,13 @@ type ApplyWatermarkInput struct {
 
 type ApplyWatermarkResult struct {
 	Image *Image `json:"image,omitempty"`
+}
+
+type BlurRegionInput struct {
+	X1 float64 `json:"x1"`
+	Y1 float64 `json:"y1"`
+	X2 float64 `json:"x2"`
+	Y2 float64 `json:"y2"`
 }
 
 type CreateUserWithOrganizationInput struct {

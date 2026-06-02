@@ -99,8 +99,26 @@ type DeleteImageResult {
   id: ID
 }
 
+input BlurRegionInput {
+  x1: Float!
+  y1: Float!
+  x2: Float!
+  y2: Float!
+}
+
+input ApplyBlurInput {
+  baseImageId: ID!
+  region: BlurRegionInput!
+  radius: Int!
+}
+
+type ApplyBlurResult {
+  image: Image
+}
+
 extend type Mutation {
   deleteImage(input: DeleteImageInput!): DeleteImageResult! @isAuthenticated
   applyWatermark(input: ApplyWatermarkInput!): ApplyWatermarkResult!
     @isAuthenticated
+  applyBlur(input: ApplyBlurInput!): ApplyBlurResult! @isAuthenticated
 }

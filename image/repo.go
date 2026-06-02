@@ -171,8 +171,8 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 	}
 
 	changes := image.Changes
-	if changes == "" {
-		changes = "{}"
+	if changes == "" || changes == "{}" {
+		changes = "[]"
 	}
 
 	stmt := ImageTable.INSERT(

@@ -5,17 +5,21 @@ import (
 	"fmt"
 )
 
-type ChangeSet struct {
+// Change represents a single named edit operation with its parameters.
+type Change struct {
 	Type   string          `json:"type"`
 	Params json.RawMessage `json:"params"`
 }
 
+// ChangeSet is an ordered list of changes applied atomically to produce one image.
+type ChangeSet []Change
+
 // FetchImageFunc retrieves image bytes by image ID.
 type FetchImageFunc func(id string) ([]byte, error)
 
-// Editor applies a ChangeSet to base image bytes, producing new image bytes.
+// Editor applies a Change to base image bytes, producing new image bytes.
 type Editor interface {
-	Apply(base []byte, cs ChangeSet, fetchImage FetchImageFunc) ([]byte, string, error)
+	Apply(base []byte, c Change, fetchImage FetchImageFunc) ([]byte, string, error)
 }
 
 // ApplyResult holds the output of applying a ChangeSet.
@@ -25,22 +29,26 @@ type ApplyResult struct {
 	ChangesJSON []byte
 }
 
-// ApplyChangeSet orchestrates applying a change set: looks up the editor,
-// fetches the base image bytes, applies the edit, and serializes the changes.
+// ApplyChangeSet applies each Change in the ChangeSet in order, piping
+// output bytes into the next step, then serializes the full ChangeSet.
 func ApplyChangeSet(cs ChangeSet, baseImageId string, fetchImage FetchImageFunc) (*ApplyResult, error) {
-	editor, err := GetEditor(cs.Type)
-	if err != nil {
-		return nil, err
-	}
-
-	baseBytes, err := fetchImage(baseImageId)
+	currentBytes, err := fetchImage(baseImageId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch base image: %w", err)
 	}
 
-	resultBytes, resultMime, err := editor.Apply(baseBytes, cs, fetchImage)
-	if err != nil {
-		return nil, fmt.Errorf("failed to apply %s: %w", cs.Type, err)
+	var currentMIME string
+	for _, c := range cs {
+		editor, err := GetEditor(c.Type)
+		if err != nil {
+			return nil, err
+		}
+		resultBytes, resultMIME, err := editor.Apply(currentBytes, c, fetchImage)
+		if err != nil {
+			return nil, fmt.Errorf("failed to apply %s: %w", c.Type, err)
+		}
+		currentBytes = resultBytes
+		currentMIME = resultMIME
 	}
 
 	changesJSON, err := json.Marshal(cs)
@@ -49,8 +57,8 @@ func ApplyChangeSet(cs ChangeSet, baseImageId string, fetchImage FetchImageFunc)
 	}
 
 	return &ApplyResult{
-		Bytes:       resultBytes,
-		MIMEType:    resultMime,
+		Bytes:       currentBytes,
+		MIMEType:    currentMIME,
 		ChangesJSON: changesJSON,
 	}, nil
 }
