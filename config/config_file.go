@@ -60,6 +60,7 @@ type HTTPServerConfigFileDef struct {
 	ALLOW_NEW_USER             string `toml:"ALLOW_NEW_USER" comment:"Allow new user creation. 'true', '1' or 'yes' to enable"`
 	IMAGE_CACHE_MAX_BYTES      int64  `toml:"IMAGE_CACHE_MAX_BYTES" comment:"Optional in-memory HTTP image response cache byte budget. Leave unset or 0 to disable. Useful when a tiny set of immutable image URLs receives most traffic and the app server proxies storage bytes."`
 	IMAGE_CACHE_MAX_FILE_BYTES int64  `toml:"IMAGE_CACHE_MAX_FILE_BYTES" comment:"Optional maximum single image size for the HTTP image response cache. Defaults to IMAGE_CACHE_MAX_BYTES when unset."`
+	WEB_UI_ORIGINS             string `toml:"WEB_UI_ORIGINS" comment:"Comma-separated list of origins (scheme://host[:port]) allowed to make CORS requests to the image endpoints."`
 }
 
 type StorageBackendItem struct {

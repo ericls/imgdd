@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/ericls/imgdd/captcha"
 	"github.com/ericls/imgdd/domainmodels"
@@ -38,6 +39,7 @@ type HttpServerConfigDef struct {
 	AllowNewUser           bool
 	ImageCacheMaxBytes     int64
 	ImageCacheMaxFileBytes int64
+	WebUIOrigins           []string
 }
 
 func ReadServerConfigFromEnv() HttpServerConfigDef {
@@ -66,7 +68,23 @@ func ReadServerConfigFromEnv() HttpServerConfigDef {
 		AllowNewUser:           utils.IsStrTruthy(utils.GetEnv("IMGDD_ALLOW_NEW_USER", "true")),
 		ImageCacheMaxBytes:     parseInt64Env("IMGDD_HTTP_IMAGE_CACHE_MAX_BYTES"),
 		ImageCacheMaxFileBytes: parseInt64Env("IMGDD_HTTP_IMAGE_CACHE_MAX_FILE_BYTES"),
+		WebUIOrigins:           ParseOriginList(os.Getenv("IMGDD_WEB_UI_ORIGINS")),
 	}
+}
+
+func ParseOriginList(value string) []string {
+	if value == "" {
+		return nil
+	}
+	parts := strings.Split(value, ",")
+	origins := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			origins = append(origins, p)
+		}
+	}
+	return origins
 }
 
 func parseInt64Env(key string) int64 {
