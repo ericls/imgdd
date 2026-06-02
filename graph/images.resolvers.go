@@ -92,7 +92,7 @@ func (r *imageResolver) Changes(ctx context.Context, obj *model.Image) (*string,
 // Returns the chain of ancestors from root to this image (inclusive),
 // walking "base" parent relationships via the DAG table.
 func (r *imageResolver) Lineage(ctx context.Context, obj *model.Image) ([]*model.Image, error) {
-	// Walk up the base-parent chain collecting ancestors (max 100 to guard against cycles)
+	// Walk up the base-parent chain collecting ancestors (max 100)
 	const maxDepth = 100
 	var chain []*model.Image
 	chain = append(chain, obj)
@@ -202,7 +202,7 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 	if err != nil || baseImage == nil {
 		return nil, fmt.Errorf("base image not found")
 	}
-	if baseImage.CreatedById != currentUser.Id && !currentUser.IsSiteOwner() {
+	if baseImage.CreatedById != currentUser.Id {
 		return nil, fmt.Errorf("unauthorized")
 	}
 
@@ -210,7 +210,7 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 	if err != nil || overlayImage == nil {
 		return nil, fmt.Errorf("overlay image not found")
 	}
-	if overlayImage.CreatedById != currentUser.Id && !currentUser.IsSiteOwner() {
+	if overlayImage.CreatedById != currentUser.Id {
 		return nil, fmt.Errorf("unauthorized")
 	}
 
