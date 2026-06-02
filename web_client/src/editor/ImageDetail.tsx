@@ -290,7 +290,10 @@ function parseChangeType(changesJson: string): string | null {
         (c: { type: string }) =>
           c.type.charAt(0).toUpperCase() + c.type.slice(1),
       );
-    if (labels.length > 0) {
+    if (labels.length === 1) {
+      return labels[0];
+    }
+    if (labels.length > 1) {
       return "Multiple changes";
     }
   } catch {
