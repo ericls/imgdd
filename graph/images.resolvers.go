@@ -7,7 +7,6 @@ package graph
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/ericls/imgdd/domainmodels"
@@ -237,17 +236,6 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 		return nil, fmt.Errorf("unauthorized")
 	}
 
-	// Validate input ranges
-	if input.Position.X < 0 || input.Position.X > 1 || input.Position.Y < 0 || input.Position.Y > 1 {
-		return nil, fmt.Errorf("position values must be between 0 and 1")
-	}
-	if input.Opacity < 0 || input.Opacity > 1 {
-		return nil, fmt.Errorf("opacity must be between 0 and 1")
-	}
-	if input.Scale <= 0 || input.Scale > 1 {
-		return nil, fmt.Errorf("scale must be between 0 (exclusive) and 1")
-	}
-
 	// Map GraphQL anchor to editing anchor
 	anchorMap := map[model.Anchor]editing.Anchor{
 		model.AnchorTopLeft:     editing.AnchorTopLeft,
@@ -257,53 +245,24 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 		model.AnchorCenter:      editing.AnchorCenter,
 	}
 
-	params := editing.WatermarkParams{
+	cs, err := editing.NewWatermarkChangeSet(editing.WatermarkParams{
 		OverlayImageID: input.OverlayImageID,
-		Position: editing.WatermarkPosition{
-			X: input.Position.X,
-			Y: input.Position.Y,
-		},
-		Anchor:  anchorMap[input.Anchor],
-		Opacity: input.Opacity,
-		Scale:   input.Scale,
-	}
-	paramsJSON, err := json.Marshal(params)
-	if err != nil {
-		return nil, fmt.Errorf("failed to serialize params: %w", err)
-	}
-
-	cs := editing.ChangeSet{
-		Type:   "watermark",
-		Params: paramsJSON,
-	}
-
-	// Get editor
-	editor, err := editing.GetEditor(cs.Type)
+		Position:       editing.WatermarkPosition{X: input.Position.X, Y: input.Position.Y},
+		Anchor:         anchorMap[input.Anchor],
+		Opacity:        input.Opacity,
+		Scale:          input.Scale,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	// Fetch base image bytes
 	fetchImage := editing.NewFetchImageFunc(r.StoredImageRepo, r.StorageDefRepo)
-	baseBytes, err := fetchImage(input.BaseImageID)
+	result, err := editing.ApplyChangeSet(cs, input.BaseImageID, fetchImage)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch base image: %w", err)
+		return nil, err
 	}
 
-	// Apply the edit
-	resultBytes, resultMime, err := editor.Apply(baseBytes, cs, fetchImage)
-	if err != nil {
-		return nil, fmt.Errorf("failed to apply watermark: %w", err)
-	}
-
-	// Serialize the change set for storage
-	changesJSON, err := json.Marshal(cs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to serialize changes: %w", err)
-	}
-
-	// Get dimensions of the result
-	width, height, err := utils.GetImageDimensions(resultBytes)
+	width, height, err := utils.GetImageDimensions(result.Bytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get result dimensions: %w", err)
 	}
@@ -334,15 +293,15 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 		Identifier:      uuid.New().String(),
 		Name:            baseImage.Name,
 		ParentId:        baseImage.Id,
-		Changes:         string(changesJSON),
+		Changes:         string(result.ChangesJSON),
 		CreatedById:     currentUser.Id,
-		MIMEType:        resultMime,
+		MIMEType:        result.MIMEType,
 		NominalWidth:    width,
 		NominalHeight:   height,
-		NominalByteSize: int32(len(resultBytes)),
+		NominalByteSize: int32(len(result.Bytes)),
 	}
 
-	storedImage, err := r.ImageRepo.CreateAndSaveUploadedImage(&newImage, resultMime, resultBytes, storageDef.Id, storageInstance.Save)
+	storedImage, err := r.ImageRepo.CreateAndSaveUploadedImage(&newImage, result.MIMEType, result.Bytes, storageDef.Id, storageInstance.Save)
 	if err != nil {
 		return nil, fmt.Errorf("failed to save result image: %w", err)
 	}
