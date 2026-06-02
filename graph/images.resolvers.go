@@ -91,36 +91,59 @@ func (r *imageResolver) Changes(ctx context.Context, obj *model.Image) (*string,
 // Lineage is the resolver for the lineage field.
 // Returns the chain of ancestors from root to this image (inclusive),
 // walking "base" parent relationships via the DAG table.
+// Uses 3 queries total: ancestor IDs (recursive CTE), batch image fetch, batch relationship fetch.
 func (r *imageResolver) Lineage(ctx context.Context, obj *model.Image) ([]*model.Image, error) {
-	// Walk up the base-parent chain collecting ancestors (max 100)
-	const maxDepth = 100
-	var chain []*model.Image
-	chain = append(chain, obj)
-	currentId := obj.ID
-	for len(chain) < maxDepth {
-		parents, err := r.ImageRelRepo.GetParentsByImageId(currentId)
-		if err != nil {
-			return nil, err
+	// 1. Get all ancestor IDs in one recursive CTE query
+	ancestorIds, err := r.ImageRelRepo.GetAncestorIds(obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	if len(ancestorIds) == 0 {
+		return []*model.Image{obj}, nil
+	}
+
+	// 2. Batch fetch all ancestor images
+	ancestors, err := r.ImageRepo.GetImagesByIds(ancestorIds)
+	if err != nil {
+		return nil, err
+	}
+	imageById := make(map[string]*domainmodels.Image, len(ancestors))
+	for _, img := range ancestors {
+		if img != nil {
+			imageById[img.Id] = img
 		}
-		// Follow the "base" parent
+	}
+
+	// 3. Batch fetch relationships for all ancestors + current image
+	allIds := append(ancestorIds, obj.ID)
+	relsByImageId, err := r.ImageRelRepo.GetParentsByImageIds(allIds)
+	if err != nil {
+		return nil, err
+	}
+
+	// 4. Reconstruct the base-parent chain by walking from current image to root
+	const maxDepth = 100
+	chain := []*model.Image{obj}
+	currentId := obj.ID
+	visited := map[string]bool{obj.ID: true}
+	for len(chain) < maxDepth {
+		rels := relsByImageId[currentId]
 		var baseParentId string
-		for _, rel := range parents {
+		for _, rel := range rels {
 			if rel.RelationshipType == image.RelationshipTypeBase {
 				baseParentId = rel.ParentImageId
 				break
 			}
 		}
-		if baseParentId == "" {
+		if baseParentId == "" || visited[baseParentId] {
 			break
 		}
-		parent, err := r.ImageRepo.GetImageById(baseParentId)
-		if err != nil {
-			return nil, err
-		}
-		if parent == nil {
+		parent, ok := imageById[baseParentId]
+		if !ok || parent == nil {
 			break
 		}
 		chain = append(chain, model.FromImage(parent))
+		visited[baseParentId] = true
 		currentId = baseParentId
 	}
 
