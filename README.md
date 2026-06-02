@@ -24,6 +24,7 @@ As of February 2025, the project handles over 1 TB of traffic and 4.2 million re
 - **Identity & access control**: email/password auth, organizations, role/permission system with built-in roles, site-owner privilege, and password reset via email.
 - **Email backends**: SMTP or a dummy backend for development, with templated messages.
 - **GraphQL API** (gqlgen) covering images, viewer, users, organizations, roles/permissions, and storage definitions, with `@isAuthenticated` / `@isSiteOwner` directives.
+- **Image editor**: in-browser editing with watermark support; edits are saved as new images with full lineage tracking (parent/child DAG), so the original is never modified.
 - **Web client**: React + Tailwind admin & user UI, including a site-admin area for managing users, roles, and storage definitions.
 - **Client plugin hooks**: a lightweight `window.registerPlugin` API lets custom JS inject content into named UI slots without rebuilding the frontend.
 - **Low resource usage**: a single Go binary serves the API, web client, and image proxying; Instance with 256M memory has comfortably handled 1 TB of traffic and 4.2 M requests per day in production.
