@@ -32,6 +32,10 @@ type ApplyResult struct {
 // ApplyChangeSet applies each Change in the ChangeSet in order, piping
 // output bytes into the next step, then serializes the full ChangeSet.
 func ApplyChangeSet(cs ChangeSet, baseImageId string, fetchImage FetchImageFunc) (*ApplyResult, error) {
+	if len(cs) == 0 {
+		return nil, fmt.Errorf("change set must contain at least one change")
+	}
+
 	currentBytes, err := fetchImage(baseImageId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch base image: %w", err)
