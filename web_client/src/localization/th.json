@@ -166,7 +166,18 @@
       "derivedFrom": "ต้นฉบับ: {{name}}",
       "watermarkApplied": "ใส่ลายน้ำสำเร็จ",
       "watermarkFailed": "ใส่ลายน้ำไม่สำเร็จ",
-      "watermark": "ลายน้ำ"
+      "watermark": "ลายน้ำ",
+      "blur": "เบลอ",
+      "blurApplied": "ใช้เอฟเฟกต์เบลอสำเร็จ",
+      "blurFailed": "ใช้เอฟเฟกต์เบลอไม่สำเร็จ"
+    },
+    "blurTool": {
+      "hint": "ลากบนภาพเพื่อเลือกพื้นที่ที่ต้องการเบลอ",
+      "noRegion": "ยังไม่ได้เลือกพื้นที่",
+      "regionSelected": "({{x1}}%, {{y1}}%) → ({{x2}}%, {{y2}}%)",
+      "radius": "ความแรงของเบลอ: {{value}}",
+      "applying": "กำลังใช้งาน...",
+      "applyBlur": "ใช้เอฟเฟกต์เบลอ"
     },
     "watermarkTool": {
       "overlayImage": "ภาพซ้อนทับ",

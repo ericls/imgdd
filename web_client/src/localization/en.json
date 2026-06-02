@@ -166,7 +166,18 @@
       "derivedFrom": "Derived from: {{name}}",
       "watermarkApplied": "Watermark applied successfully",
       "watermarkFailed": "Failed to apply watermark",
-      "watermark": "Watermark"
+      "watermark": "Watermark",
+      "blur": "Blur",
+      "blurApplied": "Blur applied successfully",
+      "blurFailed": "Failed to apply blur"
+    },
+    "blurTool": {
+      "hint": "Drag on the image to select the region to blur.",
+      "noRegion": "No region selected",
+      "regionSelected": "({{x1}}%, {{y1}}%) → ({{x2}}%, {{y2}}%)",
+      "radius": "Blur radius: {{value}}",
+      "applying": "Applying...",
+      "applyBlur": "Apply Blur"
     },
     "watermarkTool": {
       "overlayImage": "Overlay Image",

@@ -66,7 +66,7 @@ func (r *imageResolver) Parent(ctx context.Context, obj *model.Image) (*model.Im
 
 // Changes is the resolver for the changes field.
 func (r *imageResolver) Changes(ctx context.Context, obj *model.Image) (*string, error) {
-	if obj.RawChanges == "" || obj.RawChanges == "{}" {
+	if obj.RawChanges == "" || obj.RawChanges == "[]" || obj.RawChanges == "{}" {
 		return nil, nil
 	}
 	return &obj.RawChanges, nil
@@ -238,7 +238,7 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 		return nil, fmt.Errorf("invalid anchor: %s", input.Anchor)
 	}
 
-	cs, err := editing.NewWatermarkChangeSet(editing.WatermarkParams{
+	c, err := editing.NewWatermarkChange(editing.WatermarkParams{
 		OverlayImageID: input.OverlayImageID,
 		Position:       editing.WatermarkPosition{X: input.Position.X, Y: input.Position.Y},
 		Anchor:         anchor,
@@ -250,7 +250,7 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 	}
 
 	fetchImage := editing.NewFetchImageFunc(r.StoredImageRepo, r.StorageDefRepo)
-	result, err := editing.ApplyChangeSet(cs, input.BaseImageID, fetchImage)
+	result, err := editing.ApplyChangeSet(editing.ChangeSet{c}, input.BaseImageID, fetchImage)
 	if err != nil {
 		return nil, err
 	}
@@ -296,8 +296,14 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 	if !ok {
 		return nil, fmt.Errorf("image relationship repo does not support transactions")
 	}
-	txImageRepo := dbImageRepo.WithTransaction(tx).(*image.DBImageRepo)
-	txImageRelRepo := dbImageRelRepo.WithTransaction(tx).(*image.DBImageRelationshipRepo)
+	txImageRepo, ok := dbImageRepo.WithTransaction(tx).(*image.DBImageRepo)
+	if !ok {
+		return nil, fmt.Errorf("image repo does not support transactions")
+	}
+	txImageRelRepo, ok := dbImageRelRepo.WithTransaction(tx).(*image.DBImageRelationshipRepo)
+	if !ok {
+		return nil, fmt.Errorf("image relationship repo does not support transactions")
+	}
 
 	newImage := domainmodels.Image{
 		Identifier:      uuid.New().String(),
@@ -329,6 +335,128 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 	}
 
 	return &model.ApplyWatermarkResult{
+		Image: model.FromImage(storedImage.Image),
+	}, nil
+}
+
+// ApplyBlur is the resolver for the applyBlur field.
+func (r *mutationResolver) ApplyBlur(ctx context.Context, input model.ApplyBlurInput) (*model.ApplyBlurResult, error) {
+	currentUser := identity.GetCurrentOrganizationUser(r.ContextUserManager, ctx)
+	if currentUser == nil {
+		return nil, fmt.Errorf("unauthorized")
+	}
+
+	if _, err := uuid.Parse(input.BaseImageID); err != nil {
+		return nil, fmt.Errorf("base image not found")
+	}
+
+	baseImage, err := r.ImageRepo.GetImageById(input.BaseImageID)
+	if err != nil || baseImage == nil {
+		return nil, fmt.Errorf("base image not found")
+	}
+	if baseImage.CreatedById != currentUser.Id {
+		return nil, fmt.Errorf("unauthorized")
+	}
+
+	if input.Region == nil {
+		return nil, fmt.Errorf("region is required")
+	}
+
+	c, err := editing.NewBlurChange(editing.BlurParams{
+		Region: editing.BlurRegion{
+			X1: input.Region.X1,
+			Y1: input.Region.Y1,
+			X2: input.Region.X2,
+			Y2: input.Region.Y2,
+		},
+		Radius: input.Radius,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	fetchImage := editing.NewFetchImageFunc(r.StoredImageRepo, r.StorageDefRepo)
+	result, err := editing.ApplyChangeSet(editing.ChangeSet{c}, input.BaseImageID, fetchImage)
+	if err != nil {
+		return nil, err
+	}
+
+	width, height, err := utils.GetImageDimensions(result.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get result dimensions: %w", err)
+	}
+
+	storageDefs, err := r.StorageDefRepo.ListStorageDefinitions()
+	if err != nil {
+		return nil, fmt.Errorf("failed to list storage definitions: %w", err)
+	}
+	var storageDef *domainmodels.StorageDefinition
+	for _, def := range storageDefs {
+		if def.IsEnabled {
+			storageDef = def
+			break
+		}
+	}
+	if storageDef == nil {
+		return nil, fmt.Errorf("no enabled storage backend")
+	}
+
+	storageInstance, err := storage.GetStorage(storageDef)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get storage: %w", err)
+	}
+
+	tx, err := r.DBConn.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	dbImageRepo, ok := r.ImageRepo.(db.DBRepo)
+	if !ok {
+		return nil, fmt.Errorf("image repo does not support transactions")
+	}
+	txImageRepo, ok := dbImageRepo.WithTransaction(tx).(*image.DBImageRepo)
+	if !ok {
+		return nil, fmt.Errorf("image repo does not support transactions")
+	}
+
+	dbImageRelRepo, ok := r.ImageRelRepo.(db.DBRepo)
+	if !ok {
+		return nil, fmt.Errorf("image relationship repo does not support transactions")
+	}
+	txImageRelRepo, ok := dbImageRelRepo.WithTransaction(tx).(*image.DBImageRelationshipRepo)
+	if !ok {
+		return nil, fmt.Errorf("image relationship repo does not support transactions")
+	}
+
+	newImage := domainmodels.Image{
+		Identifier:      uuid.New().String(),
+		Name:            baseImage.Name,
+		ParentId:        baseImage.Id,
+		Changes:         string(result.ChangesJSON),
+		CreatedById:     currentUser.Id,
+		MIMEType:        result.MIMEType,
+		NominalWidth:    width,
+		NominalHeight:   height,
+		NominalByteSize: int32(len(result.Bytes)),
+	}
+
+	storedImage, err := txImageRepo.CreateAndSaveUploadedImage(&newImage, result.MIMEType, result.Bytes, storageDef.Id, storageInstance.Save)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save result image: %w", err)
+	}
+
+	newImageId := storedImage.Image.Id
+	if _, err := txImageRelRepo.CreateRelationship(newImageId, input.BaseImageID, image.RelationshipTypeBase); err != nil {
+		return nil, fmt.Errorf("failed to create base relationship: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return &model.ApplyBlurResult{
 		Image: model.FromImage(storedImage.Image),
 	}, nil
 }

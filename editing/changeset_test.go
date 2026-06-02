@@ -18,10 +18,11 @@ func TestChangeSetSerialize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cs := ChangeSet{
+	c := Change{
 		Type:   "watermark",
 		Params: paramsJSON,
 	}
+	cs := ChangeSet{c}
 
 	data, err := json.Marshal(cs)
 	if err != nil {
@@ -32,12 +33,15 @@ func TestChangeSetSerialize(t *testing.T) {
 	if err := json.Unmarshal(data, &decoded); err != nil {
 		t.Fatal(err)
 	}
-	if decoded.Type != "watermark" {
-		t.Fatalf("expected type 'watermark', got '%s'", decoded.Type)
+	if len(decoded) != 1 {
+		t.Fatalf("expected 1 change, got %d", len(decoded))
+	}
+	if decoded[0].Type != "watermark" {
+		t.Fatalf("expected type 'watermark', got '%s'", decoded[0].Type)
 	}
 
 	var decodedParams WatermarkParams
-	if err := json.Unmarshal(decoded.Params, &decodedParams); err != nil {
+	if err := json.Unmarshal(decoded[0].Params, &decodedParams); err != nil {
 		t.Fatal(err)
 	}
 	if decodedParams.OverlayImageID != "abc-123" {

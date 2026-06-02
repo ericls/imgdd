@@ -5,7 +5,8 @@ import { gql } from "~src/__generated__";
 import { Anchor } from "~src/__generated__/graphql";
 import { EditorCanvas, OverlayState } from "./EditorCanvas";
 import { WatermarkTool, WatermarkSettings } from "./WatermarkTool";
-import { useApplyWatermark } from "./data";
+import { BlurTool, BlurSettings, BlurRegion } from "./BlurTool";
+import { useApplyWatermark, useApplyBlur } from "./data";
 import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import classNames from "classnames";
@@ -42,22 +43,34 @@ const ImageForEditorDoc = gql(`
   }
 `);
 
+type EditorTab = "watermark" | "blur";
+
 export function ImageEditor() {
   const { imageId } = useParams<{ imageId: string }>();
   const navigate = useNavigate();
   const [fetchImage, { data, loading, error }] =
     useLazyQuery(ImageForEditorDoc);
   const { t } = useTranslation();
-  const { execute: applyWatermark, loading: applying } = useApplyWatermark();
+  const { execute: applyWatermark, loading: applyingWatermark } =
+    useApplyWatermark();
+  const { execute: applyBlur, loading: applyingBlur } = useApplyBlur();
 
-  const [settings, setSettings] = React.useState<WatermarkSettings>({
-    overlayImageId: "",
-    overlayImageUrl: "",
-    opacity: 0.5,
-    scale: 0.25,
-    anchor: Anchor.Center,
-    positionX: 0.5,
-    positionY: 0.5,
+  const [activeTab, setActiveTab] = React.useState<EditorTab>("watermark");
+
+  const [watermarkSettings, setWatermarkSettings] =
+    React.useState<WatermarkSettings>({
+      overlayImageId: "",
+      overlayImageUrl: "",
+      opacity: 0.5,
+      scale: 0.25,
+      anchor: Anchor.Center,
+      positionX: 0.5,
+      positionY: 0.5,
+    });
+
+  const [blurSettings, setBlurSettings] = React.useState<BlurSettings>({
+    region: null,
+    radius: 10,
   });
 
   const [overlayImg, setOverlayImg] = React.useState<HTMLImageElement | null>(
@@ -70,9 +83,8 @@ export function ImageEditor() {
     }
   }, [imageId, fetchImage]);
 
-  // Load overlay image element when URL changes
   React.useEffect(() => {
-    if (!settings.overlayImageUrl) {
+    if (!watermarkSettings.overlayImageUrl) {
       return;
     }
     let cancelled = false;
@@ -81,53 +93,60 @@ export function ImageEditor() {
     img.onload = () => {
       if (!cancelled) setOverlayImg(img);
     };
-    img.src = absoluteURL(settings.overlayImageUrl);
+    img.src = absoluteURL(watermarkSettings.overlayImageUrl);
     return () => {
       cancelled = true;
       setOverlayImg(null);
     };
-  }, [settings.overlayImageUrl]);
+  }, [watermarkSettings.overlayImageUrl]);
 
   const image = data?.viewer.image;
 
   const overlay: OverlayState = React.useMemo(
     () => ({
       image: overlayImg,
-      x: settings.positionX,
-      y: settings.positionY,
-      opacity: settings.opacity,
-      scale: settings.scale,
-      anchor: settings.anchor,
+      x: watermarkSettings.positionX,
+      y: watermarkSettings.positionY,
+      opacity: watermarkSettings.opacity,
+      scale: watermarkSettings.scale,
+      anchor: watermarkSettings.anchor,
     }),
     [
       overlayImg,
-      settings.positionX,
-      settings.positionY,
-      settings.opacity,
-      settings.scale,
-      settings.anchor,
+      watermarkSettings.positionX,
+      watermarkSettings.positionY,
+      watermarkSettings.opacity,
+      watermarkSettings.scale,
+      watermarkSettings.anchor,
     ],
   );
 
   const handlePositionChange = React.useCallback((x: number, y: number) => {
-    setSettings((prev) => ({ ...prev, positionX: x, positionY: y }));
+    setWatermarkSettings((prev) => ({ ...prev, positionX: x, positionY: y }));
   }, []);
 
-  const handleApply = React.useCallback(async () => {
-    if (!imageId || !settings.overlayImageId) return;
+  const handleBlurRegionChange = React.useCallback(
+    (region: BlurRegion | null) => {
+      setBlurSettings((prev) => ({ ...prev, region }));
+    },
+    [],
+  );
+
+  const handleApplyWatermark = React.useCallback(async () => {
+    if (!imageId || !watermarkSettings.overlayImageId) return;
     try {
       const result = await applyWatermark({
         variables: {
           input: {
             baseImageId: imageId,
-            overlayImageId: settings.overlayImageId,
+            overlayImageId: watermarkSettings.overlayImageId,
             position: {
-              x: settings.positionX,
-              y: settings.positionY,
+              x: watermarkSettings.positionX,
+              y: watermarkSettings.positionY,
             },
-            anchor: settings.anchor,
-            opacity: settings.opacity,
-            scale: settings.scale,
+            anchor: watermarkSettings.anchor,
+            opacity: watermarkSettings.opacity,
+            scale: watermarkSettings.scale,
           },
         },
       });
@@ -139,7 +158,34 @@ export function ImageEditor() {
     } catch (_err) {
       toast.error(t("imageEditor.watermarkFailed"));
     }
-  }, [t, imageId, settings, applyWatermark, navigate]);
+  }, [t, imageId, watermarkSettings, applyWatermark, navigate]);
+
+  const handleApplyBlur = React.useCallback(async () => {
+    if (!imageId || !blurSettings.region) return;
+    try {
+      const result = await applyBlur({
+        variables: {
+          input: {
+            baseImageId: imageId,
+            region: {
+              x1: blurSettings.region.x1,
+              y1: blurSettings.region.y1,
+              x2: blurSettings.region.x2,
+              y2: blurSettings.region.y2,
+            },
+            radius: blurSettings.radius,
+          },
+        },
+      });
+      const newImage = result.data?.applyBlur.image;
+      if (newImage) {
+        toast(t("imageEditor.blurApplied"));
+        navigate(routes.profile.image(newImage.id), { replace: true });
+      }
+    } catch (_err) {
+      toast.error(t("imageEditor.blurFailed"));
+    }
+  }, [t, imageId, blurSettings, applyBlur, navigate]);
 
   if (loading) return <FullScreenLoader />;
   if (error)
@@ -184,6 +230,10 @@ export function ImageEditor() {
               baseImageUrl={absoluteURL(image.url)}
               overlay={overlay}
               onPositionChange={handlePositionChange}
+              blurRegion={blurSettings.region}
+              blurRadius={blurSettings.radius}
+              onBlurRegionChange={handleBlurRegionChange}
+              mode={activeTab}
               className="max-w-full mx-auto block"
             />
           </div>
@@ -191,16 +241,59 @@ export function ImageEditor() {
 
         <div className="w-full lg:w-80 flex-shrink-0">
           <div className={classNames("rounded-md p-4", SECOND_LAYER)}>
-            <h2 className={classNames("text-lg font-medium mb-4", TEXT_COLOR)}>
-              {t("imageEditor.watermark")}
-            </h2>
-            <WatermarkTool
-              baseImageId={image.id}
-              settings={settings}
-              onSettingsChange={setSettings}
-              onApply={handleApply}
-              applying={applying}
-            />
+            <div className="flex gap-2 mb-4">
+              <button
+                type="button"
+                aria-pressed={activeTab === "watermark"}
+                onClick={() => setActiveTab("watermark")}
+                className={classNames(
+                  "flex-1 py-1.5 rounded-md text-sm font-medium transition-colors",
+                  activeTab === "watermark"
+                    ? "bg-indigo-600 text-white"
+                    : classNames(
+                        "hover:bg-indigo-100 dark:hover:bg-neutral-700",
+                        TEXT_COLOR,
+                      ),
+                )}
+              >
+                {t("imageEditor.watermark")}
+              </button>
+              <button
+                type="button"
+                aria-pressed={activeTab === "blur"}
+                onClick={() => setActiveTab("blur")}
+                className={classNames(
+                  "flex-1 py-1.5 rounded-md text-sm font-medium transition-colors",
+                  activeTab === "blur"
+                    ? "bg-indigo-600 text-white"
+                    : classNames(
+                        "hover:bg-indigo-100 dark:hover:bg-neutral-700",
+                        TEXT_COLOR,
+                      ),
+                )}
+              >
+                {t("imageEditor.blur")}
+              </button>
+            </div>
+
+            {activeTab === "watermark" && (
+              <WatermarkTool
+                baseImageId={image.id}
+                settings={watermarkSettings}
+                onSettingsChange={setWatermarkSettings}
+                onApply={handleApplyWatermark}
+                applying={applyingWatermark}
+              />
+            )}
+
+            {activeTab === "blur" && (
+              <BlurTool
+                settings={blurSettings}
+                onSettingsChange={setBlurSettings}
+                onApply={handleApplyBlur}
+                applying={applyingBlur}
+              />
+            )}
           </div>
         </div>
       </div>

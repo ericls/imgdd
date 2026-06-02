@@ -283,8 +283,18 @@ function CopyRow({ label, value }: { label: string; value: string }) {
 function parseChangeType(changesJson: string): string | null {
   try {
     const parsed = JSON.parse(changesJson);
-    if (parsed.type) {
-      return parsed.type.charAt(0).toUpperCase() + parsed.type.slice(1);
+    const changes = Array.isArray(parsed) ? parsed : [parsed];
+    const labels = changes
+      .filter((c) => c?.type)
+      .map(
+        (c: { type: string }) =>
+          c.type.charAt(0).toUpperCase() + c.type.slice(1),
+      );
+    if (labels.length === 1) {
+      return labels[0];
+    }
+    if (labels.length > 1) {
+      return "Multiple changes";
     }
   } catch {
     // ignore

@@ -1,5 +1,6 @@
 import React from "react";
 import { Anchor } from "~src/__generated__/graphql";
+import { BlurRegion } from "./BlurTool";
 
 export type OverlayState = {
   image: HTMLImageElement | null;
@@ -14,6 +15,10 @@ type EditorCanvasProps = {
   baseImageUrl: string;
   overlay: OverlayState;
   onPositionChange: (x: number, y: number) => void;
+  blurRegion?: BlurRegion | null;
+  blurRadius?: number;
+  onBlurRegionChange?: (region: BlurRegion | null) => void;
+  mode?: "watermark" | "blur";
   className?: string;
 };
 
@@ -21,12 +26,17 @@ export function EditorCanvas({
   baseImageUrl,
   overlay,
   onPositionChange,
+  blurRegion,
+  blurRadius = 10,
+  onBlurRegionChange,
+  mode = "watermark",
   className,
 }: EditorCanvasProps) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const baseImgRef = React.useRef<HTMLImageElement | null>(null);
   const [baseLoaded, setBaseLoaded] = React.useState(false);
   const [dragging, setDragging] = React.useState(false);
+  const dragStartRef = React.useRef<{ x: number; y: number } | null>(null);
 
   // Load base image
   React.useEffect(() => {
@@ -55,16 +65,13 @@ export function EditorCanvas({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Size canvas to fit container while maintaining aspect ratio
     const container = canvas.parentElement;
     if (!container) return;
     const dpr = window.devicePixelRatio || 1;
     const maxCssW = container.clientWidth;
     const ratio = baseImg.naturalWidth / baseImg.naturalHeight;
-    // CSS display size accounts for DPR
     const cssW = Math.min(maxCssW, Math.round(baseImg.naturalWidth / dpr));
     const cssH = Math.round(cssW / ratio);
-    // Canvas buffer renders at full resolution for sharpness
     const bufferW = Math.round(cssW * dpr);
     const bufferH = Math.round(cssH * dpr);
 
@@ -73,12 +80,10 @@ export function EditorCanvas({
     canvas.style.width = cssW + "px";
     canvas.style.height = cssH + "px";
 
-    // Draw base
     ctx.clearRect(0, 0, bufferW, bufferH);
     ctx.drawImage(baseImg, 0, 0, bufferW, bufferH);
 
-    // Draw overlay
-    if (overlay.image) {
+    if (mode === "watermark" && overlay.image) {
       const shortSide = Math.min(bufferW, bufferH);
       const targetSize = shortSide * overlay.scale;
       const overlayRatio =
@@ -95,7 +100,6 @@ export function EditorCanvas({
       const px = overlay.x * bufferW;
       const py = overlay.y * bufferH;
 
-      // Apply anchor offset to match backend behavior
       let ox: number, oy: number;
       switch (overlay.anchor) {
         case Anchor.TopLeft:
@@ -125,7 +129,39 @@ export function EditorCanvas({
       ctx.drawImage(overlay.image, px + ox, py + oy, ow, oh);
       ctx.globalAlpha = 1;
     }
-  }, [baseLoaded, overlay]);
+
+    if (mode === "blur" && blurRegion) {
+      const rx1 = blurRegion.x1 * bufferW;
+      const ry1 = blurRegion.y1 * bufferH;
+      const rw = (blurRegion.x2 - blurRegion.x1) * bufferW;
+      const rh = (blurRegion.y2 - blurRegion.y1) * bufferH;
+      if (rw > 0 && rh > 0) {
+        // Scale the radius from full-res image pixels down to canvas buffer pixels
+        const scaledRadius = Math.max(
+          1,
+          Math.round((blurRadius * bufferW) / baseImg.naturalWidth),
+        );
+
+        // Clip to region, apply CSS blur filter, redraw just that part of the
+        // base image — this gives a pixel-accurate preview of the blur effect.
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(rx1, ry1, rw, rh);
+        ctx.clip();
+        ctx.filter = `blur(${scaledRadius}px)`;
+        ctx.drawImage(baseImg, 0, 0, bufferW, bufferH);
+        ctx.restore();
+
+        // Draw selection border on top
+        ctx.save();
+        ctx.strokeStyle = "rgba(99, 102, 241, 0.9)";
+        ctx.lineWidth = 2 * dpr;
+        ctx.setLineDash([6 * dpr, 3 * dpr]);
+        ctx.strokeRect(rx1, ry1, rw, rh);
+        ctx.restore();
+      }
+    }
+  }, [baseLoaded, overlay, blurRegion, blurRadius, mode]);
 
   const getCanvasCoords = React.useCallback(
     (e: React.MouseEvent<HTMLCanvasElement> | React.Touch) => {
@@ -141,36 +177,72 @@ export function EditorCanvas({
 
   const handleMouseDown = React.useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (!overlay.image) return;
-      setDragging(true);
-      const { x, y } = getCanvasCoords(e);
-      onPositionChange(x, y);
+      if (mode === "watermark") {
+        if (!overlay.image) return;
+        setDragging(true);
+        const { x, y } = getCanvasCoords(e);
+        onPositionChange(x, y);
+      } else {
+        setDragging(true);
+        const { x, y } = getCanvasCoords(e);
+        dragStartRef.current = { x, y };
+        onBlurRegionChange?.(null);
+      }
     },
-    [overlay.image, getCanvasCoords, onPositionChange],
+    [
+      mode,
+      overlay.image,
+      getCanvasCoords,
+      onPositionChange,
+      onBlurRegionChange,
+    ],
   );
 
   const handleMouseMove = React.useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       if (!dragging) return;
       const { x, y } = getCanvasCoords(e);
-      onPositionChange(x, y);
+      if (mode === "watermark") {
+        onPositionChange(x, y);
+      } else if (dragStartRef.current) {
+        const start = dragStartRef.current;
+        onBlurRegionChange?.({
+          x1: Math.min(start.x, x),
+          y1: Math.min(start.y, y),
+          x2: Math.max(start.x, x),
+          y2: Math.max(start.y, y),
+        });
+      }
     },
-    [dragging, getCanvasCoords, onPositionChange],
+    [dragging, mode, getCanvasCoords, onPositionChange, onBlurRegionChange],
   );
 
   const handleMouseUp = React.useCallback(() => {
     setDragging(false);
+    dragStartRef.current = null;
   }, []);
 
   const handleTouchStart = React.useCallback(
     (e: React.TouchEvent<HTMLCanvasElement>) => {
-      if (!overlay.image || e.touches.length === 0) return;
+      if (e.touches.length === 0) return;
+      if (mode === "watermark" && !overlay.image) return;
       e.preventDefault();
       setDragging(true);
       const { x, y } = getCanvasCoords(e.touches[0]);
-      onPositionChange(x, y);
+      if (mode === "watermark") {
+        onPositionChange(x, y);
+      } else {
+        dragStartRef.current = { x, y };
+        onBlurRegionChange?.(null);
+      }
     },
-    [overlay.image, getCanvasCoords, onPositionChange],
+    [
+      mode,
+      overlay.image,
+      getCanvasCoords,
+      onPositionChange,
+      onBlurRegionChange,
+    ],
   );
 
   const handleTouchMove = React.useCallback(
@@ -178,16 +250,29 @@ export function EditorCanvas({
       if (!dragging || e.touches.length === 0) return;
       e.preventDefault();
       const { x, y } = getCanvasCoords(e.touches[0]);
-      onPositionChange(x, y);
+      if (mode === "watermark") {
+        onPositionChange(x, y);
+      } else if (dragStartRef.current) {
+        const start = dragStartRef.current;
+        onBlurRegionChange?.({
+          x1: Math.min(start.x, x),
+          y1: Math.min(start.y, y),
+          x2: Math.max(start.x, x),
+          y2: Math.max(start.y, y),
+        });
+      }
     },
-    [dragging, getCanvasCoords, onPositionChange],
+    [dragging, mode, getCanvasCoords, onPositionChange, onBlurRegionChange],
   );
+
+  const cursor =
+    mode === "blur" ? "crosshair" : overlay.image ? "crosshair" : "default";
 
   return (
     <canvas
       ref={canvasRef}
       className={className}
-      style={{ cursor: overlay.image ? "crosshair" : "default" }}
+      style={{ cursor }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}

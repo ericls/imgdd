@@ -166,7 +166,18 @@
       "derivedFrom": "원본: {{name}}",
       "watermarkApplied": "워터마크가 적용되었습니다",
       "watermarkFailed": "워터마크 적용에 실패했습니다",
-      "watermark": "워터마크"
+      "watermark": "워터마크",
+      "blur": "블러",
+      "blurApplied": "블러가 적용되었습니다",
+      "blurFailed": "블러 적용에 실패했습니다"
+    },
+    "blurTool": {
+      "hint": "이미지에서 드래그하여 블러 처리할 영역을 선택하세요.",
+      "noRegion": "영역이 선택되지 않았습니다",
+      "regionSelected": "({{x1}}%, {{y1}}%) → ({{x2}}%, {{y2}}%)",
+      "radius": "블러 반경: {{value}}",
+      "applying": "적용 중...",
+      "applyBlur": "블러 적용"
     },
     "watermarkTool": {
       "overlayImage": "오버레이 이미지",

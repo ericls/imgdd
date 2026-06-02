@@ -25,7 +25,7 @@ func makeTestPNG(w, h int, c color.Color) []byte {
 	return buf.Bytes()
 }
 
-func makeParams(overlayID string, x, y float64, anchor Anchor, opacity, scale float64) ChangeSet {
+func makeParams(overlayID string, x, y float64, anchor Anchor, opacity, scale float64) Change {
 	params := WatermarkParams{
 		OverlayImageID: overlayID,
 		Position:       WatermarkPosition{X: x, Y: y},
@@ -34,7 +34,7 @@ func makeParams(overlayID string, x, y float64, anchor Anchor, opacity, scale fl
 		Scale:          scale,
 	}
 	paramsJSON, _ := json.Marshal(params)
-	return ChangeSet{Type: "watermark", Params: paramsJSON}
+	return Change{Type: "watermark", Params: paramsJSON}
 }
 
 func TestWatermarkBasic(t *testing.T) {
@@ -246,7 +246,7 @@ func TestWatermarkFetchFailure(t *testing.T) {
 func TestWatermarkInvalidJSON(t *testing.T) {
 	base := makeTestPNG(100, 100, color.White)
 
-	cs := ChangeSet{Type: "watermark", Params: []byte("not json")}
+	cs := Change{Type: "watermark", Params: []byte("not json")}
 	editor := &WatermarkEditor{}
 	_, _, err := editor.Apply(base, cs, func(id string) ([]byte, error) {
 		return base, nil
