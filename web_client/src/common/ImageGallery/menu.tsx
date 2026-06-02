@@ -134,9 +134,15 @@ function getDeleteMenuItem({
         showCancel: true,
       }).then((confirmed) => {
         if (!confirmed) return;
-        onDelete?.().then(() => {
-          toast(i18n.t("common.toast.deleted"));
-        });
+        onDelete?.().then(
+          () => {
+            toast(i18n.t("common.toast.deleted"));
+          },
+          (err: unknown) => {
+            const message = err instanceof Error ? err.message : String(err);
+            toast(message, { type: "error" });
+          },
+        );
       });
     },
   };

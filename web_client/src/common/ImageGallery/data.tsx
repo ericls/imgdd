@@ -177,7 +177,6 @@ export function useDeleteImage(imageId: string) {
       },
     },
     refetchQueries: [ImagesQueryDoc],
-    errorPolicy: "all",
   });
   return {
     execute,
