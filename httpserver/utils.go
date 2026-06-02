@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/ericls/imgdd/captcha"
 	"github.com/ericls/imgdd/domainmodels"
@@ -14,6 +15,7 @@ import (
 type ContextKey string
 
 func NewGqlResolver(
+	dbConn *sql.DB,
 	identityManager *IdentityManager,
 	storageDefRepo storage.StorageDefRepo,
 	storedImageRepo storage.StoredImageRepo,
@@ -27,6 +29,7 @@ func NewGqlResolver(
 	allowNewUser bool,
 ) *graph.Resolver {
 	return &graph.Resolver{
+		DBConn:             dbConn,
 		IdentityRepo:       identityManager.IdentityRepo,
 		StorageDefRepo:     storageDefRepo,
 		StoredImageRepo:    storedImageRepo,

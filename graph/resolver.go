@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"database/sql"
 	"net/url"
 
 	"github.com/ericls/imgdd/captcha"
@@ -18,6 +19,7 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
+	DBConn             *sql.DB
 	IdentityRepo       identity.IdentityRepo
 	StorageDefRepo     storage.StorageDefRepo
 	StoredImageRepo    storage.StoredImageRepo
