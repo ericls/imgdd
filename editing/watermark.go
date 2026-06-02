@@ -46,6 +46,27 @@ type WatermarkParams struct {
 	Scale          float64           `json:"scale"`
 }
 
+// NewWatermarkChangeSet validates params and builds a ChangeSet.
+func NewWatermarkChangeSet(params WatermarkParams) (ChangeSet, error) {
+	if params.Opacity < 0 || params.Opacity > 1 {
+		return ChangeSet{}, fmt.Errorf("opacity must be between 0 and 1")
+	}
+	if params.Scale <= 0 || params.Scale > 1 {
+		return ChangeSet{}, fmt.Errorf("scale must be between 0 (exclusive) and 1")
+	}
+	if params.Position.X < 0 || params.Position.X > 1 || params.Position.Y < 0 || params.Position.Y > 1 {
+		return ChangeSet{}, fmt.Errorf("position values must be between 0 and 1")
+	}
+	paramsJSON, err := json.Marshal(params)
+	if err != nil {
+		return ChangeSet{}, fmt.Errorf("failed to serialize params: %w", err)
+	}
+	return ChangeSet{
+		Type:   "watermark",
+		Params: paramsJSON,
+	}, nil
+}
+
 type WatermarkEditor struct{}
 
 func (e *WatermarkEditor) Apply(baseBytes []byte, cs ChangeSet, fetchImage FetchImageFunc) ([]byte, string, error) {
