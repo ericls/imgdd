@@ -1,10 +1,11 @@
 package domainmodels
 
 type OrganizationUser struct {
-	Id           string
-	Organization *Organization
-	User         *User
-	Roles        []*Role
+	Id               string
+	Organization     *Organization
+	User             *User
+	Roles            []*Role
+	UploadLimitBytes *int64
 }
 
 func (ou *OrganizationUser) IsSiteOwner() bool {

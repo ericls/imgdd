@@ -8,14 +8,16 @@
 package model
 
 import (
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type OrganizationUserTable struct {
-	ID             uuid.UUID `sql:"primary_key"`
-	OrganizationID uuid.UUID
-	UserID         uuid.UUID
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID               uuid.UUID `sql:"primary_key"`
+	OrganizationID   uuid.UUID
+	UserID           uuid.UUID
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	UploadLimitBytes *int64
 }

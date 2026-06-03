@@ -101,10 +101,11 @@ type organizationUserSelectResult struct {
 
 func convertOrganizationUser(jetOU *organizationUserSelectResult) *dm.OrganizationUser {
 	return &dm.OrganizationUser{
-		Id:           jetOU.ID.String(),
-		Organization: convertOrganization(&jetOU.Organization),
-		User:         convertUser(&userSelectResult{UserTable: jetOU.User}),
-		Roles:        convertRoles(jetOU.Roles),
+		Id:               jetOU.ID.String(),
+		Organization:     convertOrganization(&jetOU.Organization),
+		User:             convertUser(&userSelectResult{UserTable: jetOU.User}),
+		Roles:            convertRoles(jetOU.Roles),
+		UploadLimitBytes: jetOU.UploadLimitBytes,
 	}
 }
 

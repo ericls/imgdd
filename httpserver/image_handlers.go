@@ -67,7 +67,18 @@ func makeUploadHandler(
 			http.Error(w, "Empty file", http.StatusBadRequest)
 			return
 		}
-		if int64(bytesLength) > conf.ImageMaxUploadBytes {
+
+		orgUser := identity.GetCurrentOrganizationUser(identityManager.ContextUserManager, r.Context())
+
+		effectiveLimit := conf.ImageMaxUploadBytes
+		if orgUser == nil {
+			if conf.GuestImageMaxUploadBytes > 0 {
+				effectiveLimit = conf.GuestImageMaxUploadBytes
+			}
+		} else if orgUser.UploadLimitBytes != nil && *orgUser.UploadLimitBytes < effectiveLimit {
+			effectiveLimit = *orgUser.UploadLimitBytes
+		}
+		if int64(bytesLength) > effectiveLimit {
 			http.Error(w, "File too large", http.StatusBadRequest)
 			return
 		}
@@ -122,7 +133,6 @@ func makeUploadHandler(
 			return
 		}
 
-		orgUser := identity.GetCurrentOrganizationUser(identityManager.ContextUserManager, r.Context())
 		var createdById string
 		if orgUser != nil {
 			createdById = orgUser.Id

@@ -17,11 +17,12 @@ type organizationUserTableTable struct {
 	postgres.Table
 
 	// Columns
-	ID             postgres.ColumnString
-	OrganizationID postgres.ColumnString
-	UserID         postgres.ColumnString
-	CreatedAt      postgres.ColumnTimestampz
-	UpdatedAt      postgres.ColumnTimestampz
+	ID               postgres.ColumnString
+	OrganizationID   postgres.ColumnString
+	UserID           postgres.ColumnString
+	CreatedAt        postgres.ColumnTimestampz
+	UpdatedAt        postgres.ColumnTimestampz
+	UploadLimitBytes postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -63,25 +64,27 @@ func newOrganizationUserTableTable(schemaName, tableName, alias string) *Organiz
 
 func newOrganizationUserTableTableImpl(schemaName, tableName, alias string) organizationUserTableTable {
 	var (
-		IDColumn             = postgres.StringColumn("id")
-		OrganizationIDColumn = postgres.StringColumn("organization_id")
-		UserIDColumn         = postgres.StringColumn("user_id")
-		CreatedAtColumn      = postgres.TimestampzColumn("created_at")
-		UpdatedAtColumn      = postgres.TimestampzColumn("updated_at")
-		allColumns           = postgres.ColumnList{IDColumn, OrganizationIDColumn, UserIDColumn, CreatedAtColumn, UpdatedAtColumn}
-		mutableColumns       = postgres.ColumnList{OrganizationIDColumn, UserIDColumn, CreatedAtColumn, UpdatedAtColumn}
-		defaultColumns       = postgres.ColumnList{IDColumn, CreatedAtColumn, UpdatedAtColumn}
+		IDColumn               = postgres.StringColumn("id")
+		OrganizationIDColumn   = postgres.StringColumn("organization_id")
+		UserIDColumn           = postgres.StringColumn("user_id")
+		CreatedAtColumn        = postgres.TimestampzColumn("created_at")
+		UpdatedAtColumn        = postgres.TimestampzColumn("updated_at")
+		UploadLimitBytesColumn = postgres.IntegerColumn("upload_limit_bytes")
+		allColumns             = postgres.ColumnList{IDColumn, OrganizationIDColumn, UserIDColumn, CreatedAtColumn, UpdatedAtColumn, UploadLimitBytesColumn}
+		mutableColumns         = postgres.ColumnList{OrganizationIDColumn, UserIDColumn, CreatedAtColumn, UpdatedAtColumn, UploadLimitBytesColumn}
+		defaultColumns         = postgres.ColumnList{IDColumn, CreatedAtColumn, UpdatedAtColumn}
 	)
 
 	return organizationUserTableTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:             IDColumn,
-		OrganizationID: OrganizationIDColumn,
-		UserID:         UserIDColumn,
-		CreatedAt:      CreatedAtColumn,
-		UpdatedAt:      UpdatedAtColumn,
+		ID:               IDColumn,
+		OrganizationID:   OrganizationIDColumn,
+		UserID:           UserIDColumn,
+		CreatedAt:        CreatedAtColumn,
+		UpdatedAt:        UpdatedAtColumn,
+		UploadLimitBytes: UploadLimitBytesColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
