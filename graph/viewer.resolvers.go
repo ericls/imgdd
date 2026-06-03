@@ -31,6 +31,25 @@ func (r *viewerResolver) OrganizationUserByID(ctx context.Context, obj *model.Vi
 	return LoadersFor(ctx).OrganizationUserLoader.Load(ctx, id)
 }
 
+// UploadLimitBytes is the resolver for the uploadLimitBytes field.
+// Returns the effective upload limit for the current viewer: guest limit for
+// unauthenticated requests, per-user override (capped at global max) for
+// authenticated requests, or the global max as the default.
+func (r *viewerResolver) UploadLimitBytes(ctx context.Context, obj *model.Viewer) (int, error) {
+	effectiveLimit := r.ImageMaxUploadBytes
+	authInfo := r.ContextUserManager.GetAuthenticationInfo(ctx)
+	if authInfo == nil || authInfo.AuthorizedUser == nil {
+		if r.GuestImageMaxUploadBytes > 0 {
+			effectiveLimit = r.GuestImageMaxUploadBytes
+		}
+	} else if ou := authInfo.AuthorizedUser.OrganizationUser; ou != nil && ou.UploadLimitBytes != nil {
+		if *ou.UploadLimitBytes < effectiveLimit {
+			effectiveLimit = *ou.UploadLimitBytes
+		}
+	}
+	return int(effectiveLimit), nil
+}
+
 // Viewer returns ViewerResolver implementation.
 func (r *Resolver) Viewer() ViewerResolver { return &viewerResolver{r} }
 

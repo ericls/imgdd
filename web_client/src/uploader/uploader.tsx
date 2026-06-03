@@ -21,8 +21,6 @@ import { useNavigate } from "react-router";
 
 type UploadSource = "file_input" | "drag_drop" | "paste";
 
-const FILE_SIZE_LIMIT = 5e6;
-
 export type UploadingFile = {
   id: string;
   file: File;
@@ -40,6 +38,7 @@ export function Uplodaer() {
   const { t } = useTranslation();
   const { data: authData } = useAuth();
   const isAuthenticated = !!authData?.viewer.organizationUser;
+  const fileSizeLimit = authData?.viewer.uploadLimitBytes ?? 10 * 1024 * 1024;
   const navigate = useNavigate();
   const [uploadingFiles, setUploadingFiles] = React.useState<UploadingFile[]>(
     [],
@@ -146,14 +145,14 @@ export function Uplodaer() {
         if (!file) {
           continue;
         }
-        if (file.size <= FILE_SIZE_LIMIT && !file.type.includes("svg")) {
+        if (file.size <= fileSizeLimit && !file.type.includes("svg")) {
           uploadSingle(file, "file_input");
           c += 1;
         }
         i += 1;
       }
     },
-    [uploadSingle],
+    [fileSizeLimit, uploadSingle],
   );
   const onAreaClick = React.useCallback(() => {
     inputRef.current?.click();
@@ -180,7 +179,7 @@ export function Uplodaer() {
         }
         if (
           file.type.startsWith("image/") &&
-          file.size <= FILE_SIZE_LIMIT &&
+          file.size <= fileSizeLimit &&
           !file.type.includes("svg")
         ) {
           uploadSingle(file, "paste");
@@ -188,7 +187,7 @@ export function Uplodaer() {
         }
       }
     },
-    [uploadSingle],
+    [fileSizeLimit, uploadSingle],
   );
   React.useEffect(() => {
     const isFirefox = navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
@@ -224,7 +223,7 @@ export function Uplodaer() {
           }
           if (
             file.type.startsWith("image/") &&
-            file.size <= FILE_SIZE_LIMIT &&
+            file.size <= fileSizeLimit &&
             !file.type.includes("svg")
           ) {
             uploadSingle(file, "drag_drop");
@@ -233,7 +232,7 @@ export function Uplodaer() {
         }
       }
     },
-    [uploadSingle],
+    [fileSizeLimit, uploadSingle],
   );
   const hasMoreThanOneUploaded = React.useMemo(() => {
     let count = 0;

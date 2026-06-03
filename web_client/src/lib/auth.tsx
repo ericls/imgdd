@@ -18,6 +18,7 @@ query Auth {
     }
     hasAdminAccess: hasPermission(permission: AdminAccess)
     hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)
+    uploadLimitBytes
   }
 }
 `);
@@ -37,6 +38,7 @@ mutation Logout {
     }
     hasAdminAccess: hasPermission(permission: AdminAccess)
     hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)
+    uploadLimitBytes
   }
   }
 }
@@ -48,6 +50,7 @@ const EMPTY_AUTH_QUERY_RESULT: AuthQuery = {
     organizationUser: null,
     hasAdminAccess: false,
     hasSiteOwnerAccess: false,
+    uploadLimitBytes: 10 * 1024 * 1024,
   },
 };
 

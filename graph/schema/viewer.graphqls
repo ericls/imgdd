@@ -6,4 +6,5 @@ type Viewer {
   id: ID!
   organizationUser: OrganizationUser
   organizationUserById(id: ID!): OrganizationUser @isSiteOwner
+  uploadLimitBytes: Int!
 }

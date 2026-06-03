@@ -103,6 +103,7 @@ func MakeServer(
 		captchaClient,
 		conf.AllowNewUser,
 		conf.ImageMaxUploadBytes,
+		conf.GuestImageMaxUploadBytes,
 	)
 
 	uploadLimiter := ratelimit.NewRateLimiter(5, 5)
