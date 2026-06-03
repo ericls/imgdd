@@ -13,6 +13,7 @@ import (
 func NewFetchImageFunc(
 	storedImageRepo storage.StoredImageRepo,
 	storageDefRepo storage.StorageDefRepo,
+	maxBytes int64,
 ) FetchImageFunc {
 	return func(imageId string) ([]byte, error) {
 		storedImages, err := storedImageRepo.GetStoredImagesByImageId(imageId)
@@ -71,14 +72,13 @@ func NewFetchImageFunc(
 		}
 		defer reader.Close()
 
-		const maxImageBytes = 10 * 1024 * 1024 // 10 MB
-		limitedReader := io.LimitReader(reader, maxImageBytes+1)
+		limitedReader := io.LimitReader(reader, maxBytes+1)
 		data, err := io.ReadAll(limitedReader)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read image data: %w", err)
 		}
-		if len(data) > maxImageBytes {
-			return nil, fmt.Errorf("image exceeds maximum size of %d bytes", maxImageBytes)
+		if int64(len(data)) > maxBytes {
+			return nil, fmt.Errorf("image exceeds maximum size of %d bytes", maxBytes)
 		}
 		return data, nil
 	}

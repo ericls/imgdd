@@ -168,6 +168,7 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			AllowNewUser:           utils.IsStrTruthy(httpServerConfig.ALLOW_NEW_USER),
 			ImageCacheMaxBytes:     httpServerConfig.IMAGE_CACHE_MAX_BYTES,
 			ImageCacheMaxFileBytes: httpServerConfig.IMAGE_CACHE_MAX_FILE_BYTES,
+			ImageMaxUploadBytes:    httpServerConfig.IMAGE_MAX_UPLOAD_BYTES,
 			WebUIOrigins:           httpserver.ParseOriginList(httpServerConfig.WEB_UI_ORIGINS),
 		},
 		Storage: storage.StorageConfigDef{
@@ -292,6 +293,9 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		}
 		if config.HttpServer.ImageCacheMaxFileBytes > 0 {
 			merged.HttpServer.ImageCacheMaxFileBytes = config.HttpServer.ImageCacheMaxFileBytes
+		}
+		if config.HttpServer.ImageMaxUploadBytes > 0 {
+			merged.HttpServer.ImageMaxUploadBytes = config.HttpServer.ImageMaxUploadBytes
 		}
 		if len(config.HttpServer.WebUIOrigins) > 0 {
 			merged.HttpServer.WebUIOrigins = config.HttpServer.WebUIOrigins

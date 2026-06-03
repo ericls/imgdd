@@ -39,6 +39,7 @@ type HttpServerConfigDef struct {
 	AllowNewUser           bool
 	ImageCacheMaxBytes     int64
 	ImageCacheMaxFileBytes int64
+	ImageMaxUploadBytes    int64
 	WebUIOrigins           []string
 }
 
@@ -68,6 +69,7 @@ func ReadServerConfigFromEnv() HttpServerConfigDef {
 		AllowNewUser:           utils.IsStrTruthy(utils.GetEnv("IMGDD_ALLOW_NEW_USER", "true")),
 		ImageCacheMaxBytes:     parseInt64Env("IMGDD_HTTP_IMAGE_CACHE_MAX_BYTES"),
 		ImageCacheMaxFileBytes: parseInt64Env("IMGDD_HTTP_IMAGE_CACHE_MAX_FILE_BYTES"),
+		ImageMaxUploadBytes:    parseInt64EnvDefault("IMGDD_IMAGE_MAX_UPLOAD_BYTES", 10*1024*1024),
 		WebUIOrigins:           ParseOriginList(os.Getenv("IMGDD_WEB_UI_ORIGINS")),
 	}
 }
@@ -88,13 +90,17 @@ func ParseOriginList(value string) []string {
 }
 
 func parseInt64Env(key string) int64 {
+	return parseInt64EnvDefault(key, 0)
+}
+
+func parseInt64EnvDefault(key string, defaultVal int64) int64 {
 	value := os.Getenv(key)
 	if value == "" {
-		return 0
+		return defaultVal
 	}
 	parsed, err := strconv.ParseInt(value, 10, 64)
 	if err != nil {
-		return 0
+		return defaultVal
 	}
 	return parsed
 }

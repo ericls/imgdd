@@ -19,21 +19,22 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DBConn             *sql.DB
-	IdentityRepo       identity.IdentityRepo
-	StorageDefRepo     storage.StorageDefRepo
-	StoredImageRepo    storage.StoredImageRepo
-	ImageRepo          image.ImageRepo
-	ImageRelRepo       image.ImageRelationshipRepo
-	ContextUserManager identity.ContextUserManager
-	LoginFn            func(c context.Context, userId string, organizationUserId string)
-	LogoutFn           func(c context.Context)
-	ImageDomain        string
-	DefaultURLFormat   domainmodels.ImageURLFormat
-	IsHttps            func(c context.Context) bool
-	GetBaseURL         func(c context.Context) *url.URL
-	GetEmailBackend    func(c context.Context) email.EmailBackend
-	SecretKey          string
-	CaptchaClient      captcha.CaptchaClient
-	AllowNewUser       bool
+	DBConn              *sql.DB
+	IdentityRepo        identity.IdentityRepo
+	StorageDefRepo      storage.StorageDefRepo
+	StoredImageRepo     storage.StoredImageRepo
+	ImageRepo           image.ImageRepo
+	ImageRelRepo        image.ImageRelationshipRepo
+	ContextUserManager  identity.ContextUserManager
+	LoginFn             func(c context.Context, userId string, organizationUserId string)
+	LogoutFn            func(c context.Context)
+	ImageDomain         string
+	DefaultURLFormat    domainmodels.ImageURLFormat
+	IsHttps             func(c context.Context) bool
+	GetBaseURL          func(c context.Context) *url.URL
+	GetEmailBackend     func(c context.Context) email.EmailBackend
+	SecretKey           string
+	CaptchaClient       captcha.CaptchaClient
+	AllowNewUser        bool
+	ImageMaxUploadBytes int64
 }

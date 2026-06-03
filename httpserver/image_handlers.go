@@ -41,7 +41,7 @@ func makeUploadHandler(
 			http.Error(w, "Image upload is disabled", http.StatusForbidden)
 			return
 		}
-		r.ParseMultipartForm(10 * 1024 * 1024) // 10 MB
+		r.ParseMultipartForm(conf.ImageMaxUploadBytes)
 		_, fileHeader, err := r.FormFile("image")
 		if err != nil {
 			httpLogger.Error().Err(err).Msg("Unable to read file")
@@ -67,7 +67,7 @@ func makeUploadHandler(
 			http.Error(w, "Empty file", http.StatusBadRequest)
 			return
 		}
-		if bytesLength > 10*1024*1024 { // sanity check after removing EXIF
+		if int64(bytesLength) > conf.ImageMaxUploadBytes {
 			http.Error(w, "File too large", http.StatusBadRequest)
 			return
 		}

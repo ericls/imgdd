@@ -249,7 +249,7 @@ func (r *mutationResolver) ApplyWatermark(ctx context.Context, input model.Apply
 		return nil, err
 	}
 
-	fetchImage := editing.NewFetchImageFunc(r.StoredImageRepo, r.StorageDefRepo)
+	fetchImage := editing.NewFetchImageFunc(r.StoredImageRepo, r.StorageDefRepo, r.ImageMaxUploadBytes)
 	result, err := editing.ApplyChangeSet(editing.ChangeSet{c}, input.BaseImageID, fetchImage)
 	if err != nil {
 		return nil, err
@@ -375,7 +375,7 @@ func (r *mutationResolver) ApplyBlur(ctx context.Context, input model.ApplyBlurI
 		return nil, err
 	}
 
-	fetchImage := editing.NewFetchImageFunc(r.StoredImageRepo, r.StorageDefRepo)
+	fetchImage := editing.NewFetchImageFunc(r.StoredImageRepo, r.StorageDefRepo, r.ImageMaxUploadBytes)
 	result, err := editing.ApplyChangeSet(editing.ChangeSet{c}, input.BaseImageID, fetchImage)
 	if err != nil {
 		return nil, err
