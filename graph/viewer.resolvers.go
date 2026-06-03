@@ -36,15 +36,18 @@ func (r *viewerResolver) OrganizationUserByID(ctx context.Context, obj *model.Vi
 // unauthenticated requests, per-user override (capped at global max) for
 // authenticated requests, or the global max as the default.
 func (r *viewerResolver) UploadLimitBytes(ctx context.Context, obj *model.Viewer) (int, error) {
-	effectiveLimit := r.ImageMaxUploadBytes
+	baseLimit := r.ImageMaxUploadBytes
+	if r.GuestImageMaxUploadBytes > 0 {
+		baseLimit = r.GuestImageMaxUploadBytes
+	}
+	effectiveLimit := baseLimit
 	authInfo := r.ContextUserManager.GetAuthenticationInfo(ctx)
-	if authInfo == nil || authInfo.AuthorizedUser == nil {
-		if r.GuestImageMaxUploadBytes > 0 {
-			effectiveLimit = r.GuestImageMaxUploadBytes
-		}
-	} else if ou := authInfo.AuthorizedUser.OrganizationUser; ou != nil && ou.UploadLimitBytes != nil {
-		if *ou.UploadLimitBytes < effectiveLimit {
+	if authInfo != nil && authInfo.AuthorizedUser != nil {
+		if ou := authInfo.AuthorizedUser.OrganizationUser; ou != nil && ou.UploadLimitBytes != nil {
 			effectiveLimit = *ou.UploadLimitBytes
+			if effectiveLimit > r.ImageMaxUploadBytes {
+				effectiveLimit = r.ImageMaxUploadBytes
+			}
 		}
 	}
 	return int(effectiveLimit), nil

@@ -169,16 +169,37 @@ func TestUploadHandlerAcceptsGuestWithinGuestLimit(t *testing.T) {
 	assertNotFileTooLarge(t, res)
 }
 
-func TestUploadHandlerAuthenticatedUserIgnoresGuestLimit(t *testing.T) {
+func TestUploadHandlerAuthenticatedUserFallsBackToGuestLimit(t *testing.T) {
+	// Authenticated users with no per-user override use the guest limit as their base.
 	pngBytes := makePNGBytes(10, 10)
 	conf := &HttpServerConfigDef{
 		AllowUpload:              true,
 		ImageMaxUploadBytes:      int64(len(pngBytes) + 100),
-		GuestImageMaxUploadBytes: int64(len(pngBytes) - 1), // would reject a guest
+		GuestImageMaxUploadBytes: int64(len(pngBytes) - 1),
 	}
 	orgUser := &domainmodels.OrganizationUser{
 		Id:   "user-1",
 		User: &domainmodels.User{Id: "user-1"},
+	}
+	req := makeMultipartRequest(t, "image", "test.png", pngBytes)
+	res := httptest.NewRecorder()
+	makeUploadHandler(conf, authenticatedIdentityManager(orgUser), nil, nil, nil).ServeHTTP(res, req)
+	assertFileTooLarge(t, res)
+}
+
+func TestUploadHandlerPerUserLimitCanExceedGuestLimit(t *testing.T) {
+	// A per-user override allows uploading above the guest limit (up to global max).
+	pngBytes := makePNGBytes(10, 10)
+	perUserLimit := int64(len(pngBytes) + 1)
+	conf := &HttpServerConfigDef{
+		AllowUpload:              true,
+		ImageMaxUploadBytes:      int64(len(pngBytes) + 100),
+		GuestImageMaxUploadBytes: int64(len(pngBytes) - 1), // would reject without override
+	}
+	orgUser := &domainmodels.OrganizationUser{
+		Id:               "user-1",
+		User:             &domainmodels.User{Id: "user-1"},
+		UploadLimitBytes: &perUserLimit,
 	}
 	req := makeMultipartRequest(t, "image", "test.png", pngBytes)
 	res := httptest.NewRecorder()

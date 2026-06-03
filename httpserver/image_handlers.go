@@ -70,13 +70,16 @@ func makeUploadHandler(
 
 		orgUser := identity.GetCurrentOrganizationUser(identityManager.ContextUserManager, r.Context())
 
-		effectiveLimit := conf.ImageMaxUploadBytes
-		if orgUser == nil {
-			if conf.GuestImageMaxUploadBytes > 0 {
-				effectiveLimit = conf.GuestImageMaxUploadBytes
-			}
-		} else if orgUser.UploadLimitBytes != nil && *orgUser.UploadLimitBytes < effectiveLimit {
+		baseLimit := conf.ImageMaxUploadBytes
+		if conf.GuestImageMaxUploadBytes > 0 {
+			baseLimit = conf.GuestImageMaxUploadBytes
+		}
+		effectiveLimit := baseLimit
+		if orgUser != nil && orgUser.UploadLimitBytes != nil {
 			effectiveLimit = *orgUser.UploadLimitBytes
+			if effectiveLimit > conf.ImageMaxUploadBytes {
+				effectiveLimit = conf.ImageMaxUploadBytes
+			}
 		}
 		if int64(bytesLength) > effectiveLimit {
 			http.Error(w, "File too large", http.StatusBadRequest)
