@@ -7,13 +7,33 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ericls/imgdd/graph/model"
+	imgddimage "github.com/ericls/imgdd/image"
+	"github.com/google/uuid"
 )
 
 // Viewer is the resolver for the viewer field.
 func (r *queryResolver) Viewer(ctx context.Context) (*model.Viewer, error) {
 	return &model.Viewer{}, nil
+}
+
+// PublicImage is the resolver for the publicImage field.
+func (r *queryResolver) PublicImage(ctx context.Context, id string) (*model.Image, error) {
+	if _, err := uuid.Parse(id); err != nil {
+		return nil, fmt.Errorf("image not found")
+	}
+
+	img, err := r.ImageRepo.GetImageById(id)
+	if err != nil || img == nil {
+		return nil, fmt.Errorf("image not found")
+	}
+	if img.CreatedById != "" && img.CreatedById != imgddimage.ZeroUUID.String() {
+		return nil, nil
+	}
+
+	return model.FromImage(img), nil
 }
 
 // Query returns QueryResolver implementation.

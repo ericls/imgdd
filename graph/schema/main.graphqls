@@ -8,4 +8,5 @@ enum PaginationDirection {
 
 type Query {
   viewer: Viewer!
+  publicImage(id: ID!): Image
 }

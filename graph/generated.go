@@ -147,7 +147,8 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Viewer func(childComplexity int) int
+		PublicImage func(childComplexity int, id string) int
+		Viewer      func(childComplexity int) int
 	}
 
 	ResetPasswordResult struct {
@@ -257,6 +258,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Viewer(ctx context.Context) (*model.Viewer, error)
+	PublicImage(ctx context.Context, id string) (*model.Image, error)
 }
 type StorageDefinitionResolver interface {
 	Connectivity(ctx context.Context, obj *model.StorageDefinition) (bool, error)
@@ -699,6 +701,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.PaginatedUsers.PageInfo(childComplexity), true
 
+	case "Query.publicImage":
+		if e.ComplexityRoot.Query.PublicImage == nil {
+			break
+		}
+
+		args, err := ec.field_Query_publicImage_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.PublicImage(childComplexity, args["id"].(string)), true
 	case "Query.viewer":
 		if e.ComplexityRoot.Query.Viewer == nil {
 			break
@@ -1270,6 +1283,17 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_publicImage_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -3755,6 +3779,81 @@ func (ec *executionContext) fieldContext_Query_viewer(_ context.Context, field g
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Viewer", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_publicImage(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_publicImage,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().PublicImage(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		ec.marshalOImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImage,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_publicImage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Image_id(ctx, field)
+			case "url":
+				return ec.fieldContext_Image_url(ctx, field)
+			case "name":
+				return ec.fieldContext_Image_name(ctx, field)
+			case "identifier":
+				return ec.fieldContext_Image_identifier(ctx, field)
+			case "nominalWidth":
+				return ec.fieldContext_Image_nominalWidth(ctx, field)
+			case "nominalHeight":
+				return ec.fieldContext_Image_nominalHeight(ctx, field)
+			case "nominalByteSize":
+				return ec.fieldContext_Image_nominalByteSize(ctx, field)
+			case "root":
+				return ec.fieldContext_Image_root(ctx, field)
+			case "parent":
+				return ec.fieldContext_Image_parent(ctx, field)
+			case "changes":
+				return ec.fieldContext_Image_changes(ctx, field)
+			case "lineage":
+				return ec.fieldContext_Image_lineage(ctx, field)
+			case "revisions":
+				return ec.fieldContext_Image_revisions(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Image_createdAt(ctx, field)
+			case "storedImages":
+				return ec.fieldContext_Image_storedImages(ctx, field)
+			case "MIMEType":
+				return ec.fieldContext_Image_MIMEType(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Image_createdBy(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Image", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_publicImage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -8533,6 +8632,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "publicImage":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_publicImage(ctx, field)
 				return res
 			}
 

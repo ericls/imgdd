@@ -149,7 +149,7 @@ func MakeServer(
 	rootRouter := mux.NewRouter()
 	imageResponseCache := newImageResponseCache(conf.ImageCacheMaxBytes, conf.ImageCacheMaxFileBytes)
 	imageCORS := makeImageCORSMiddleware(conf.WebUIOrigins)
-	rootRouter.PathPrefix("/image").Handler(imageCORS(makeImageHandler(storageDefRepo, storedImageRepo, imageResponseCache)))
+	rootRouter.PathPrefix("/image/").Handler(imageCORS(makeImageHandler(storageDefRepo, storedImageRepo, imageResponseCache)))
 	rootRouter.PathPrefix("/direct").Handler(imageCORS(makeDirectImageHandler(storageDefRepo, imageResponseCache)))
 	rootRouter.PathPrefix("/").Handler(appRouter)
 

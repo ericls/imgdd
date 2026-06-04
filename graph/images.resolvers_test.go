@@ -174,6 +174,38 @@ func tNormalUserCanOnlyAcessOwnImages(t *testing.T, tc *TestContext) {
 	require.Len(t, resp.Viewer.Images.Edges, 1)
 }
 
+func tPublicImageOnlyResolvesOwnerlessImages(t *testing.T, tc *TestContext) {
+	var resp struct {
+		PublicImage *model.Image
+	}
+	sd := createStorageDefinition(t, tc)
+	owner := tc.forceAuthenticate()
+	ownedImage := createImage(t, tc, owner.Id, sd.Id)
+	tc.clearAuthenticationInfo()
+
+	err := tc.client.Post(`
+	query publicImage($id: ID!) {
+		publicImage(id: $id) {
+			id
+			name
+		}
+	}`, &resp, client.Var("id", ownedImage.Id))
+	require.NoError(t, err)
+	require.Nil(t, resp.PublicImage)
+
+	ownerlessImage := createImage(t, tc, "", sd.Id)
+	err = tc.client.Post(`
+	query publicImage($id: ID!) {
+		publicImage(id: $id) {
+			id
+			name
+		}
+	}`, &resp, client.Var("id", ownerlessImage.Id))
+	require.NoError(t, err)
+	require.NotNil(t, resp.PublicImage)
+	require.Equal(t, ownerlessImage.Id, resp.PublicImage.ID)
+}
+
 func tBasicPagination(t *testing.T, tc *TestContext) {
 	type Resp struct {
 		Viewer *struct {
@@ -1261,6 +1293,7 @@ func TestImageResolvers(t *testing.T) {
 		tImagesNoFilterNoOrderSiteOwner,
 		tSiteOwnerCanAccessAllImages,
 		tNormalUserCanOnlyAcessOwnImages,
+		tPublicImageOnlyResolvesOwnerlessImages,
 		tBasicPagination,
 		tBasicPaginationByCreatedAt,
 		tDeletingImage,

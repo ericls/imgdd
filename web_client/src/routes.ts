@@ -7,6 +7,7 @@ export const routeSegments = {
 } as const;
 
 export const routes = {
+  image: (imageId: string) => `/${routeSegments.images}/${imageId}`,
   siteAdmin: {
     root: `/${routeSegments.siteAdmin}`,
     images: `/${routeSegments.siteAdmin}/${routeSegments.images}`,

@@ -147,6 +147,15 @@ const router = createBrowserRouter([
         element: <AppMainPage />,
       },
       {
+        path: `${routeSegments.images}/:imageId`,
+        lazy: async () => {
+          const { PublicImageDetail } = await import("~src/editor/ImageDetail");
+          return {
+            element: <PublicImageDetail />,
+          };
+        },
+      },
+      {
         path: "/auth/forgot-password",
         lazy: async () => {
           const { ForgotPasswordPage } =

@@ -17,6 +17,30 @@ import { routes } from "~src/routes";
 import { copyText } from "~src/lib/copyText";
 import { useTranslation } from "react-i18next";
 
+const _ImageDetailFields = gql(`
+  fragment ImageDetailFields on Image {
+    id
+    url
+    name
+    identifier
+    nominalWidth
+    nominalHeight
+    MIMEType
+    createdAt
+    changes
+    createdBy {
+      id
+    }
+    lineage {
+      id
+      url
+      name
+      changes
+      createdAt
+    }
+  }
+`);
+
 const ImageDetailDoc = gql(`
   query ImageDetail($id: ID!) {
     viewer {
@@ -25,47 +49,76 @@ const ImageDetailDoc = gql(`
         id
       }
       image(id: $id) {
-        id
-        url
-        name
-        identifier
-        nominalWidth
-        nominalHeight
-        MIMEType
-        createdAt
-        changes
-        createdBy {
-          id
-        }
-        lineage {
-          id
-          url
-          name
-          changes
-          createdAt
-        }
+        ...ImageDetailFields
       }
     }
   }
 `);
 
+const PublicImageDetailDoc = gql(`
+  query PublicImageDetail($id: ID!) {
+    viewer {
+      id
+      organizationUser {
+        id
+      }
+    }
+    publicImage(id: $id) {
+      ...ImageDetailFields
+    }
+  }
+`);
+
+type ImageDetailMode = "private" | "public";
+
+export function PublicImageDetail() {
+  return <ImageDetailContent mode="public" />;
+}
+
 export function ImageDetail() {
+  return <ImageDetailContent mode="private" />;
+}
+
+function ImageDetailContent({ mode }: { mode: ImageDetailMode }) {
   const { imageId } = useParams<{ imageId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [fetchImage, { data, loading, error }] = useLazyQuery(ImageDetailDoc);
+  const [fetchPrivateImage, privateResult] = useLazyQuery(ImageDetailDoc);
+  const [fetchPublicImage, publicResult] = useLazyQuery(PublicImageDetailDoc);
 
   React.useEffect(() => {
-    if (imageId) {
-      fetchImage({ variables: { id: imageId } });
+    if (!imageId) return;
+    if (mode === "public") {
+      fetchPublicImage({ variables: { id: imageId } });
+    } else {
+      fetchPrivateImage({ variables: { id: imageId } });
     }
-  }, [imageId, fetchImage]);
+  }, [imageId, mode, fetchPrivateImage, fetchPublicImage]);
 
-  const image = data?.viewer.image;
-  const currentUserId = data?.viewer.organizationUser?.id;
+  const image =
+    mode === "public"
+      ? publicResult.data?.publicImage
+      : privateResult.data?.viewer.image;
+  const currentUserId =
+    mode === "public"
+      ? publicResult.data?.viewer.organizationUser?.id
+      : privateResult.data?.viewer.organizationUser?.id;
+  const loading =
+    mode === "public" ? publicResult.loading : privateResult.loading;
+  const error = mode === "public" ? publicResult.error : privateResult.error;
   const isOwnImage = !!(
     currentUserId && image?.createdBy?.id === currentUserId
   );
+  const canShowEdit =
+    mode === "public" ? !currentUserId || isOwnImage : isOwnImage;
+  const handleEdit = React.useCallback(() => {
+    if (!image) return;
+    if (currentUserId) {
+      navigate(routes.profile.editImage(image.id));
+      return;
+    }
+    navigate("/auth");
+  }, [currentUserId, image, navigate]);
 
   if (loading) return <FullScreenLoader />;
   if (error)
@@ -83,19 +136,17 @@ export function ImageDetail() {
 
   const lineage = image.lineage;
   const currentIndex = lineage.findIndex((img) => img.id === image.id);
+  const imageRoute = mode === "public" ? routes.image : routes.profile.image;
 
   return (
-    <div className="mx-8 my-4 max-w-full">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 overflow-x-hidden">
       <div className="flex items-center justify-between mb-4 gap-4">
         <h1 className={classNames(HEADING_2, "font-poppins min-w-0 break-all")}>
           {image.name}
         </h1>
         <div className="flex gap-2 flex-shrink-0">
-          {isOwnImage && (
-            <Button
-              variant="secondary"
-              onClick={() => navigate(routes.profile.editImage(image.id))}
-            >
+          {canShowEdit && (
+            <Button variant="secondary" onClick={handleEdit}>
               {t("common.buttonLabel.edit")}
             </Button>
           )}
@@ -105,7 +156,7 @@ export function ImageDetail() {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex min-w-0 flex-col lg:flex-row gap-6">
         <div className="flex-1 min-w-0">
           <div
             className={classNames(
@@ -172,7 +223,7 @@ export function ImageDetail() {
                           </span>
                         ) : (
                           <Link
-                            to={routes.profile.image(ancestor.id)}
+                            to={imageRoute(ancestor.id)}
                             className="text-sm font-medium truncate block text-indigo-500 hover:text-indigo-400"
                           >
                             {ancestor.name}
