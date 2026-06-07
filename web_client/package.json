@@ -50,6 +50,7 @@
     "globals": "^17.5.0",
     "graphql": "^16.13.2",
     "jsdom": "^29.1.1",
+    "jsdom-testing-mocks": "^1.16.0",
     "parcel": "^2.16.4",
     "parcel-namer-hashless": "^1.0.7",
     "postcss": "^8.5.12",
