@@ -1,4 +1,3 @@
-import React from "react";
 import classNames from "classnames";
 import { LOGO_TEXT_1, LOGO_TEXT_2 } from "~src/ui/classNames";
 

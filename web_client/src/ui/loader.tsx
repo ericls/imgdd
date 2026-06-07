@@ -1,4 +1,3 @@
-import React from "react";
 import { RiLoader4Line as LoaderIcon } from "react-icons/ri";
 
 export function Loader({ size = 24 }: { size?: number }) {

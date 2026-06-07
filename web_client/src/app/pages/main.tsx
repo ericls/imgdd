@@ -1,5 +1,4 @@
 import classnames from "classnames";
-import React from "react";
 import { SECONDARY_TEXT_COLOR_DIM, TEXT_COLOR } from "~src/ui/classNames";
 import { Uplodaer } from "~src/uploader/uploader";
 import { useTranslation } from "react-i18next";
