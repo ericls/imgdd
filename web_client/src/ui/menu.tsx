@@ -120,12 +120,12 @@ export const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
     );
     const onKeypress = React.useCallback(
       (e: React.KeyboardEvent<HTMLElement>) => {
-        if (e.key === "Tab" || e.key === "ArrowDown") {
-          moveSelection(1);
+        if ((e.key === "Tab" && e.shiftKey) || e.key === "ArrowUp") {
+          moveSelection(-1);
           e.preventDefault();
           e.stopPropagation();
-        } else if ((e.key === "Tab" && e.shiftKey) || e.key === "ArrowUp") {
-          moveSelection(-1);
+        } else if (e.key === "Tab" || e.key === "ArrowDown") {
+          moveSelection(1);
           e.preventDefault();
           e.stopPropagation();
         } else if (e.key == "Escape") {
