@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "dev": "concurrently \"pnpm:dev:*\"",
     "dev:js": "parcel watch --public-url=/static/web/ --port=8081 --no-cache",
     "build": "NODE_ENV=production parcel build --public-url=/static/web/ --no-source-maps --no-cache",
@@ -32,6 +33,9 @@
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/postcss": "^4.2.4",
     "@tailwindcss/typography": "^0.5.19",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/cloudflare-turnstile": "^0.2.2",
     "@types/grecaptcha": "^3.0.9",
     "@types/lodash-es": "^4.17.12",
@@ -45,6 +49,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.5.0",
     "graphql": "^16.13.2",
+    "jsdom": "^29.1.1",
     "parcel": "^2.16.4",
     "parcel-namer-hashless": "^1.0.7",
     "postcss": "^8.5.12",
@@ -55,7 +60,8 @@
     "process": "^0.11.10",
     "tailwindcss": "^4.2.4",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.59.1"
+    "typescript-eslint": "^8.59.1",
+    "vitest": "^4.1.8"
   },
   "dependencies": {
     "@apollo/client": "^4.1.9",

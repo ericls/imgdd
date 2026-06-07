@@ -38,7 +38,7 @@ jobs:
             exit 1
           fi
 
-  lint-and-typecheck:
+  lint-typecheck-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -58,4 +58,8 @@ jobs:
 
       - name: Lint and type-check
         run: pnpm run check
+        working-directory: web_client
+
+      - name: Run tests
+        run: pnpm run test
         working-directory: web_client

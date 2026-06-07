@@ -47,7 +47,15 @@ export function PromptContainer() {
     };
   }, [setFlag]);
   const children = _promptStack.prompts.map((pItem) => {
-    const { content, yesDestructive, yesText, title, onResolve, id } = pItem;
+    const {
+      content,
+      yesDestructive,
+      yesText,
+      title,
+      onResolve,
+      id,
+      showCancel,
+    } = pItem;
     const makeCloseFunction = (func: () => void) => {
       return () => {
         func();
@@ -67,6 +75,7 @@ export function PromptContainer() {
         title={title}
         yesText={yesText}
         yesDestructive={yesDestructive}
+        showCancel={showCancel}
       />
     );
   });
