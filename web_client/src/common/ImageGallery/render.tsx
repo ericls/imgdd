@@ -1,5 +1,5 @@
 import React from "react";
-import { RenderingImageItem, ImageItemRenderer } from "./types";
+import { RenderingImageItem, ImageItemRendererFn } from "./types";
 import { useImagesQuery } from "./data";
 import { humanFileSize } from "~src/lib/humanizeFileSize";
 import { useHumanizeDateTime } from "~src/lib/humanizeDateTime";
@@ -20,7 +20,7 @@ import { useTranslation } from "react-i18next";
 
 type DumbImageGalleryProps = {
   images: RenderingImageItem[];
-  itemRenderer: ImageItemRenderer;
+  itemRenderer: ImageItemRendererFn;
   hasNext: boolean;
   hasPrev: boolean;
   loadNextPage: () => void;
@@ -181,7 +181,7 @@ export function ImageItemRenderer({
 type ImageGalleryProps = {
   nameContains?: string;
   createdById?: string;
-  itemRenderer?: ImageItemRenderer;
+  itemRenderer?: ImageItemRendererFn;
   menuConfig?: ImageItemMenuConfig;
   showCreatorInfo?: boolean;
 };

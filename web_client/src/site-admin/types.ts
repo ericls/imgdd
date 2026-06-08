@@ -10,21 +10,25 @@ const storageDefinitionFragment = gql(/* GraphQL */ `
     priority
     config {
       ... on S3StorageConfig {
+        __typename
         bucket
         endpoint
         access
         secret
       }
       ... on FSStorageConfig {
+        __typename
         mediaRoot
       }
       ... on WebDAVStorageConfig {
+        __typename
         url
         username
         password
         pathPrefix
       }
       ... on IPFSMFSStorageConfig {
+        __typename
         apiUrl
         pathPrefix
         pin

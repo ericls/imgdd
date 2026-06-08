@@ -11,6 +11,12 @@ const config: CodegenConfig = {
         gqlTagName: "gql",
         fragmentMasking: false,
       },
+      config: {
+        enumType: "const",
+        scalars: {
+          Time: "string",
+        },
+      },
     },
   },
   ignoreNoDocuments: true,

@@ -1,438 +1,109 @@
 /* eslint-disable */
-import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
-export type Maybe<T> = T | null;
-export type InputMaybe<T> = T | null | undefined;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+/** Internal type. DO NOT USE DIRECTLY. */
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+/** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-/** All built-in and custom scalars, mapped to their actual values */
-export type Scalars = {
-  ID: { input: string; output: string; }
-  String: { input: string; output: string; }
-  Boolean: { input: boolean; output: boolean; }
-  Int: { input: number; output: number; }
-  Float: { input: number; output: number; }
-  Time: { input: any; output: any; }
-};
+import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+export const Anchor = {
+  BottomLeft: 'BOTTOM_LEFT',
+  BottomRight: 'BOTTOM_RIGHT',
+  Center: 'CENTER',
+  TopLeft: 'TOP_LEFT',
+  TopRight: 'TOP_RIGHT'
+} as const;
 
-export enum Anchor {
-  BottomLeft = 'BOTTOM_LEFT',
-  BottomRight = 'BOTTOM_RIGHT',
-  Center = 'CENTER',
-  TopLeft = 'TOP_LEFT',
-  TopRight = 'TOP_RIGHT'
-}
-
+export type Anchor = typeof Anchor[keyof typeof Anchor];
 export type ApplyBlurInput = {
-  baseImageId: Scalars['ID']['input'];
-  radius: Scalars['Int']['input'];
+  baseImageId: string | number;
+  radius: number;
   region: BlurRegionInput;
-};
-
-export type ApplyBlurResult = {
-  __typename?: 'ApplyBlurResult';
-  image?: Maybe<Image>;
 };
 
 export type ApplyWatermarkInput = {
   anchor: Anchor;
-  baseImageId: Scalars['ID']['input'];
-  opacity: Scalars['Float']['input'];
-  overlayImageId: Scalars['ID']['input'];
+  baseImageId: string | number;
+  opacity: number;
+  overlayImageId: string | number;
   position: WatermarkPositionInput;
-  scale: Scalars['Float']['input'];
-};
-
-export type ApplyWatermarkResult = {
-  __typename?: 'ApplyWatermarkResult';
-  image?: Maybe<Image>;
+  scale: number;
 };
 
 export type BlurRegionInput = {
-  x1: Scalars['Float']['input'];
-  x2: Scalars['Float']['input'];
-  y1: Scalars['Float']['input'];
-  y2: Scalars['Float']['input'];
+  x1: number;
+  x2: number;
+  y1: number;
+  y2: number;
 };
 
 export type CreateUserWithOrganizationInput = {
-  organizationName: Scalars['String']['input'];
-  userEmail: Scalars['String']['input'];
-  userPassword: Scalars['String']['input'];
+  organizationName: string;
+  userEmail: string;
+  userPassword: string;
 };
 
 export type DeleteImageInput = {
-  id: Scalars['ID']['input'];
-};
-
-export type DeleteImageResult = {
-  __typename?: 'DeleteImageResult';
-  id?: Maybe<Scalars['ID']['output']>;
-};
-
-export type FsStorageConfig = {
-  __typename?: 'FSStorageConfig';
-  mediaRoot: Scalars['String']['output'];
-};
-
-export type IpfsmfsStorageConfig = {
-  __typename?: 'IPFSMFSStorageConfig';
-  apiUrl: Scalars['String']['output'];
-  pathPrefix: Scalars['String']['output'];
-  pin: Scalars['Boolean']['output'];
-};
-
-export type Image = {
-  __typename?: 'Image';
-  MIMEType: Scalars['String']['output'];
-  changes?: Maybe<Scalars['String']['output']>;
-  createdAt: Scalars['Time']['output'];
-  createdBy?: Maybe<OrganizationUser>;
-  id: Scalars['ID']['output'];
-  identifier: Scalars['String']['output'];
-  lineage: Array<Image>;
-  name: Scalars['String']['output'];
-  nominalByteSize: Scalars['Int']['output'];
-  nominalHeight: Scalars['Int']['output'];
-  nominalWidth: Scalars['Int']['output'];
-  parent?: Maybe<Image>;
-  revisions: Array<Image>;
-  root?: Maybe<Image>;
-  storedImages: Array<StoredImage>;
-  url: Scalars['String']['output'];
-};
-
-export type ImageEdge = {
-  __typename?: 'ImageEdge';
-  cursor: Scalars['String']['output'];
-  node: Image;
+  id: string | number;
 };
 
 export type ImageFilterInput = {
-  createdAtGt?: InputMaybe<Scalars['Time']['input']>;
-  createdAtLt?: InputMaybe<Scalars['Time']['input']>;
-  createdBy?: InputMaybe<Scalars['ID']['input']>;
-  nameContains?: InputMaybe<Scalars['String']['input']>;
+  createdAtGt?: string | null | undefined;
+  createdAtLt?: string | null | undefined;
+  createdBy?: string | number | null | undefined;
+  nameContains?: string | null | undefined;
 };
 
 export type ImageOrderByInput = {
-  createdAt?: InputMaybe<PaginationDirection>;
-  id?: InputMaybe<PaginationDirection>;
-  name?: InputMaybe<PaginationDirection>;
+  createdAt?: PaginationDirection | null | undefined;
+  id?: PaginationDirection | null | undefined;
+  name?: PaginationDirection | null | undefined;
 };
 
-export type ImagePageInfo = {
-  __typename?: 'ImagePageInfo';
-  currentCount?: Maybe<Scalars['Int']['output']>;
-  endCursor?: Maybe<Scalars['String']['output']>;
-  hasNextPage: Scalars['Boolean']['output'];
-  hasPreviousPage: Scalars['Boolean']['output'];
-  startCursor?: Maybe<Scalars['String']['output']>;
-  totalCount?: Maybe<Scalars['Int']['output']>;
-};
+export const PaginationDirection = {
+  Asc: 'asc',
+  Desc: 'desc'
+} as const;
 
-export type ImagesResult = {
-  __typename?: 'ImagesResult';
-  edges: Array<ImageEdge>;
-  pageInfo: ImagePageInfo;
-};
-
-export type Mutation = {
-  __typename?: 'Mutation';
-  applyBlur: ApplyBlurResult;
-  applyWatermark: ApplyWatermarkResult;
-  authenticate: ViewerResult;
-  checkStorageDefinitionConnectivity?: Maybe<StorageDefinitionConnectivityResult>;
-  createStorageDefinition?: Maybe<StorageDefinition>;
-  createUserWithOrganization: ViewerResult;
-  deleteImage: DeleteImageResult;
-  logout: ViewerResult;
-  resetPassword: ResetPasswordResult;
-  sendResetPasswordEmail: SendResetPasswordEmailResult;
-  updateStorageDefinition?: Maybe<StorageDefinition>;
-};
-
-
-export type MutationApplyBlurArgs = {
-  input: ApplyBlurInput;
-};
-
-
-export type MutationApplyWatermarkArgs = {
-  input: ApplyWatermarkInput;
-};
-
-
-export type MutationAuthenticateArgs = {
-  email: Scalars['String']['input'];
-  organizationId?: InputMaybe<Scalars['String']['input']>;
-  password: Scalars['String']['input'];
-};
-
-
-export type MutationCheckStorageDefinitionConnectivityArgs = {
-  input: CheckStorageDefinitionConnectivityInput;
-};
-
-
-export type MutationCreateStorageDefinitionArgs = {
-  input: CreateStorageDefinitionInput;
-};
-
-
-export type MutationCreateUserWithOrganizationArgs = {
-  input: CreateUserWithOrganizationInput;
-};
-
-
-export type MutationDeleteImageArgs = {
-  input: DeleteImageInput;
-};
-
-
-export type MutationResetPasswordArgs = {
-  input: ResetPasswordInput;
-};
-
-
-export type MutationSendResetPasswordEmailArgs = {
-  input: SendResetPasswordEmailInput;
-};
-
-
-export type MutationUpdateStorageDefinitionArgs = {
-  input: UpdateStorageDefinitionInput;
-};
-
-export type Organization = {
-  __typename?: 'Organization';
-  id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
-  slug: Scalars['String']['output'];
-};
-
-export type OrganizationUser = {
-  __typename?: 'OrganizationUser';
-  id: Scalars['ID']['output'];
-  organization: Organization;
-  roles: Array<Role>;
-  user: User;
-};
-
-export type OtherStorageConfig = {
-  __typename?: 'OtherStorageConfig';
-  _empty?: Maybe<Scalars['String']['output']>;
-};
-
-export type PageInfo = {
-  __typename?: 'PageInfo';
-  hasNextPage: Scalars['Boolean']['output'];
-  hasPreviousPage: Scalars['Boolean']['output'];
-  totalCount: Scalars['Int']['output'];
-};
-
-export type PaginatedUsers = {
-  __typename?: 'PaginatedUsers';
-  nodes: Array<UserWithOrganizationUsers>;
-  pageInfo: PageInfo;
-};
-
-export enum PaginationDirection {
-  Asc = 'asc',
-  Desc = 'desc'
-}
-
-export enum PermissionNameEnum {
-  AdminAccess = 'AdminAccess',
-  SiteOwnerAccess = 'SiteOwnerAccess'
-}
-
-export type Query = {
-  __typename?: 'Query';
-  publicImage?: Maybe<Image>;
-  viewer: Viewer;
-};
-
-
-export type QueryPublicImageArgs = {
-  id: Scalars['ID']['input'];
-};
-
+export type PaginationDirection = typeof PaginationDirection[keyof typeof PaginationDirection];
 export type ResetPasswordInput = {
-  message: Scalars['String']['input'];
-  password: Scalars['String']['input'];
-};
-
-export type ResetPasswordResult = {
-  __typename?: 'ResetPasswordResult';
-  success: Scalars['Boolean']['output'];
-};
-
-export type Role = {
-  __typename?: 'Role';
-  key: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-};
-
-export type S3StorageConfig = {
-  __typename?: 'S3StorageConfig';
-  access: Scalars['String']['output'];
-  bucket: Scalars['String']['output'];
-  endpoint: Scalars['String']['output'];
-  secret: Scalars['String']['output'];
+  message: string;
+  password: string;
 };
 
 export type SendResetPasswordEmailInput = {
-  email: Scalars['String']['input'];
+  email: string;
 };
 
-export type SendResetPasswordEmailResult = {
-  __typename?: 'SendResetPasswordEmailResult';
-  success: Scalars['Boolean']['output'];
-};
+export const StorageTypeEnum = {
+  Fs: 'FS',
+  IpfsMfs: 'IpfsMfs',
+  Other: 'Other',
+  S3: 'S3',
+  WebDav: 'WebDAV'
+} as const;
 
-export type StorageConfig = FsStorageConfig | IpfsmfsStorageConfig | OtherStorageConfig | S3StorageConfig | WebDavStorageConfig;
-
-export type StorageDefinition = {
-  __typename?: 'StorageDefinition';
-  config: StorageConfig;
-  connectivity: Scalars['Boolean']['output'];
-  id: Scalars['ID']['output'];
-  identifier: Scalars['String']['output'];
-  isEnabled: Scalars['Boolean']['output'];
-  priority: Scalars['Int']['output'];
-};
-
-export type StorageDefinitionConnectivityResult = {
-  __typename?: 'StorageDefinitionConnectivityResult';
-  error?: Maybe<Scalars['String']['output']>;
-  ok: Scalars['Boolean']['output'];
-};
-
-export enum StorageTypeEnum {
-  Fs = 'FS',
-  IpfsMfs = 'IpfsMfs',
-  Other = 'Other',
-  S3 = 'S3',
-  WebDav = 'WebDAV'
-}
-
-export type StoredImage = {
-  __typename?: 'StoredImage';
-  fileIdentifier: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  storageDefinition: StorageDefinition;
-};
-
-export type User = {
-  __typename?: 'User';
-  avatarUrl: Scalars['String']['output'];
-  email: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
-};
-
-export type UserWithOrganizationUsers = {
-  __typename?: 'UserWithOrganizationUsers';
-  email: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  organizationUsers: Array<OrganizationUser>;
-};
-
-export type Viewer = {
-  __typename?: 'Viewer';
-  allUsers: Array<User>;
-  getStorageDefinition?: Maybe<StorageDefinition>;
-  hasPermission: Scalars['Boolean']['output'];
-  id: Scalars['ID']['output'];
-  image?: Maybe<Image>;
-  images: ImagesResult;
-  organizationUser?: Maybe<OrganizationUser>;
-  organizationUserById?: Maybe<OrganizationUser>;
-  paginatedAllUsers: PaginatedUsers;
-  storageDefinitions: Array<StorageDefinition>;
-  uploadLimitBytes: Scalars['Int']['output'];
-};
-
-
-export type ViewerAllUsersArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  search?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type ViewerGetStorageDefinitionArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type ViewerHasPermissionArgs = {
-  permission: PermissionNameEnum;
-};
-
-
-export type ViewerImageArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type ViewerImagesArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  before?: InputMaybe<Scalars['String']['input']>;
-  filters?: InputMaybe<ImageFilterInput>;
-  orderBy?: InputMaybe<ImageOrderByInput>;
-};
-
-
-export type ViewerOrganizationUserByIdArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type ViewerPaginatedAllUsersArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  search?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type ViewerResult = {
-  __typename?: 'ViewerResult';
-  viewer: Viewer;
-};
-
+export type StorageTypeEnum = typeof StorageTypeEnum[keyof typeof StorageTypeEnum];
 export type WatermarkPositionInput = {
-  x: Scalars['Float']['input'];
-  y: Scalars['Float']['input'];
-};
-
-export type WebDavStorageConfig = {
-  __typename?: 'WebDAVStorageConfig';
-  password: Scalars['String']['output'];
-  pathPrefix: Scalars['String']['output'];
-  url: Scalars['String']['output'];
-  username: Scalars['String']['output'];
+  x: number;
+  y: number;
 };
 
 export type CheckStorageDefinitionConnectivityInput = {
-  id: Scalars['ID']['input'];
+  id: string | number;
 };
 
 export type CreateStorageDefinitionInput = {
-  configJSON: Scalars['String']['input'];
-  identifier: Scalars['String']['input'];
-  isEnabled: Scalars['Boolean']['input'];
-  priority: Scalars['Int']['input'];
+  configJSON: string;
+  identifier: string;
+  isEnabled: boolean;
+  priority: number;
   storageType: StorageTypeEnum;
 };
 
 export type UpdateStorageDefinitionInput = {
-  configJSON?: InputMaybe<Scalars['String']['input']>;
-  identifier: Scalars['String']['input'];
-  isEnabled?: InputMaybe<Scalars['Boolean']['input']>;
-  priority?: InputMaybe<Scalars['Int']['input']>;
+  configJSON?: string | null | undefined;
+  identifier: string;
+  isEnabled?: boolean | null | undefined;
+  priority?: number | null | undefined;
 };
 
 export type CreateUserWithOrganizationMutationVariables = Exact<{
@@ -440,147 +111,147 @@ export type CreateUserWithOrganizationMutationVariables = Exact<{
 }>;
 
 
-export type CreateUserWithOrganizationMutation = { __typename?: 'Mutation', createUserWithOrganization: { __typename?: 'ViewerResult', viewer: { __typename?: 'Viewer', id: string, organizationUser?: { __typename?: 'OrganizationUser', id: string, user: { __typename?: 'User', id: string, email: string, name: string } } | null } } };
+export type CreateUserWithOrganizationMutation = { createUserWithOrganization: { viewer: { id: string, organizationUser: { id: string, user: { id: string, email: string, name: string } } | null } } };
 
 export type AuthenticateMutationVariables = Exact<{
-  email: Scalars['String']['input'];
-  password: Scalars['String']['input'];
+  email: string;
+  password: string;
 }>;
 
 
-export type AuthenticateMutation = { __typename?: 'Mutation', authenticate: { __typename?: 'ViewerResult', viewer: { __typename?: 'Viewer', id: string, organizationUser?: { __typename?: 'OrganizationUser', id: string, user: { __typename?: 'User', id: string, email: string, name: string } } | null } } };
+export type AuthenticateMutation = { authenticate: { viewer: { id: string, organizationUser: { id: string, user: { id: string, email: string, name: string } } | null } } };
 
 export type SendResetPasswordEmailMutationVariables = Exact<{
   input: SendResetPasswordEmailInput;
 }>;
 
 
-export type SendResetPasswordEmailMutation = { __typename?: 'Mutation', sendResetPasswordEmail: { __typename?: 'SendResetPasswordEmailResult', success: boolean } };
+export type SendResetPasswordEmailMutation = { sendResetPasswordEmail: { success: boolean } };
 
 export type ResetPasswordMutationVariables = Exact<{
   input: ResetPasswordInput;
 }>;
 
 
-export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword: { __typename?: 'ResetPasswordResult', success: boolean } };
+export type ResetPasswordMutation = { resetPassword: { success: boolean } };
 
 export type ImagesQueryQueryVariables = Exact<{
-  orderBy?: InputMaybe<ImageOrderByInput>;
-  filters?: InputMaybe<ImageFilterInput>;
-  after?: InputMaybe<Scalars['String']['input']>;
-  before?: InputMaybe<Scalars['String']['input']>;
+  orderBy?: ImageOrderByInput | null | undefined;
+  filters?: ImageFilterInput | null | undefined;
+  after?: string | null | undefined;
+  before?: string | null | undefined;
 }>;
 
 
-export type ImagesQueryQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, images: { __typename?: 'ImagesResult', pageInfo: { __typename?: 'ImagePageInfo', hasNextPage: boolean, hasPreviousPage: boolean, startCursor?: string | null, endCursor?: string | null, totalCount?: number | null, currentCount?: number | null }, edges: Array<{ __typename?: 'ImageEdge', cursor: string, node: { __typename?: 'Image', id: string, url: string, name: string, nominalWidth: number, nominalHeight: number, nominalByteSize: number, createdAt: any, storedImages: Array<{ __typename?: 'StoredImage', id: string }>, parent?: { __typename?: 'Image', id: string, name: string } | null, createdBy?: { __typename?: 'OrganizationUser', id: string, user: { __typename?: 'User', id: string, avatarUrl: string } } | null } }> } } };
+export type ImagesQueryQuery = { viewer: { id: string, images: { pageInfo: { hasNextPage: boolean, hasPreviousPage: boolean, startCursor: string | null, endCursor: string | null, totalCount: number | null, currentCount: number | null }, edges: Array<{ cursor: string, node: { id: string, url: string, name: string, nominalWidth: number, nominalHeight: number, nominalByteSize: number, createdAt: string, storedImages: Array<{ id: string }>, parent: { id: string, name: string } | null, createdBy: { id: string, user: { id: string, avatarUrl: string } } | null } }> } } };
 
 export type DeleteImageMutationVariables = Exact<{
   input: DeleteImageInput;
 }>;
 
 
-export type DeleteImageMutation = { __typename?: 'Mutation', deleteImage: { __typename?: 'DeleteImageResult', id?: string | null } };
+export type DeleteImageMutation = { deleteImage: { id: string | null } };
 
-export type ImageDetailFieldsFragment = { __typename?: 'Image', id: string, url: string, name: string, identifier: string, nominalWidth: number, nominalHeight: number, MIMEType: string, createdAt: any, changes?: string | null, createdBy?: { __typename?: 'OrganizationUser', id: string } | null, lineage: Array<{ __typename?: 'Image', id: string, url: string, name: string, changes?: string | null, createdAt: any }> };
+export type ImageDetailFieldsFragment = { id: string, url: string, name: string, identifier: string, nominalWidth: number, nominalHeight: number, MIMEType: string, createdAt: string, changes: string | null, createdBy: { id: string } | null, lineage: Array<{ id: string, url: string, name: string, changes: string | null, createdAt: string }> };
 
 export type ImageDetailQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
+  id: string | number;
 }>;
 
 
-export type ImageDetailQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, organizationUser?: { __typename?: 'OrganizationUser', id: string } | null, image?: { __typename?: 'Image', id: string, url: string, name: string, identifier: string, nominalWidth: number, nominalHeight: number, MIMEType: string, createdAt: any, changes?: string | null, createdBy?: { __typename?: 'OrganizationUser', id: string } | null, lineage: Array<{ __typename?: 'Image', id: string, url: string, name: string, changes?: string | null, createdAt: any }> } | null } };
+export type ImageDetailQuery = { viewer: { id: string, organizationUser: { id: string } | null, image: { id: string, url: string, name: string, identifier: string, nominalWidth: number, nominalHeight: number, MIMEType: string, createdAt: string, changes: string | null, createdBy: { id: string } | null, lineage: Array<{ id: string, url: string, name: string, changes: string | null, createdAt: string }> } | null } };
 
 export type PublicImageDetailQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
+  id: string | number;
 }>;
 
 
-export type PublicImageDetailQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, organizationUser?: { __typename?: 'OrganizationUser', id: string } | null }, publicImage?: { __typename?: 'Image', id: string, url: string, name: string, identifier: string, nominalWidth: number, nominalHeight: number, MIMEType: string, createdAt: any, changes?: string | null, createdBy?: { __typename?: 'OrganizationUser', id: string } | null, lineage: Array<{ __typename?: 'Image', id: string, url: string, name: string, changes?: string | null, createdAt: any }> } | null };
+export type PublicImageDetailQuery = { viewer: { id: string, organizationUser: { id: string } | null }, publicImage: { id: string, url: string, name: string, identifier: string, nominalWidth: number, nominalHeight: number, MIMEType: string, createdAt: string, changes: string | null, createdBy: { id: string } | null, lineage: Array<{ id: string, url: string, name: string, changes: string | null, createdAt: string }> } | null };
 
 export type ImageForEditorQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
+  id: string | number;
 }>;
 
 
-export type ImageForEditorQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, image?: { __typename?: 'Image', id: string, url: string, name: string, identifier: string, nominalWidth: number, nominalHeight: number, MIMEType: string, changes?: string | null, parent?: { __typename?: 'Image', id: string, name: string } | null } | null } };
+export type ImageForEditorQuery = { viewer: { id: string, image: { id: string, url: string, name: string, identifier: string, nominalWidth: number, nominalHeight: number, MIMEType: string, changes: string | null, parent: { id: string, name: string } | null } | null } };
 
 export type ApplyWatermarkMutationVariables = Exact<{
   input: ApplyWatermarkInput;
 }>;
 
 
-export type ApplyWatermarkMutation = { __typename?: 'Mutation', applyWatermark: { __typename?: 'ApplyWatermarkResult', image?: { __typename?: 'Image', id: string, url: string, name: string, identifier: string, nominalWidth: number, nominalHeight: number, nominalByteSize: number, MIMEType: string, changes?: string | null, parent?: { __typename?: 'Image', id: string, name: string } | null } | null } };
+export type ApplyWatermarkMutation = { applyWatermark: { image: { id: string, url: string, name: string, identifier: string, nominalWidth: number, nominalHeight: number, nominalByteSize: number, MIMEType: string, changes: string | null, parent: { id: string, name: string } | null } | null } };
 
 export type ApplyBlurMutationVariables = Exact<{
   input: ApplyBlurInput;
 }>;
 
 
-export type ApplyBlurMutation = { __typename?: 'Mutation', applyBlur: { __typename?: 'ApplyBlurResult', image?: { __typename?: 'Image', id: string, url: string, name: string, identifier: string, nominalWidth: number, nominalHeight: number, nominalByteSize: number, MIMEType: string, changes?: string | null, parent?: { __typename?: 'Image', id: string, name: string } | null } | null } };
+export type ApplyBlurMutation = { applyBlur: { image: { id: string, url: string, name: string, identifier: string, nominalWidth: number, nominalHeight: number, nominalByteSize: number, MIMEType: string, changes: string | null, parent: { id: string, name: string } | null } | null } };
 
 export type AuthQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AuthQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, uploadLimitBytes: number, hasAdminAccess: boolean, hasSiteOwnerAccess: boolean, organizationUser?: { __typename?: 'OrganizationUser', id: string, user: { __typename?: 'User', id: string, email: string, name: string } } | null } };
+export type AuthQuery = { viewer: { id: string, uploadLimitBytes: number, hasAdminAccess: boolean, hasSiteOwnerAccess: boolean, organizationUser: { id: string, user: { id: string, email: string, name: string } } | null } };
 
 export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type LogoutMutation = { __typename?: 'Mutation', logout: { __typename?: 'ViewerResult', viewer: { __typename?: 'Viewer', id: string, uploadLimitBytes: number, hasAdminAccess: boolean, hasSiteOwnerAccess: boolean, organizationUser?: { __typename?: 'OrganizationUser', id: string, user: { __typename?: 'User', id: string, email: string, name: string } } | null } } };
+export type LogoutMutation = { logout: { viewer: { id: string, uploadLimitBytes: number, hasAdminAccess: boolean, hasSiteOwnerAccess: boolean, organizationUser: { id: string, user: { id: string, email: string, name: string } } | null } } };
 
 export type StorageDefTableConnectivityCellMutationMutationVariables = Exact<{
   input: CheckStorageDefinitionConnectivityInput;
 }>;
 
 
-export type StorageDefTableConnectivityCellMutationMutation = { __typename?: 'Mutation', checkStorageDefinitionConnectivity?: { __typename?: 'StorageDefinitionConnectivityResult', ok: boolean, error?: string | null } | null };
+export type StorageDefTableConnectivityCellMutationMutation = { checkStorageDefinitionConnectivity: { ok: boolean, error: string | null } | null };
 
 export type ListStorageDefQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ListStorageDefQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, storageDefinitions: Array<{ __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config:
-        | { __typename?: 'FSStorageConfig', mediaRoot: string }
-        | { __typename?: 'IPFSMFSStorageConfig', apiUrl: string, pathPrefix: string, pin: boolean }
-        | { __typename?: 'OtherStorageConfig' }
-        | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string }
-        | { __typename?: 'WebDAVStorageConfig', url: string, username: string, password: string, pathPrefix: string }
+export type ListStorageDefQuery = { viewer: { id: string, storageDefinitions: Array<{ __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config:
+        | { __typename: 'FSStorageConfig', mediaRoot: string }
+        | { __typename: 'IPFSMFSStorageConfig', apiUrl: string, pathPrefix: string, pin: boolean }
+        | { __typename: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string }
+        | { __typename: 'WebDAVStorageConfig', url: string, username: string, password: string, pathPrefix: string }
+        | Record<PropertyKey, never>
        }> } };
 
 export type GetStorageDefQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
+  id: string | number;
 }>;
 
 
-export type GetStorageDefQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, getStorageDefinition?: { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config:
-        | { __typename?: 'FSStorageConfig', mediaRoot: string }
-        | { __typename?: 'IPFSMFSStorageConfig', apiUrl: string, pathPrefix: string, pin: boolean }
-        | { __typename?: 'OtherStorageConfig' }
-        | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string }
-        | { __typename?: 'WebDAVStorageConfig', url: string, username: string, password: string, pathPrefix: string }
+export type GetStorageDefQuery = { viewer: { id: string, getStorageDefinition: { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config:
+        | { __typename: 'FSStorageConfig', mediaRoot: string }
+        | { __typename: 'IPFSMFSStorageConfig', apiUrl: string, pathPrefix: string, pin: boolean }
+        | { __typename: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string }
+        | { __typename: 'WebDAVStorageConfig', url: string, username: string, password: string, pathPrefix: string }
+        | Record<PropertyKey, never>
        } | null } };
 
 export type OrgUserByIdQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
+  id: string | number;
 }>;
 
 
-export type OrgUserByIdQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, organizationUserById?: { __typename?: 'OrganizationUser', id: string, user: { __typename?: 'User', id: string, name: string, avatarUrl: string } } | null } };
+export type OrgUserByIdQuery = { viewer: { id: string, organizationUserById: { id: string, user: { id: string, name: string, avatarUrl: string } } | null } };
 
 export type ListUsersQueryVariables = Exact<{
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  offset?: InputMaybe<Scalars['Int']['input']>;
-  search?: InputMaybe<Scalars['String']['input']>;
+  limit?: number | null | undefined;
+  offset?: number | null | undefined;
+  search?: string | null | undefined;
 }>;
 
 
-export type ListUsersQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, paginatedAllUsers: { __typename?: 'PaginatedUsers', nodes: Array<{ __typename?: 'UserWithOrganizationUsers', id: string, email: string, organizationUsers: Array<{ __typename?: 'OrganizationUser', id: string, organization: { __typename?: 'Organization', id: string, name: string } }> }>, pageInfo: { __typename?: 'PageInfo', totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } } };
+export type ListUsersQuery = { viewer: { id: string, paginatedAllUsers: { nodes: Array<{ id: string, email: string, organizationUsers: Array<{ id: string, organization: { id: string, name: string } }> }>, pageInfo: { totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } } };
 
 export type StorageDefinitionFragmentFragment = { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config:
-    | { __typename?: 'FSStorageConfig', mediaRoot: string }
-    | { __typename?: 'IPFSMFSStorageConfig', apiUrl: string, pathPrefix: string, pin: boolean }
-    | { __typename?: 'OtherStorageConfig' }
-    | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string }
-    | { __typename?: 'WebDAVStorageConfig', url: string, username: string, password: string, pathPrefix: string }
+    | { __typename: 'FSStorageConfig', mediaRoot: string }
+    | { __typename: 'IPFSMFSStorageConfig', apiUrl: string, pathPrefix: string, pin: boolean }
+    | { __typename: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string }
+    | { __typename: 'WebDAVStorageConfig', url: string, username: string, password: string, pathPrefix: string }
+    | Record<PropertyKey, never>
    };
 
 export type CreateStorageDefMutationVariables = Exact<{
@@ -588,12 +259,12 @@ export type CreateStorageDefMutationVariables = Exact<{
 }>;
 
 
-export type CreateStorageDefMutation = { __typename?: 'Mutation', createStorageDefinition?: { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config:
-      | { __typename?: 'FSStorageConfig', mediaRoot: string }
-      | { __typename?: 'IPFSMFSStorageConfig', apiUrl: string, pathPrefix: string, pin: boolean }
-      | { __typename?: 'OtherStorageConfig' }
-      | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string }
-      | { __typename?: 'WebDAVStorageConfig', url: string, username: string, password: string, pathPrefix: string }
+export type CreateStorageDefMutation = { createStorageDefinition: { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config:
+      | { __typename: 'FSStorageConfig', mediaRoot: string }
+      | { __typename: 'IPFSMFSStorageConfig', apiUrl: string, pathPrefix: string, pin: boolean }
+      | { __typename: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string }
+      | { __typename: 'WebDAVStorageConfig', url: string, username: string, password: string, pathPrefix: string }
+      | Record<PropertyKey, never>
      } | null };
 
 export type UpdateStorageDefMutationVariables = Exact<{
@@ -601,16 +272,16 @@ export type UpdateStorageDefMutationVariables = Exact<{
 }>;
 
 
-export type UpdateStorageDefMutation = { __typename?: 'Mutation', updateStorageDefinition?: { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config:
-      | { __typename?: 'FSStorageConfig', mediaRoot: string }
-      | { __typename?: 'IPFSMFSStorageConfig', apiUrl: string, pathPrefix: string, pin: boolean }
-      | { __typename?: 'OtherStorageConfig' }
-      | { __typename?: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string }
-      | { __typename?: 'WebDAVStorageConfig', url: string, username: string, password: string, pathPrefix: string }
+export type UpdateStorageDefMutation = { updateStorageDefinition: { __typename: 'StorageDefinition', id: string, identifier: string, isEnabled: boolean, priority: number, config:
+      | { __typename: 'FSStorageConfig', mediaRoot: string }
+      | { __typename: 'IPFSMFSStorageConfig', apiUrl: string, pathPrefix: string, pin: boolean }
+      | { __typename: 'S3StorageConfig', bucket: string, endpoint: string, access: string, secret: string }
+      | { __typename: 'WebDAVStorageConfig', url: string, username: string, password: string, pathPrefix: string }
+      | Record<PropertyKey, never>
      } | null };
 
 export const ImageDetailFieldsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ImageDetailFields"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Image"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"identifier"}},{"kind":"Field","name":{"kind":"Name","value":"nominalWidth"}},{"kind":"Field","name":{"kind":"Name","value":"nominalHeight"}},{"kind":"Field","name":{"kind":"Name","value":"MIMEType"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"changes"}},{"kind":"Field","name":{"kind":"Name","value":"createdBy"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}},{"kind":"Field","name":{"kind":"Name","value":"lineage"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"changes"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}}]}}]}}]} as unknown as DocumentNode<ImageDetailFieldsFragment, unknown>;
-export const StorageDefinitionFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StorageDefinitionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"StorageDefinition"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"identifier"}},{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"isEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"S3StorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bucket"}},{"kind":"Field","name":{"kind":"Name","value":"endpoint"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"secret"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"mediaRoot"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"WebDAVStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"IPFSMFSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiUrl"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"pin"}}]}}]}}]}}]} as unknown as DocumentNode<StorageDefinitionFragmentFragment, unknown>;
+export const StorageDefinitionFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StorageDefinitionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"StorageDefinition"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"identifier"}},{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"isEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"S3StorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"bucket"}},{"kind":"Field","name":{"kind":"Name","value":"endpoint"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"secret"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"mediaRoot"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"WebDAVStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"IPFSMFSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"apiUrl"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"pin"}}]}}]}}]}}]} as unknown as DocumentNode<StorageDefinitionFragmentFragment, unknown>;
 export const CreateUserWithOrganizationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"createUserWithOrganization"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateUserWithOrganizationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createUserWithOrganization"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<CreateUserWithOrganizationMutation, CreateUserWithOrganizationMutationVariables>;
 export const AuthenticateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"authenticate"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"authenticate"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"Argument","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<AuthenticateMutation, AuthenticateMutationVariables>;
 export const SendResetPasswordEmailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"sendResetPasswordEmail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SendResetPasswordEmailInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sendResetPasswordEmail"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}}]}}]}}]} as unknown as DocumentNode<SendResetPasswordEmailMutation, SendResetPasswordEmailMutationVariables>;
@@ -625,9 +296,9 @@ export const ApplyBlurDocument = {"kind":"Document","definitions":[{"kind":"Oper
 export const AuthDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Auth"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}},{"kind":"Field","alias":{"kind":"Name","value":"hasAdminAccess"},"name":{"kind":"Name","value":"hasPermission"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"permission"},"value":{"kind":"EnumValue","value":"AdminAccess"}}]},{"kind":"Field","alias":{"kind":"Name","value":"hasSiteOwnerAccess"},"name":{"kind":"Name","value":"hasPermission"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"permission"},"value":{"kind":"EnumValue","value":"SiteOwnerAccess"}}]},{"kind":"Field","name":{"kind":"Name","value":"uploadLimitBytes"}}]}}]}}]} as unknown as DocumentNode<AuthQuery, AuthQueryVariables>;
 export const LogoutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"Logout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logout"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUser"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}},{"kind":"Field","alias":{"kind":"Name","value":"hasAdminAccess"},"name":{"kind":"Name","value":"hasPermission"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"permission"},"value":{"kind":"EnumValue","value":"AdminAccess"}}]},{"kind":"Field","alias":{"kind":"Name","value":"hasSiteOwnerAccess"},"name":{"kind":"Name","value":"hasPermission"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"permission"},"value":{"kind":"EnumValue","value":"SiteOwnerAccess"}}]},{"kind":"Field","name":{"kind":"Name","value":"uploadLimitBytes"}}]}}]}}]}}]} as unknown as DocumentNode<LogoutMutation, LogoutMutationVariables>;
 export const StorageDefTableConnectivityCellMutationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"StorageDefTableConnectivityCellMutation"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"checkStorageDefinitionConnectivityInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"checkStorageDefinitionConnectivity"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ok"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<StorageDefTableConnectivityCellMutationMutation, StorageDefTableConnectivityCellMutationMutationVariables>;
-export const ListStorageDefDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ListStorageDef"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"storageDefinitions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StorageDefinitionFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StorageDefinitionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"StorageDefinition"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"identifier"}},{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"isEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"S3StorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bucket"}},{"kind":"Field","name":{"kind":"Name","value":"endpoint"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"secret"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"mediaRoot"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"WebDAVStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"IPFSMFSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiUrl"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"pin"}}]}}]}}]}}]} as unknown as DocumentNode<ListStorageDefQuery, ListStorageDefQueryVariables>;
-export const GetStorageDefDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetStorageDef"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"getStorageDefinition"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StorageDefinitionFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StorageDefinitionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"StorageDefinition"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"identifier"}},{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"isEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"S3StorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bucket"}},{"kind":"Field","name":{"kind":"Name","value":"endpoint"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"secret"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"mediaRoot"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"WebDAVStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"IPFSMFSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiUrl"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"pin"}}]}}]}}]}}]} as unknown as DocumentNode<GetStorageDefQuery, GetStorageDefQueryVariables>;
+export const ListStorageDefDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ListStorageDef"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"storageDefinitions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StorageDefinitionFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StorageDefinitionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"StorageDefinition"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"identifier"}},{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"isEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"S3StorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"bucket"}},{"kind":"Field","name":{"kind":"Name","value":"endpoint"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"secret"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"mediaRoot"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"WebDAVStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"IPFSMFSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"apiUrl"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"pin"}}]}}]}}]}}]} as unknown as DocumentNode<ListStorageDefQuery, ListStorageDefQueryVariables>;
+export const GetStorageDefDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetStorageDef"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"getStorageDefinition"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StorageDefinitionFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StorageDefinitionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"StorageDefinition"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"identifier"}},{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"isEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"S3StorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"bucket"}},{"kind":"Field","name":{"kind":"Name","value":"endpoint"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"secret"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"mediaRoot"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"WebDAVStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"IPFSMFSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"apiUrl"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"pin"}}]}}]}}]}}]} as unknown as DocumentNode<GetStorageDefQuery, GetStorageDefQueryVariables>;
 export const OrgUserByIdDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"OrgUserById"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUserById"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"avatarUrl"}}]}}]}}]}}]}}]} as unknown as DocumentNode<OrgUserByIdQuery, OrgUserByIdQueryVariables>;
 export const ListUsersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ListUsers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"offset"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"search"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"viewer"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"paginatedAllUsers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}},{"kind":"Argument","name":{"kind":"Name","value":"offset"},"value":{"kind":"Variable","name":{"kind":"Name","value":"offset"}}},{"kind":"Argument","name":{"kind":"Name","value":"search"},"value":{"kind":"Variable","name":{"kind":"Name","value":"search"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"nodes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"email"}},{"kind":"Field","name":{"kind":"Name","value":"organizationUsers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"organization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"pageInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"totalCount"}},{"kind":"Field","name":{"kind":"Name","value":"hasNextPage"}},{"kind":"Field","name":{"kind":"Name","value":"hasPreviousPage"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ListUsersQuery, ListUsersQueryVariables>;
-export const CreateStorageDefDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateStorageDef"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"createStorageDefinitionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createStorageDefinition"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StorageDefinitionFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StorageDefinitionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"StorageDefinition"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"identifier"}},{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"isEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"S3StorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bucket"}},{"kind":"Field","name":{"kind":"Name","value":"endpoint"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"secret"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"mediaRoot"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"WebDAVStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"IPFSMFSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiUrl"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"pin"}}]}}]}}]}}]} as unknown as DocumentNode<CreateStorageDefMutation, CreateStorageDefMutationVariables>;
-export const UpdateStorageDefDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateStorageDef"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"updateStorageDefinitionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateStorageDefinition"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StorageDefinitionFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StorageDefinitionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"StorageDefinition"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"identifier"}},{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"isEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"S3StorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bucket"}},{"kind":"Field","name":{"kind":"Name","value":"endpoint"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"secret"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"mediaRoot"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"WebDAVStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"IPFSMFSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiUrl"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"pin"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateStorageDefMutation, UpdateStorageDefMutationVariables>;
+export const CreateStorageDefDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateStorageDef"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"createStorageDefinitionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createStorageDefinition"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StorageDefinitionFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StorageDefinitionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"StorageDefinition"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"identifier"}},{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"isEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"S3StorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"bucket"}},{"kind":"Field","name":{"kind":"Name","value":"endpoint"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"secret"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"mediaRoot"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"WebDAVStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"IPFSMFSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"apiUrl"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"pin"}}]}}]}}]}}]} as unknown as DocumentNode<CreateStorageDefMutation, CreateStorageDefMutationVariables>;
+export const UpdateStorageDefDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateStorageDef"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"updateStorageDefinitionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateStorageDefinition"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"StorageDefinitionFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"StorageDefinitionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"StorageDefinition"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"identifier"}},{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"isEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"priority"}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"S3StorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"bucket"}},{"kind":"Field","name":{"kind":"Name","value":"endpoint"}},{"kind":"Field","name":{"kind":"Name","value":"access"}},{"kind":"Field","name":{"kind":"Name","value":"secret"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"mediaRoot"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"WebDAVStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"password"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"IPFSMFSStorageConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"Field","name":{"kind":"Name","value":"apiUrl"}},{"kind":"Field","name":{"kind":"Name","value":"pathPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"pin"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateStorageDefMutation, UpdateStorageDefMutationVariables>;

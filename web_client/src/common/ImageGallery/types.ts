@@ -23,4 +23,6 @@ export type RenderingImageItem = {
   menuConfig?: ImageItemMenuConfig;
 };
 
-export type ImageItemRenderer = (image: RenderingImageItem) => React.ReactNode;
+export type ImageItemRendererFn = (
+  image: RenderingImageItem,
+) => React.ReactNode;
