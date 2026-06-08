@@ -2,7 +2,7 @@
 # DEV or test environment
 services:
   db:
-    image: postgres:alpine
+    image: postgres:15-alpine
     env_file:
       - .env
     ports:
