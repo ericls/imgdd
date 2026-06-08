@@ -1,6 +1,6 @@
 module github.com/ericls/imgdd
 
-go 1.25.11
+go 1.25.10
 
 // License: AGPL-3.0-only
 
