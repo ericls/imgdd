@@ -10,8 +10,8 @@ import (
 )
 
 func TestS3Storage(t *testing.T) {
-	TestServiceMan.StartMinio()
-	defer TestServiceMan.StopMinio()
+	TestServiceMan.StartS3()
+	defer TestServiceMan.StopS3()
 	data := []byte("test data")
 
 	s3Config := TestServiceMan.GetS3Config()

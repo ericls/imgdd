@@ -9,8 +9,8 @@ import (
 )
 
 func TestGetStorage(t *testing.T) {
-	TestServiceMan.StartMinio()
-	defer TestServiceMan.StopMinio()
+	TestServiceMan.StartS3()
+	defer TestServiceMan.StopS3()
 	test_support.ResetDatabase(TestServiceMan.GetDBConfig())
 	dbConn := db.GetConnection(TestServiceMan.GetDBConfig())
 	repo := storage.NewDBStorageConfig(dbConn).MakeStorageDefRepo()

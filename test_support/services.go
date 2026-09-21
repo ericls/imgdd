@@ -39,7 +39,7 @@ type TestExternalServiceManager struct {
 	Pool           *dockertest.Pool
 	dbResource     *dockertest.Resource
 	redisResource  *dockertest.Resource
-	minioResource  *dockertest.Resource
+	s3Resource     *dockertest.Resource
 	webDavResource *dockertest.Resource
 	ipfsResource   *dockertest.Resource
 
@@ -65,8 +65,8 @@ func NewTestExternalServiceManager() *TestExternalServiceManager {
 	}
 	s3Config := &TestS3Config{
 		Bucket: "test-bucket",
-		Access: "minio",
-		Secret: "minio123",
+		Access: "s3mock",
+		Secret: "s3mock",
 		Port:   "",
 	}
 	dbConfig := &db.DBConfigDef{
@@ -88,7 +88,7 @@ func NewTestExternalServiceManager() *TestExternalServiceManager {
 		Pool:          pool,
 		dbResource:    nil,
 		redisResource: nil,
-		minioResource: nil,
+		s3Resource:    nil,
 		s3Config:      s3Config,
 		dbConfig:      dbConfig,
 		webDavConfig:  webDavConfig,
@@ -149,34 +149,29 @@ func (ts *TestExternalServiceManager) StartRedis() {
 	ts.redisURI = testRedisURI
 }
 
-func (ts *TestExternalServiceManager) StartMinio() {
+func (ts *TestExternalServiceManager) StartS3() {
 	ts.lock.Lock()
 	defer ts.lock.Unlock()
-	if ts.minioResource != nil {
-		ts.logger.Info().Msg("Minio already started")
+	if ts.s3Resource != nil {
+		ts.logger.Info().Msg("S3 mock already started")
 		return
 	}
-	ts.logger.Info().Msg("Starting Minio")
+	ts.logger.Info().Msg("Starting S3 mock")
 	var err error
-	minioContainer, err := ts.Pool.RunWithOptions(&dockertest.RunOptions{
-		Repository: "minio/minio",
-		Tag:        "RELEASE.2021-04-22T15-44-28Z",
-		Env: []string{
-			"MINIO_ROOT_USER=" + ts.s3Config.Access,
-			"MINIO_ROOT_PASSWORD=" + ts.s3Config.Secret,
-		},
+	s3MockContainer, err := ts.Pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "adobe/s3mock",
+		Tag:        "latest",
 		PortBindings: map[docker.Port][]docker.PortBinding{
-			"9000/tcp": {{HostIP: "0.0.0.0", HostPort: "0"}},
+			"9090/tcp": {{HostIP: "0.0.0.0", HostPort: "0"}},
 		},
-		Cmd: []string{"server", "/data"},
 	})
 	if err != nil {
 		panic(err)
 	}
-	port := minioContainer.GetPort("9000/tcp")
-	ts.minioResource = minioContainer
+	port := s3MockContainer.GetPort("9090/tcp")
+	ts.s3Resource = s3MockContainer
 	ts.s3Config.Port = port
-	ts.waitMinio()
+	ts.waitS3()
 }
 
 func (ts *TestExternalServiceManager) StartWebDav() {
@@ -248,7 +243,7 @@ func (ts *TestExternalServiceManager) waitIPFS() {
 	}
 }
 
-func (ts *TestExternalServiceManager) waitMinio() {
+func (ts *TestExternalServiceManager) waitS3() {
 	if err := ts.Pool.Retry(func() error {
 		port := ts.s3Config.Port
 		conn, err := net.Dial("tcp", "localhost:"+port)
@@ -297,13 +292,13 @@ func (ts *TestExternalServiceManager) StopRedis() {
 	}
 }
 
-func (ts *TestExternalServiceManager) StopMinio() {
+func (ts *TestExternalServiceManager) StopS3() {
 	ts.lock.Lock()
 	defer ts.lock.Unlock()
-	if ts.minioResource != nil {
-		ts.logger.Info().Msg("Stopping Minio")
-		ts.Pool.Purge(ts.minioResource)
-		ts.minioResource = nil
+	if ts.s3Resource != nil {
+		ts.logger.Info().Msg("Stopping S3 mock")
+		ts.Pool.Purge(ts.s3Resource)
+		ts.s3Resource = nil
 	}
 }
 
@@ -334,8 +329,8 @@ func (ts *TestExternalServiceManager) Purge() {
 	if ts.redisResource != nil {
 		ts.Pool.Purge(ts.redisResource)
 	}
-	if ts.minioResource != nil {
-		ts.Pool.Purge(ts.minioResource)
+	if ts.s3Resource != nil {
+		ts.Pool.Purge(ts.s3Resource)
 	}
 	if ts.webDavResource != nil {
 		ts.Pool.Purge(ts.webDavResource)
