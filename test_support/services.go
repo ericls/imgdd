@@ -159,8 +159,9 @@ func (ts *TestExternalServiceManager) StartS3() {
 	ts.logger.Info().Msg("Starting S3 mock")
 	var err error
 	s3MockContainer, err := ts.Pool.RunWithOptions(&dockertest.RunOptions{
-		Repository: "adobe/s3mock",
-		Tag:        "latest",
+		Repository:   "adobe/s3mock",
+		Tag:          "latest",
+		ExposedPorts: []string{"9090/tcp"},
 		PortBindings: map[docker.Port][]docker.PortBinding{
 			"9090/tcp": {{HostIP: "0.0.0.0", HostPort: "0"}},
 		},
