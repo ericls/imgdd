@@ -55,7 +55,7 @@ type TestExternalServiceManager struct {
 
 func NewTestExternalServiceManager() *TestExternalServiceManager {
 	pool, err := dockertest.NewPool("")
-	pool.MaxWait = 10 * time.Second
+	pool.MaxWait = 30 * time.Second
 	if err != nil {
 		panic(err)
 	}
@@ -168,9 +168,25 @@ func (ts *TestExternalServiceManager) StartS3() {
 	if err != nil {
 		panic(err)
 	}
-	port := s3MockContainer.GetPort("9090/tcp")
 	ts.s3Resource = s3MockContainer
-	ts.s3Config.Port = port
+	// Under a remote/slower docker daemon (e.g. dind in CI), the host port
+	// assigned by "HostPort: 0" isn't always reflected yet in the inspect
+	// result returned by RunWithOptions, so re-inspect until it is.
+	if err := ts.Pool.Retry(func() error {
+		container, err := ts.Pool.Client.InspectContainer(s3MockContainer.Container.ID)
+		if err != nil {
+			return err
+		}
+		s3MockContainer.Container = container
+		port := s3MockContainer.GetPort("9090/tcp")
+		if port == "" || port == "0" {
+			return fmt.Errorf("s3 mock port not yet assigned")
+		}
+		ts.s3Config.Port = port
+		return nil
+	}); err != nil {
+		panic(err)
+	}
 	ts.waitS3()
 }
 
