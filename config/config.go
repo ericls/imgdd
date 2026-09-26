@@ -22,26 +22,25 @@ const (
 	defaultConfigStorageSource = storage.StorageDefSourceDB
 	defaultConfigCaptcha       = captcha.CaptchaProviderOff
 	defaultCleanupInterval     = 600 * time.Second
-	defaultExpiryInterval      = 60 * time.Second
 )
 
 type ConfigDef struct {
-	Db            db.DBConfigDef
-	HttpServer    httpserver.HttpServerConfigDef
-	Storage       storage.StorageConfigDef
-	Email         email.EmailConfigDef
-	CleanupConfig *storage.CleanupConfig
-	ExpiryConfig  *image.ExpiryConfig
-	configFileDef *ConfigFileDef
+	Db                        db.DBConfigDef
+	HttpServer                httpserver.HttpServerConfigDef
+	Storage                   storage.StorageConfigDef
+	Email                     email.EmailConfigDef
+	CleanupConfig             *storage.CleanupConfig
+	DeleteExpiredImagesConfig *image.DeleteExpiredImagesConfig
+	configFileDef             *ConfigFileDef
 }
 
 func ConfigFromEnv() (*ConfigDef, error) {
 	return &ConfigDef{
-		Db:            db.ReadConfigFromEnv(),
-		HttpServer:    httpserver.ReadServerConfigFromEnv(),
-		Email:         email.ReadEmailConfigFromEnv(),
-		CleanupConfig: storage.ReadCleanupConfigFromEnv(),
-		ExpiryConfig:  image.ReadExpiryConfigFromEnv(),
+		Db:                        db.ReadConfigFromEnv(),
+		HttpServer:                httpserver.ReadServerConfigFromEnv(),
+		Email:                     email.ReadEmailConfigFromEnv(),
+		CleanupConfig:             storage.ReadCleanupConfigFromEnv(),
+		DeleteExpiredImagesConfig: image.ReadDeleteExpiredImagesConfigFromEnv(),
 	}, nil
 }
 
@@ -137,15 +136,14 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			Interval: cleanupInterval,
 		}
 	}
-	var expiryConfig *image.ExpiryConfig
-	if configFile.Expiry != nil {
-		expiryInterval := time.Duration(configFile.Expiry.INTERVAL) * time.Second
-		if configFile.Expiry.ENABLED && expiryInterval == 0 {
-			expiryInterval = defaultExpiryInterval
+	var deleteExpiredImagesConfig *image.DeleteExpiredImagesConfig
+	if configFile.DeleteExpiredImages != nil {
+		deleteExpiredImagesConfig = image.DefaultDeleteExpiredImagesConfig()
+		if configFile.DeleteExpiredImages.ENABLED != nil {
+			deleteExpiredImagesConfig.Enabled = *configFile.DeleteExpiredImages.ENABLED
 		}
-		expiryConfig = &image.ExpiryConfig{
-			Enabled:  configFile.Expiry.ENABLED,
-			Interval: expiryInterval,
+		if configFile.DeleteExpiredImages.INTERVAL > 0 {
+			deleteExpiredImagesConfig.Interval = time.Duration(configFile.DeleteExpiredImages.INTERVAL) * time.Second
 		}
 	}
 
@@ -195,9 +193,9 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			Type: emailBackendType,
 			SMTP: SMTPConfig,
 		},
-		CleanupConfig: cleanupConfig,
-		ExpiryConfig:  expiryConfig,
-		configFileDef: configFile,
+		CleanupConfig:             cleanupConfig,
+		DeleteExpiredImagesConfig: deleteExpiredImagesConfig,
+		configFileDef:             configFile,
 	}, nil
 }
 
@@ -335,9 +333,13 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		if config.CleanupConfig != nil {
 			merged.CleanupConfig = config.CleanupConfig
 		}
-		if config.ExpiryConfig != nil {
-			merged.ExpiryConfig = config.ExpiryConfig
+		if config.DeleteExpiredImagesConfig != nil {
+			merged.DeleteExpiredImagesConfig = config.DeleteExpiredImagesConfig
 		}
+	}
+	// Deleting expired images is on unless explicitly disabled.
+	if merged.DeleteExpiredImagesConfig == nil {
+		merged.DeleteExpiredImagesConfig = image.DefaultDeleteExpiredImagesConfig()
 	}
 	if merged.Storage.StorageDefSource == storage.StorageDefSourceDB {
 		merged.Storage.Conn = utils.NewLazy(func() *sql.DB { return db.GetConnection(&merged.Db) })
