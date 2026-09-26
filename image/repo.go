@@ -544,7 +544,8 @@ func (repo *DBImageRepo) SetImageExpiration(id string, expiresAt *time.Time) err
 // DeleteExpiredImages marks every image whose expiry has passed as deleted and
 // returns how many it marked.
 //
-// Expired images are auto marked as deleted periodically (by the cleanup task).
+// Expired images are auto marked as deleted periodically (by the expiry task,
+// see RunExpiryTask).
 // Expiry always goes through deletion: nothing else looks at expires_at, and
 // from here on the deleted-image handling (hidden from reads, files removed by
 // storage cleanup) takes care of the rest. An image is therefore still served

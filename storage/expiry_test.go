@@ -100,8 +100,8 @@ func TestImageExpiry(t *testing.T) {
 		t.Fatalf("expected sql.ErrNoRows when extending an expired image, got %v", err)
 	}
 
-	// The cleanup task marks the expired image as deleted and removes its file.
-	if err := storage.CleanupStoredImageTask(noopLock{}, imageRepo, storedImageRepo, storageDefRepo); err != nil {
+	// The expiry task marks the expired image as deleted...
+	if err := image.DeleteExpiredImagesTask(noopLock{}, imageRepo); err != nil {
 		t.Fatal(err)
 	}
 	if img, _ := imageRepo.GetImageById(expiring.Image.Id); img != nil {
@@ -112,6 +112,10 @@ func TestImageExpiry(t *testing.T) {
 	}
 	if !isServed("expiry-permanent") {
 		t.Fatal("non-expiring image should still be served")
+	}
+	// ...and the regular cleanup removes its file.
+	if _, err := storage.CleanupStoredImage(storedImageRepo, storageDefRepo); err != nil {
+		t.Fatal(err)
 	}
 	sis, err := storedImageRepo.GetStoredImagesByIds([]string{expiring.Id, permanent.Id})
 	if err != nil {

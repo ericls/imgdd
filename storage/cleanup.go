@@ -45,21 +45,8 @@ func ReadCleanupConfigFromEnv() *CleanupConfig {
 	}
 }
 
-// ExpiredImageDeleter marks images whose expiry has passed as deleted.
-type ExpiredImageDeleter interface {
-	DeleteExpiredImages() (int, error)
-}
-
-func CleanupStoredImageTask(lock utils.MutexLock, expiredImageDeleter ExpiredImageDeleter, storedImageRepo StoredImageRepo, storageDefRepo StorageDefRepo) error {
+func CleanupStoredImageTask(lock utils.MutexLock, storedImageRepo StoredImageRepo, storageDefRepo StorageDefRepo) error {
 	return utils.RunWithLock(lock, func() error {
-		// Expired images are auto marked as deleted here, then handled like any
-		// other deleted image. Do it first so this run also removes their files.
-		expiredCount, err := expiredImageDeleter.DeleteExpiredImages()
-		if err != nil {
-			logger.Error().Err(err).Msg("Error deleting expired images")
-		} else if expiredCount > 0 {
-			logger.Info().Int("expired_count", expiredCount).Msg("Deleted expired images")
-		}
 		deletedCount, err := CleanupStoredImage(storedImageRepo, storageDefRepo)
 		if err != nil {
 			logger.Error().Err(err).Msg("Error cleaning up stored images")
@@ -154,7 +141,7 @@ func deleteStoredImage(storedImage *dm.StoredImage, s Storage) error {
 	return nil
 }
 
-func RunCleanupTask(lock utils.MutexLock, expiredImageDeleter ExpiredImageDeleter, storedImageRepo StoredImageRepo, storageDefRepo StorageDefRepo, interval time.Duration) {
+func RunCleanupTask(lock utils.MutexLock, storedImageRepo StoredImageRepo, storageDefRepo StorageDefRepo, interval time.Duration) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	stop := make(chan os.Signal, 1)
@@ -171,7 +158,7 @@ func RunCleanupTask(lock utils.MutexLock, expiredImageDeleter ExpiredImageDelete
 		for {
 			select {
 			case <-ticker.C:
-				CleanupStoredImageTask(lock, expiredImageDeleter, storedImageRepo, storageDefRepo)
+				CleanupStoredImageTask(lock, storedImageRepo, storageDefRepo)
 			case <-ctx.Done():
 				logger.Info().Msg("Cleanup task shutting down gracefully...")
 				return

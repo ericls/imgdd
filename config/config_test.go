@@ -145,6 +145,28 @@ ENABLED = true
 	}
 }
 
+func TestConfigFromFileDefaultsExpiryIntervalWhenEnabled(t *testing.T) {
+	configPath := writeTestConfig(t, `
+[ExpiryTaskConfig]
+ENABLED = true
+`)
+
+	conf, err := ConfigFromFile(configPath)
+	if err != nil {
+		t.Fatalf("expected expiry config to parse: %v", err)
+	}
+
+	if conf.ExpiryConfig == nil {
+		t.Fatal("expected expiry config")
+	}
+	if conf.ExpiryConfig.Interval != 60*time.Second {
+		t.Fatalf("expected default expiry interval 60s, got %s", conf.ExpiryConfig.Interval)
+	}
+	if conf.CleanupConfig != nil {
+		t.Fatal("expiry config should not enable cleanup config")
+	}
+}
+
 func TestGetConfigDoesNotLetFileRuntimeDefaultsOverrideEnv(t *testing.T) {
 	t.Setenv("IMGDD_DEFAULT_URL_FORMAT", "direct")
 	t.Setenv("EMAIL_BACKEND_TYPE", "smtp")

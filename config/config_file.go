@@ -97,6 +97,11 @@ type CleanupTaskConfigFileDef struct {
 	INTERVAL int  `toml:"INTERVAL" comment:"Cleanup task interval in seconds"`
 }
 
+type ExpiryTaskConfigFileDef struct {
+	ENABLED  bool `toml:"ENABLED" comment:"Enable the task that marks expired images as deleted"`
+	INTERVAL int  `toml:"INTERVAL" comment:"Expiry task interval in seconds"`
+}
+
 type ConfigFileDef struct {
 	DB         *DBConfigFileDef          `toml:"DBConfig" comment:"Database configuration"`
 	Redis      *RedisConfigFileDef       `toml:"RedisConfig" comment:"Redis configuration"`
@@ -104,6 +109,7 @@ type ConfigFileDef struct {
 	Storage    *StorageConfigFileDef     `toml:"StorageConfig" comment:"Storage configuration"`
 	Email      *EmailConfigFileDef       `toml:"EmailConfig" comment:"Email configuration"`
 	Cleanup    *CleanupTaskConfigFileDef `toml:"CleanupTaskConfig" comment:"Cleanup task configuration"`
+	Expiry     *ExpiryTaskConfigFileDef  `toml:"ExpiryTaskConfig" comment:"Expiry task configuration"`
 }
 
 func (cfd *ConfigFileDef) Clone() ConfigFileDef {
@@ -177,6 +183,10 @@ var EmptyConfig = ConfigFileDef{
 	Cleanup: &CleanupTaskConfigFileDef{
 		ENABLED:  true,
 		INTERVAL: 300,
+	},
+	Expiry: &ExpiryTaskConfigFileDef{
+		ENABLED:  true,
+		INTERVAL: 60,
 	},
 }
 

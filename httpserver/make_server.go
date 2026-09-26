@@ -59,6 +59,7 @@ func MakeServer(
 	storageConf *storage.StorageConfigDef,
 	emailConf *email.EmailConfigDef,
 	cleanupConf *storage.CleanupConfig,
+	expiryConf *image.ExpiryConfig,
 ) *http.Server {
 
 	conn := db.GetConnection(dbConf)
@@ -114,7 +115,15 @@ func MakeServer(
 			Addr: strings.TrimPrefix(conf.RedisURI, "redis://"),
 		})
 		lock := utils.NewRedisLock(redisClient, "cleanup_stored_image", 1200*time.Second)
-		go storage.RunCleanupTask(lock, imageRepo, storedImageRepo, storageDefRepo, cleanupConf.Interval)
+		go storage.RunCleanupTask(lock, storedImageRepo, storageDefRepo, cleanupConf.Interval)
+	}
+
+	if expiryConf != nil && expiryConf.Enabled {
+		redisClient := redis.NewClient(&redis.Options{
+			Addr: strings.TrimPrefix(conf.RedisURI, "redis://"),
+		})
+		lock := utils.NewRedisLock(redisClient, "expire_images", 300*time.Second)
+		go image.RunExpiryTask(lock, imageRepo, expiryConf.Interval)
 	}
 
 	graphqlServer := captcha.MakeHttpMiddleware()(makeGqlServer(

@@ -9,6 +9,7 @@ import (
 	"github.com/ericls/imgdd/db"
 	"github.com/ericls/imgdd/email"
 	"github.com/ericls/imgdd/httpserver"
+	"github.com/ericls/imgdd/image"
 	"github.com/ericls/imgdd/storage"
 	"github.com/ericls/imgdd/utils"
 
@@ -21,6 +22,7 @@ const (
 	defaultConfigStorageSource = storage.StorageDefSourceDB
 	defaultConfigCaptcha       = captcha.CaptchaProviderOff
 	defaultCleanupInterval     = 600 * time.Second
+	defaultExpiryInterval      = 60 * time.Second
 )
 
 type ConfigDef struct {
@@ -29,6 +31,7 @@ type ConfigDef struct {
 	Storage       storage.StorageConfigDef
 	Email         email.EmailConfigDef
 	CleanupConfig *storage.CleanupConfig
+	ExpiryConfig  *image.ExpiryConfig
 	configFileDef *ConfigFileDef
 }
 
@@ -38,6 +41,7 @@ func ConfigFromEnv() (*ConfigDef, error) {
 		HttpServer:    httpserver.ReadServerConfigFromEnv(),
 		Email:         email.ReadEmailConfigFromEnv(),
 		CleanupConfig: storage.ReadCleanupConfigFromEnv(),
+		ExpiryConfig:  image.ReadExpiryConfigFromEnv(),
 	}, nil
 }
 
@@ -133,6 +137,17 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			Interval: cleanupInterval,
 		}
 	}
+	var expiryConfig *image.ExpiryConfig
+	if configFile.Expiry != nil {
+		expiryInterval := time.Duration(configFile.Expiry.INTERVAL) * time.Second
+		if configFile.Expiry.ENABLED && expiryInterval == 0 {
+			expiryInterval = defaultExpiryInterval
+		}
+		expiryConfig = &image.ExpiryConfig{
+			Enabled:  configFile.Expiry.ENABLED,
+			Interval: expiryInterval,
+		}
+	}
 
 	return &ConfigDef{
 		Db: db.DBConfigDef{
@@ -181,6 +196,7 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			SMTP: SMTPConfig,
 		},
 		CleanupConfig: cleanupConfig,
+		ExpiryConfig:  expiryConfig,
 		configFileDef: configFile,
 	}, nil
 }
@@ -318,6 +334,9 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		}
 		if config.CleanupConfig != nil {
 			merged.CleanupConfig = config.CleanupConfig
+		}
+		if config.ExpiryConfig != nil {
+			merged.ExpiryConfig = config.ExpiryConfig
 		}
 	}
 	if merged.Storage.StorageDefSource == storage.StorageDefSourceDB {
