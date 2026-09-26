@@ -22,15 +22,6 @@ var logger = logging.GetLogger("image-repo")
 
 var ZeroUUID = uuid.UUID{}
 
-// IsLive matches images that are neither soft-deleted nor past their expiry.
-// Expiry is checked against the database clock so an expired image disappears
-// immediately, even before the sweep in DeleteExpiredImages soft-deletes it.
-func IsLive() BoolExpression {
-	return ImageTable.DeletedAt.IS_NULL().AND(
-		ImageTable.ExpiresAt.IS_NULL().OR(ImageTable.ExpiresAt.GT(NOW())),
-	)
-}
-
 type DBImageRepo struct {
 	db.RepoConn
 }
@@ -56,7 +47,7 @@ func (repo *DBImageRepo) GetImageById(id string) (*dm.Image, error) {
 			ImageTable,
 		).
 		WHERE(
-			ImageTable.ID.EQ(UUID(uuid.MustParse(id))).AND(IsLive()),
+			ImageTable.ID.EQ(UUID(uuid.MustParse(id))).AND(ImageTable.DeletedAt.IS_NULL()),
 		)
 
 	dest := model.ImageTable{}
@@ -108,7 +99,7 @@ func (repo *DBImageRepo) GetImagesByIds(ids []string) ([]*dm.Image, error) {
 		SELECT(ImageTable.AllColumns).
 		FROM(ImageTable).
 		WHERE(
-			ImageTable.ID.IN(uuids...).AND(IsLive()),
+			ImageTable.ID.IN(uuids...).AND(ImageTable.DeletedAt.IS_NULL()),
 		)
 
 	var dest []model.ImageTable
@@ -337,7 +328,7 @@ func (repo *DBImageRepo) imageExists(conditions BoolExpression) bool {
 	).FROM(
 		ImageTable,
 	)
-	where := IsLive()
+	where := ImageTable.DeletedAt.IS_NULL()
 	where = where.AND(conditions)
 	statement = statement.WHERE(where)
 	statement = statement.LIMIT(1)
@@ -394,7 +385,7 @@ func (repo *DBImageRepo) filtersToWhere(filters *ListImagesFilters) BoolExpressi
 	if filters.CreatedBy != nil {
 		condition_exprs = append(condition_exprs, ImageTable.CreatedByID.EQ(UUID(uuid.MustParse(*filters.CreatedBy))))
 	}
-	where := IsLive()
+	where := ImageTable.DeletedAt.IS_NULL()
 	for _, cond := range condition_exprs {
 		where = where.AND(cond)
 	}
@@ -520,7 +511,9 @@ func (repo *DBImageRepo) DeleteImageById(id string) error {
 	return err
 }
 
-// SetImageExpiration sets or clears (expiresAt == nil) the expiry of a live image.
+// SetImageExpiration sets or clears (expiresAt == nil) the expiry of an image.
+// An image that has already expired can't be changed: it is waiting for
+// DeleteExpiredImages to mark it as deleted.
 func (repo *DBImageRepo) SetImageExpiration(id string, expiresAt *time.Time) error {
 	var value TimestampzExpression = TimestampzExp(NULL)
 	if expiresAt != nil {
@@ -530,7 +523,9 @@ func (repo *DBImageRepo) SetImageExpiration(id string, expiresAt *time.Time) err
 		ImageTable.ExpiresAt.SET(value),
 		ImageTable.UpdatedAt.SET(TimestampzExp(Func("NOW"))),
 	).WHERE(
-		ImageTable.ID.EQ(UUID(uuid.MustParse(id))).AND(IsLive()),
+		ImageTable.ID.EQ(UUID(uuid.MustParse(id))).
+			AND(ImageTable.DeletedAt.IS_NULL()).
+			AND(ImageTable.ExpiresAt.IS_NULL().OR(ImageTable.ExpiresAt.GT(NOW()))),
 	)
 	res, err := stmt.Exec(repo.DB)
 	if err != nil {
@@ -546,8 +541,14 @@ func (repo *DBImageRepo) SetImageExpiration(id string, expiresAt *time.Time) err
 	return nil
 }
 
-// DeleteExpiredImages soft-deletes every image whose expiry has passed, so the
-// stored image cleanup picks up their files. Returns the number of images deleted.
+// DeleteExpiredImages marks every image whose expiry has passed as deleted and
+// returns how many it marked.
+//
+// Expired images are auto marked as deleted periodically (by the cleanup task).
+// Expiry always goes through deletion: nothing else looks at expires_at, and
+// from here on the deleted-image handling (hidden from reads, files removed by
+// storage cleanup) takes care of the rest. An image is therefore still served
+// between its expiry and the next sweep.
 func (repo *DBImageRepo) DeleteExpiredImages() (int, error) {
 	stmt := ImageTable.UPDATE().SET(
 		ImageTable.DeletedAt.SET(TimestampzExp(Func("NOW"))),

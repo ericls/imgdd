@@ -45,14 +45,15 @@ func ReadCleanupConfigFromEnv() *CleanupConfig {
 	}
 }
 
-// ExpiredImageDeleter soft-deletes images whose expiry has passed.
+// ExpiredImageDeleter marks images whose expiry has passed as deleted.
 type ExpiredImageDeleter interface {
 	DeleteExpiredImages() (int, error)
 }
 
 func CleanupStoredImageTask(lock utils.MutexLock, expiredImageDeleter ExpiredImageDeleter, storedImageRepo StoredImageRepo, storageDefRepo StorageDefRepo) error {
 	return utils.RunWithLock(lock, func() error {
-		// Expire first so this run also removes the files of newly expired images.
+		// Expired images are auto marked as deleted here, then handled like any
+		// other deleted image. Do it first so this run also removes their files.
 		expiredCount, err := expiredImageDeleter.DeleteExpiredImages()
 		if err != nil {
 			logger.Error().Err(err).Msg("Error deleting expired images")

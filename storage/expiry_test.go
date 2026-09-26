@@ -88,23 +88,30 @@ func TestImageExpiry(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Expired images are hidden immediately, before any sweep runs.
-	if img, _ := imageRepo.GetImageById(expiring.Image.Id); img != nil {
-		t.Fatal("expired image should not be returned by GetImageById")
+	// Expiry on its own changes nothing: the image stays until the sweep
+	// marks it as deleted.
+	if img, _ := imageRepo.GetImageById(expiring.Image.Id); img == nil {
+		t.Fatal("expired image should remain until it is marked as deleted")
 	}
-	if isServed("expiry-expiring") {
-		t.Fatal("expired image should not be served")
-	}
-	if !isServed("expiry-permanent") {
-		t.Fatal("non-expiring image should still be served")
+	if !isServed("expiry-expiring") {
+		t.Fatal("expired image should be served until it is marked as deleted")
 	}
 	if err := imageRepo.SetImageExpiration(expiring.Image.Id, &future); !errors.Is(err, sql.ErrNoRows) {
 		t.Fatalf("expected sql.ErrNoRows when extending an expired image, got %v", err)
 	}
 
-	// The cleanup task soft-deletes the expired image and removes its file.
+	// The cleanup task marks the expired image as deleted and removes its file.
 	if err := storage.CleanupStoredImageTask(noopLock{}, imageRepo, storedImageRepo, storageDefRepo); err != nil {
 		t.Fatal(err)
+	}
+	if img, _ := imageRepo.GetImageById(expiring.Image.Id); img != nil {
+		t.Fatal("expired image should be deleted after the sweep")
+	}
+	if isServed("expiry-expiring") {
+		t.Fatal("deleted image should not be served")
+	}
+	if !isServed("expiry-permanent") {
+		t.Fatal("non-expiring image should still be served")
 	}
 	sis, err := storedImageRepo.GetStoredImagesByIds([]string{expiring.Id, permanent.Id})
 	if err != nil {
