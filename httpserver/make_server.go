@@ -114,7 +114,7 @@ func MakeServer(
 			Addr: strings.TrimPrefix(conf.RedisURI, "redis://"),
 		})
 		lock := utils.NewRedisLock(redisClient, "cleanup_stored_image", 1200*time.Second)
-		go storage.RunCleanupTask(lock, storedImageRepo, storageDefRepo, cleanupConf.Interval)
+		go storage.RunCleanupTask(lock, imageRepo, storedImageRepo, storageDefRepo, cleanupConf.Interval)
 	}
 
 	graphqlServer := captcha.MakeHttpMiddleware()(makeGqlServer(

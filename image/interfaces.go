@@ -123,4 +123,6 @@ type ImageRepo interface {
 	GetImageById(id string) (*dm.Image, error)
 	GetImagesByIds(ids []string) ([]*dm.Image, error)
 	DeleteImageById(id string) error
+	SetImageExpiration(id string, expiresAt *time.Time) error
+	DeleteExpiredImages() (int, error)
 }

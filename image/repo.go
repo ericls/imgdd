@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/ericls/imgdd/db"
 	"github.com/ericls/imgdd/db/.gen/imgdd/public/model"
@@ -20,6 +21,15 @@ import (
 var logger = logging.GetLogger("image-repo")
 
 var ZeroUUID = uuid.UUID{}
+
+// IsLive matches images that are neither soft-deleted nor past their expiry.
+// Expiry is checked against the database clock so an expired image disappears
+// immediately, even before the sweep in DeleteExpiredImages soft-deletes it.
+func IsLive() BoolExpression {
+	return ImageTable.DeletedAt.IS_NULL().AND(
+		ImageTable.ExpiresAt.IS_NULL().OR(ImageTable.ExpiresAt.GT(NOW())),
+	)
+}
 
 type DBImageRepo struct {
 	db.RepoConn
@@ -46,7 +56,7 @@ func (repo *DBImageRepo) GetImageById(id string) (*dm.Image, error) {
 			ImageTable,
 		).
 		WHERE(
-			ImageTable.ID.EQ(UUID(uuid.MustParse(id))).AND(ImageTable.DeletedAt.IS_NULL()),
+			ImageTable.ID.EQ(UUID(uuid.MustParse(id))).AND(IsLive()),
 		)
 
 	dest := model.ImageTable{}
@@ -78,6 +88,7 @@ func (repo *DBImageRepo) GetImageById(id string) (*dm.Image, error) {
 		NominalHeight:   dest.NominalHeight,
 		NominalByteSize: dest.NominalByteSize,
 		CreatedById:     utils.SafeDerefWithDefault(dest.CreatedByID, ZeroUUID).String(),
+		ExpiresAt:       dest.ExpiresAt,
 	}, nil
 }
 
@@ -97,7 +108,7 @@ func (repo *DBImageRepo) GetImagesByIds(ids []string) ([]*dm.Image, error) {
 		SELECT(ImageTable.AllColumns).
 		FROM(ImageTable).
 		WHERE(
-			ImageTable.ID.IN(uuids...).AND(ImageTable.DeletedAt.IS_NULL()),
+			ImageTable.ID.IN(uuids...).AND(IsLive()),
 		)
 
 	var dest []model.ImageTable
@@ -130,6 +141,7 @@ func (repo *DBImageRepo) GetImagesByIds(ids []string) ([]*dm.Image, error) {
 			NominalHeight:   d.NominalHeight,
 			NominalByteSize: d.NominalByteSize,
 			CreatedById:     utils.SafeDerefWithDefault(d.CreatedByID, ZeroUUID).String(),
+			ExpiresAt:       d.ExpiresAt,
 		}
 		idToImage[img.Id] = img
 	}
@@ -187,6 +199,7 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 		ImageTable.NominalByteSize,
 		ImageTable.NominalWidth,
 		ImageTable.NominalHeight,
+		ImageTable.ExpiresAt,
 	).VALUES(
 		image.Identifier,
 		image.Name,
@@ -199,6 +212,7 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 		image.NominalByteSize,
 		image.NominalWidth,
 		image.NominalHeight,
+		image.ExpiresAt,
 	).RETURNING(
 		ImageTable.AllColumns,
 	)
@@ -323,7 +337,7 @@ func (repo *DBImageRepo) imageExists(conditions BoolExpression) bool {
 	).FROM(
 		ImageTable,
 	)
-	where := ImageTable.DeletedAt.IS_NULL()
+	where := IsLive()
 	where = where.AND(conditions)
 	statement = statement.WHERE(where)
 	statement = statement.LIMIT(1)
@@ -380,7 +394,7 @@ func (repo *DBImageRepo) filtersToWhere(filters *ListImagesFilters) BoolExpressi
 	if filters.CreatedBy != nil {
 		condition_exprs = append(condition_exprs, ImageTable.CreatedByID.EQ(UUID(uuid.MustParse(*filters.CreatedBy))))
 	}
-	where := ImageTable.DeletedAt.IS_NULL()
+	where := IsLive()
 	for _, cond := range condition_exprs {
 		where = where.AND(cond)
 	}
@@ -451,6 +465,7 @@ func (repo *DBImageRepo) ListImages(
 			NominalHeight:   image.NominalHeight,
 			NominalByteSize: image.NominalByteSize,
 			CreatedById:     utils.SafeDerefWithDefault(image.CreatedByID, ZeroUUID).String(),
+			ExpiresAt:       image.ExpiresAt,
 		}
 	}
 	hasNext := false
@@ -503,4 +518,48 @@ func (repo *DBImageRepo) DeleteImageById(id string) error {
 	)
 	_, err := stmt.Exec(repo.DB)
 	return err
+}
+
+// SetImageExpiration sets or clears (expiresAt == nil) the expiry of a live image.
+func (repo *DBImageRepo) SetImageExpiration(id string, expiresAt *time.Time) error {
+	var value TimestampzExpression = TimestampzExp(NULL)
+	if expiresAt != nil {
+		value = TimestampzT(*expiresAt)
+	}
+	stmt := ImageTable.UPDATE().SET(
+		ImageTable.ExpiresAt.SET(value),
+		ImageTable.UpdatedAt.SET(TimestampzExp(Func("NOW"))),
+	).WHERE(
+		ImageTable.ID.EQ(UUID(uuid.MustParse(id))).AND(IsLive()),
+	)
+	res, err := stmt.Exec(repo.DB)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+// DeleteExpiredImages soft-deletes every image whose expiry has passed, so the
+// stored image cleanup picks up their files. Returns the number of images deleted.
+func (repo *DBImageRepo) DeleteExpiredImages() (int, error) {
+	stmt := ImageTable.UPDATE().SET(
+		ImageTable.DeletedAt.SET(TimestampzExp(Func("NOW"))),
+	).WHERE(
+		ImageTable.DeletedAt.IS_NULL().
+			AND(ImageTable.ExpiresAt.IS_NOT_NULL()).
+			AND(ImageTable.ExpiresAt.LT_EQ(NOW())),
+	)
+	res, err := stmt.Exec(repo.DB)
+	if err != nil {
+		return 0, err
+	}
+	affected, err := res.RowsAffected()
+	return int(affected), err
 }

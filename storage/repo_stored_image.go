@@ -10,6 +10,7 @@ import (
 	"github.com/ericls/imgdd/db/.gen/imgdd/public/model"
 	. "github.com/ericls/imgdd/db/.gen/imgdd/public/table"
 	dm "github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/image"
 
 	. "github.com/go-jet/jet/v2/postgres"
 	"github.com/go-jet/jet/v2/qrm"
@@ -39,7 +40,7 @@ func (repo *DBStoredImageRepo) GetStoredImageByIdentifierAndMimeType(identifier,
 		ImageTable, ImageTable.ID.EQ(StoredImageTable.ImageID),
 	)).WHERE(
 		ImageTable.Identifier.EQ(String(identifier)).
-			AND(ImageTable.DeletedAt.IS_NULL()).
+			AND(image.IsLive()).
 			AND(
 				StoredImageTable.IsFileDeleted.EQ(Bool(false)),
 			).
@@ -174,7 +175,7 @@ func (repo *DBStoredImageRepo) GetStoredImagesByImageId(imageId string) ([]*dm.S
 	).WHERE(
 		StoredImageTable.ImageID.EQ(UUID(uuid.MustParse(imageId))).
 			AND(StoredImageTable.IsFileDeleted.EQ(Bool(false))).
-			AND(ImageTable.DeletedAt.IS_NULL()),
+			AND(image.IsLive()),
 	)
 	dest := []struct {
 		StoredImageTable model.StoredImageTable
@@ -197,7 +198,7 @@ func (repo *DBStoredImageRepo) GetStoredImagesForReplication(sourceStorageDefId 
 	targetSI := StoredImageTable.AS("target_si")
 	antiJoinCondition := StoredImageTable.IsFileDeleted.EQ(Bool(false)).
 		AND(StoredImageTable.StorageDefinitionID.EQ(sourceUUID)).
-		AND(ImageTable.DeletedAt.IS_NULL()).
+		AND(image.IsLive()).
 		AND(targetSI.ID.IS_NULL())
 	antiJoinFrom := StoredImageTable.
 		INNER_JOIN(ImageTable, StoredImageTable.ImageID.EQ(ImageTable.ID)).
