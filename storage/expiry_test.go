@@ -1,8 +1,6 @@
 package storage_test
 
 import (
-	"database/sql"
-	"errors"
 	"os"
 	"testing"
 	"time"
@@ -76,16 +74,16 @@ func TestImageExpiry(t *testing.T) {
 	}
 
 	// Clearing and re-setting the expiry.
-	if err := imageRepo.SetImageExpiration(expiring.Image.Id, nil); err != nil {
-		t.Fatal(err)
+	if n, err := imageRepo.SetImagesExpiration([]string{expiring.Image.Id}, nil); err != nil || n != 1 {
+		t.Fatalf("expected 1 image updated, got %d, %v", n, err)
 	}
 	img, _ := imageRepo.GetImageById(expiring.Image.Id)
 	if img == nil || img.ExpiresAt != nil {
 		t.Fatalf("expiry should be cleared, got %+v", img)
 	}
 	past := time.Now().Add(-time.Minute)
-	if err := imageRepo.SetImageExpiration(expiring.Image.Id, &past); err != nil {
-		t.Fatal(err)
+	if n, err := imageRepo.SetImagesExpiration([]string{expiring.Image.Id}, &past); err != nil || n != 1 {
+		t.Fatalf("expected 1 image updated, got %d, %v", n, err)
 	}
 
 	// Expiry on its own changes nothing: the image stays until the sweep
@@ -96,8 +94,15 @@ func TestImageExpiry(t *testing.T) {
 	if !isServed("expiry-expiring") {
 		t.Fatal("expired image should be served until it is marked as deleted")
 	}
-	if err := imageRepo.SetImageExpiration(expiring.Image.Id, &future); !errors.Is(err, sql.ErrNoRows) {
-		t.Fatalf("expected sql.ErrNoRows when extending an expired image, got %v", err)
+	if n, err := imageRepo.SetImagesExpiration([]string{expiring.Image.Id}, &future); err != nil || n != 0 {
+		t.Fatalf("expected an expired image to be left unchanged, got %d, %v", n, err)
+	}
+	ids, err := imageRepo.GetExpiredImageIds()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(ids) != 1 || ids[0] != expiring.Image.Id {
+		t.Fatalf("expected only the expired image, got %v", ids)
 	}
 
 	// The expiry task marks the expired image as deleted...
@@ -137,11 +142,11 @@ func TestImageExpiry(t *testing.T) {
 		}
 	}
 
-	count, err := imageRepo.DeleteExpiredImages()
+	ids, err = imageRepo.GetExpiredImageIds()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if count != 0 {
-		t.Fatalf("already-swept images should not be deleted again, got %d", count)
+	if len(ids) != 0 {
+		t.Fatalf("deleted images should not be returned as expired again, got %v", ids)
 	}
 }

@@ -142,8 +142,8 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 		if configFile.DeleteExpiredImages.ENABLED != nil {
 			deleteExpiredImagesConfig.Enabled = *configFile.DeleteExpiredImages.ENABLED
 		}
-		if configFile.DeleteExpiredImages.INTERVAL > 0 {
-			deleteExpiredImagesConfig.Interval = time.Duration(configFile.DeleteExpiredImages.INTERVAL) * time.Second
+		if configFile.DeleteExpiredImages.INTERVAL_SECONDS > 0 {
+			deleteExpiredImagesConfig.Interval = time.Duration(configFile.DeleteExpiredImages.INTERVAL_SECONDS) * time.Second
 		}
 	}
 

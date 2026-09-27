@@ -502,19 +502,49 @@ func (repo *DBImageRepo) CountImages(filters *ListImagesFilters) (int, error) {
 }
 
 func (repo *DBImageRepo) DeleteImageById(id string) error {
+	return repo.DeleteImagesByIds([]string{id})
+}
+
+func imageIdExpressions(ids []string) ([]Expression, error) {
+	exprs := make([]Expression, len(ids))
+	for i, id := range ids {
+		parsed, err := uuid.Parse(id)
+		if err != nil {
+			return nil, fmt.Errorf("invalid image ID %q: %w", id, err)
+		}
+		exprs[i] = UUID(parsed)
+	}
+	return exprs, nil
+}
+
+func (repo *DBImageRepo) DeleteImagesByIds(ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	idExprs, err := imageIdExpressions(ids)
+	if err != nil {
+		return err
+	}
 	stmt := ImageTable.UPDATE().SET(
 		ImageTable.DeletedAt.SET(TimestampzExp(Func("NOW"))),
 	).WHERE(
-		ImageTable.ID.EQ(UUID(uuid.MustParse(id))),
+		ImageTable.ID.IN(idExprs...),
 	)
-	_, err := stmt.Exec(repo.DB)
+	_, err = stmt.Exec(repo.DB)
 	return err
 }
 
-// SetImageExpiration sets or clears (expiresAt == nil) the expiry of an image.
-// An image that has already expired can't be changed: it is waiting for
-// DeleteExpiredImages to mark it as deleted.
-func (repo *DBImageRepo) SetImageExpiration(id string, expiresAt *time.Time) error {
+// SetImagesExpiration sets or clears (expiresAt == nil) the expiry of the given
+// images and returns how many were updated. Images that have already expired
+// are left unchanged: an expired image is only ever transitioned to deleted.
+func (repo *DBImageRepo) SetImagesExpiration(ids []string, expiresAt *time.Time) (int, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+	idExprs, err := imageIdExpressions(ids)
+	if err != nil {
+		return 0, err
+	}
 	var value TimestampzExpression = TimestampzExp(NULL)
 	if expiresAt != nil {
 		value = TimestampzT(*expiresAt)
@@ -523,40 +553,9 @@ func (repo *DBImageRepo) SetImageExpiration(id string, expiresAt *time.Time) err
 		ImageTable.ExpiresAt.SET(value),
 		ImageTable.UpdatedAt.SET(TimestampzExp(Func("NOW"))),
 	).WHERE(
-		ImageTable.ID.EQ(UUID(uuid.MustParse(id))).
+		ImageTable.ID.IN(idExprs...).
 			AND(ImageTable.DeletedAt.IS_NULL()).
 			AND(ImageTable.ExpiresAt.IS_NULL().OR(ImageTable.ExpiresAt.GT(NOW()))),
-	)
-	res, err := stmt.Exec(repo.DB)
-	if err != nil {
-		return err
-	}
-	affected, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if affected == 0 {
-		return sql.ErrNoRows
-	}
-	return nil
-}
-
-// DeleteExpiredImages marks every image whose expiry has passed as deleted and
-// returns how many it marked.
-//
-// Expired images are auto marked as deleted periodically (see
-// RunDeleteExpiredImagesTask).
-// Expiry always goes through deletion: nothing else looks at expires_at, and
-// from here on the deleted-image handling (hidden from reads, files removed by
-// storage cleanup) takes care of the rest. An image is therefore still served
-// between its expiry and the next sweep.
-func (repo *DBImageRepo) DeleteExpiredImages() (int, error) {
-	stmt := ImageTable.UPDATE().SET(
-		ImageTable.DeletedAt.SET(TimestampzExp(Func("NOW"))),
-	).WHERE(
-		ImageTable.DeletedAt.IS_NULL().
-			AND(ImageTable.ExpiresAt.IS_NOT_NULL()).
-			AND(ImageTable.ExpiresAt.LT_EQ(NOW())),
 	)
 	res, err := stmt.Exec(repo.DB)
 	if err != nil {
@@ -564,4 +563,26 @@ func (repo *DBImageRepo) DeleteExpiredImages() (int, error) {
 	}
 	affected, err := res.RowsAffected()
 	return int(affected), err
+}
+
+// GetExpiredImageIds returns the ids of images whose expiry has passed.
+func (repo *DBImageRepo) GetExpiredImageIds() ([]string, error) {
+	stmt := ImageTable.SELECT(
+		ImageTable.ID,
+	).FROM(
+		ImageTable,
+	).WHERE(
+		ImageTable.DeletedAt.IS_NULL().
+			AND(ImageTable.ExpiresAt.IS_NOT_NULL()).
+			AND(ImageTable.ExpiresAt.LT_EQ(NOW())),
+	)
+	dest := []model.ImageTable{}
+	if err := stmt.Query(repo.DB, &dest); err != nil {
+		return nil, err
+	}
+	ids := make([]string, len(dest))
+	for i, d := range dest {
+		ids[i] = d.ID.String()
+	}
+	return ids, nil
 }

@@ -122,7 +122,7 @@ func MakeServer(
 		redisClient := redis.NewClient(&redis.Options{
 			Addr: strings.TrimPrefix(conf.RedisURI, "redis://"),
 		})
-		lock := utils.NewRedisLock(redisClient, "delete_expired_images", 300*time.Second)
+		lock := utils.NewRedisLock(redisClient, "delete_expired_images", 2*deleteExpiredImagesConf.Interval)
 		go image.RunDeleteExpiredImagesTask(lock, imageRepo, deleteExpiredImagesConf.Interval)
 	}
 

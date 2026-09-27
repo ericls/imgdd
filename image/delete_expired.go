@@ -16,12 +16,8 @@ var deleteExpiredLogger = logging.GetLogger("delete-expired-images")
 
 const DefaultDeleteExpiredImagesInterval = 60 * time.Second
 
-// DeleteExpiredImagesConfig controls the periodic task that marks expired
-// images as deleted. It is enabled by default.
-//
-// It is separate from the stored image cleanup task: marking images as deleted
-// is a single cheap UPDATE, while cleanup talks to external storage, so this
-// task can run much more often.
+// DeleteExpiredImagesConfig controls the periodic task that transitions
+// expired images to deleted. It is enabled by default.
 type DeleteExpiredImagesConfig struct {
 	Enabled  bool
 	Interval time.Duration
@@ -35,11 +31,11 @@ func DefaultDeleteExpiredImagesConfig() *DeleteExpiredImagesConfig {
 }
 
 // ReadDeleteExpiredImagesConfigFromEnv reads DELETE_EXPIRED_IMAGES_ENABLED and
-// DELETE_EXPIRED_IMAGES_INTERVAL (seconds). It returns nil when neither is set,
+// DELETE_EXPIRED_IMAGES_INTERVAL_SECONDS. It returns nil when neither is set,
 // so that other config sources or the default apply.
 func ReadDeleteExpiredImagesConfigFromEnv() *DeleteExpiredImagesConfig {
 	enabledStr := os.Getenv("DELETE_EXPIRED_IMAGES_ENABLED")
-	intervalStr := os.Getenv("DELETE_EXPIRED_IMAGES_INTERVAL")
+	intervalStr := os.Getenv("DELETE_EXPIRED_IMAGES_INTERVAL_SECONDS")
 	if enabledStr == "" && intervalStr == "" {
 		return nil
 	}
@@ -51,7 +47,7 @@ func ReadDeleteExpiredImagesConfigFromEnv() *DeleteExpiredImagesConfig {
 		intervalInt, err := strconv.Atoi(intervalStr)
 		if err != nil || intervalInt <= 0 {
 			deleteExpiredLogger.Warn().Err(err).Str("value", intervalStr).
-				Msg("Invalid DELETE_EXPIRED_IMAGES_INTERVAL. Using default value of 60 seconds")
+				Msg("Invalid DELETE_EXPIRED_IMAGES_INTERVAL_SECONDS. Using default value of 60 seconds")
 		} else {
 			conf.Interval = time.Duration(intervalInt) * time.Second
 		}
@@ -59,17 +55,23 @@ func ReadDeleteExpiredImagesConfigFromEnv() *DeleteExpiredImagesConfig {
 	return conf
 }
 
-// DeleteExpiredImagesTask runs one pass under lock. Expired images are auto
-// marked as deleted here; their files are then removed by the regular stored
-// image cleanup task like any other deleted image.
+// DeleteExpiredImagesTask runs one pass under lock: expired images are auto
+// marked as deleted periodically.
 func DeleteExpiredImagesTask(lock utils.MutexLock, imageRepo ImageRepo) error {
 	return utils.RunWithLock(lock, func() error {
-		count, err := imageRepo.DeleteExpiredImages()
+		ids, err := imageRepo.GetExpiredImageIds()
 		if err != nil {
-			deleteExpiredLogger.Error().Err(err).Msg("Error deleting expired images")
-		} else if count > 0 {
-			deleteExpiredLogger.Info().Int("deleted_count", count).Msg("Deleted expired images")
+			deleteExpiredLogger.Error().Err(err).Msg("Error getting expired images")
+			return nil
 		}
+		if len(ids) == 0 {
+			return nil
+		}
+		if err := imageRepo.DeleteImagesByIds(ids); err != nil {
+			deleteExpiredLogger.Error().Err(err).Msg("Error deleting expired images")
+			return nil
+		}
+		deleteExpiredLogger.Info().Int("deleted_count", len(ids)).Msg("Deleted expired images")
 		return nil
 	})
 }

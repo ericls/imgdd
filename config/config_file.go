@@ -98,8 +98,8 @@ type CleanupTaskConfigFileDef struct {
 }
 
 type DeleteExpiredImagesTaskConfigFileDef struct {
-	ENABLED  *bool `toml:"ENABLED" comment:"Enable the task that marks expired images as deleted. Defaults to true"`
-	INTERVAL int   `toml:"INTERVAL" comment:"Interval in seconds. Defaults to 60"`
+	ENABLED          *bool `toml:"ENABLED" comment:"Enable the task that marks expired images as deleted. Defaults to true"`
+	INTERVAL_SECONDS int   `toml:"INTERVAL_SECONDS" comment:"Interval in seconds. Defaults to 60"`
 }
 
 type ConfigFileDef struct {
@@ -185,8 +185,8 @@ var EmptyConfig = ConfigFileDef{
 		INTERVAL: 300,
 	},
 	DeleteExpiredImages: &DeleteExpiredImagesTaskConfigFileDef{
-		ENABLED:  func() *bool { b := true; return &b }(),
-		INTERVAL: 60,
+		ENABLED:          func() *bool { b := true; return &b }(),
+		INTERVAL_SECONDS: 60,
 	},
 }
 

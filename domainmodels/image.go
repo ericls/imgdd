@@ -40,8 +40,8 @@ type Image struct {
 	NominalHeight   int32
 	NominalByteSize int32
 	// ExpiresAt is when the image expires. nil means it never expires.
-	// Expired images are auto marked as deleted periodically; see
-	// DBImageRepo.DeleteExpiredImages. Expiry is never checked on its own.
+	// Expiry is only designed to transition an image to deleted, with no
+	// other special handling.
 	ExpiresAt *time.Time
 }
 

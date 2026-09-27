@@ -147,7 +147,7 @@ ENABLED = true
 
 func TestDeleteExpiredImagesEnabledByDefault(t *testing.T) {
 	t.Setenv("DELETE_EXPIRED_IMAGES_ENABLED", "")
-	t.Setenv("DELETE_EXPIRED_IMAGES_INTERVAL", "")
+	t.Setenv("DELETE_EXPIRED_IMAGES_INTERVAL_SECONDS", "")
 
 	conf, err := GetConfig("")
 	if err != nil {
@@ -175,14 +175,14 @@ SITE_NAME = "custom"
 func TestDeleteExpiredImagesConfigFromFile(t *testing.T) {
 	conf, err := ConfigFromFile(writeTestConfig(t, `
 [DeleteExpiredImagesTaskConfig]
-INTERVAL = 30
+INTERVAL_SECONDS = 30
 `))
 	if err != nil {
 		t.Fatal(err)
 	}
 	c := conf.DeleteExpiredImagesConfig
 	if c == nil || !c.Enabled || c.Interval != 30*time.Second {
-		t.Fatalf("expected enabled at 30s when only INTERVAL is set, got %+v", c)
+		t.Fatalf("expected enabled at 30s when only INTERVAL_SECONDS is set, got %+v", c)
 	}
 	if conf.CleanupConfig != nil {
 		t.Fatal("delete expired images config should not enable cleanup config")
@@ -202,7 +202,7 @@ ENABLED = false
 
 func TestDeleteExpiredImagesConfigFromEnv(t *testing.T) {
 	t.Setenv("DELETE_EXPIRED_IMAGES_ENABLED", "false")
-	t.Setenv("DELETE_EXPIRED_IMAGES_INTERVAL", "")
+	t.Setenv("DELETE_EXPIRED_IMAGES_INTERVAL_SECONDS", "")
 	conf, err := GetConfig("")
 	if err != nil {
 		t.Fatal(err)
@@ -212,7 +212,7 @@ func TestDeleteExpiredImagesConfigFromEnv(t *testing.T) {
 	}
 
 	t.Setenv("DELETE_EXPIRED_IMAGES_ENABLED", "")
-	t.Setenv("DELETE_EXPIRED_IMAGES_INTERVAL", "15")
+	t.Setenv("DELETE_EXPIRED_IMAGES_INTERVAL_SECONDS", "15")
 	conf, err = GetConfig("")
 	if err != nil {
 		t.Fatal(err)
