@@ -97,13 +97,19 @@ type CleanupTaskConfigFileDef struct {
 	INTERVAL int  `toml:"INTERVAL" comment:"Cleanup task interval in seconds"`
 }
 
+type DeleteExpiredImagesTaskConfigFileDef struct {
+	ENABLED          *bool `toml:"ENABLED" comment:"Enable the task that marks expired images as deleted. Defaults to true"`
+	INTERVAL_SECONDS int   `toml:"INTERVAL_SECONDS" comment:"Interval in seconds. Defaults to 60"`
+}
+
 type ConfigFileDef struct {
-	DB         *DBConfigFileDef          `toml:"DBConfig" comment:"Database configuration"`
-	Redis      *RedisConfigFileDef       `toml:"RedisConfig" comment:"Redis configuration"`
-	HTTPServer *HTTPServerConfigFileDef  `toml:"HTTPServerConfig" comment:"HTTP server configuration"`
-	Storage    *StorageConfigFileDef     `toml:"StorageConfig" comment:"Storage configuration"`
-	Email      *EmailConfigFileDef       `toml:"EmailConfig" comment:"Email configuration"`
-	Cleanup    *CleanupTaskConfigFileDef `toml:"CleanupTaskConfig" comment:"Cleanup task configuration"`
+	DB                  *DBConfigFileDef                      `toml:"DBConfig" comment:"Database configuration"`
+	Redis               *RedisConfigFileDef                   `toml:"RedisConfig" comment:"Redis configuration"`
+	HTTPServer          *HTTPServerConfigFileDef              `toml:"HTTPServerConfig" comment:"HTTP server configuration"`
+	Storage             *StorageConfigFileDef                 `toml:"StorageConfig" comment:"Storage configuration"`
+	Email               *EmailConfigFileDef                   `toml:"EmailConfig" comment:"Email configuration"`
+	Cleanup             *CleanupTaskConfigFileDef             `toml:"CleanupTaskConfig" comment:"Cleanup task configuration"`
+	DeleteExpiredImages *DeleteExpiredImagesTaskConfigFileDef `toml:"DeleteExpiredImagesTaskConfig" comment:"Configuration for the task that marks expired images as deleted"`
 }
 
 func (cfd *ConfigFileDef) Clone() ConfigFileDef {
@@ -177,6 +183,10 @@ var EmptyConfig = ConfigFileDef{
 	Cleanup: &CleanupTaskConfigFileDef{
 		ENABLED:  true,
 		INTERVAL: 300,
+	},
+	DeleteExpiredImages: &DeleteExpiredImagesTaskConfigFileDef{
+		ENABLED:          func() *bool { b := true; return &b }(),
+		INTERVAL_SECONDS: 60,
 	},
 }
 

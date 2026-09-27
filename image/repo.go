@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/ericls/imgdd/db"
 	"github.com/ericls/imgdd/db/.gen/imgdd/public/model"
@@ -78,6 +79,7 @@ func (repo *DBImageRepo) GetImageById(id string) (*dm.Image, error) {
 		NominalHeight:   dest.NominalHeight,
 		NominalByteSize: dest.NominalByteSize,
 		CreatedById:     utils.SafeDerefWithDefault(dest.CreatedByID, ZeroUUID).String(),
+		ExpiresAt:       dest.ExpiresAt,
 	}, nil
 }
 
@@ -130,6 +132,7 @@ func (repo *DBImageRepo) GetImagesByIds(ids []string) ([]*dm.Image, error) {
 			NominalHeight:   d.NominalHeight,
 			NominalByteSize: d.NominalByteSize,
 			CreatedById:     utils.SafeDerefWithDefault(d.CreatedByID, ZeroUUID).String(),
+			ExpiresAt:       d.ExpiresAt,
 		}
 		idToImage[img.Id] = img
 	}
@@ -187,6 +190,7 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 		ImageTable.NominalByteSize,
 		ImageTable.NominalWidth,
 		ImageTable.NominalHeight,
+		ImageTable.ExpiresAt,
 	).VALUES(
 		image.Identifier,
 		image.Name,
@@ -199,6 +203,7 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 		image.NominalByteSize,
 		image.NominalWidth,
 		image.NominalHeight,
+		image.ExpiresAt,
 	).RETURNING(
 		ImageTable.AllColumns,
 	)
@@ -451,6 +456,7 @@ func (repo *DBImageRepo) ListImages(
 			NominalHeight:   image.NominalHeight,
 			NominalByteSize: image.NominalByteSize,
 			CreatedById:     utils.SafeDerefWithDefault(image.CreatedByID, ZeroUUID).String(),
+			ExpiresAt:       image.ExpiresAt,
 		}
 	}
 	hasNext := false
@@ -496,11 +502,87 @@ func (repo *DBImageRepo) CountImages(filters *ListImagesFilters) (int, error) {
 }
 
 func (repo *DBImageRepo) DeleteImageById(id string) error {
+	return repo.DeleteImagesByIds([]string{id})
+}
+
+func imageIdExpressions(ids []string) ([]Expression, error) {
+	exprs := make([]Expression, len(ids))
+	for i, id := range ids {
+		parsed, err := uuid.Parse(id)
+		if err != nil {
+			return nil, fmt.Errorf("invalid image ID %q: %w", id, err)
+		}
+		exprs[i] = UUID(parsed)
+	}
+	return exprs, nil
+}
+
+func (repo *DBImageRepo) DeleteImagesByIds(ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	idExprs, err := imageIdExpressions(ids)
+	if err != nil {
+		return err
+	}
 	stmt := ImageTable.UPDATE().SET(
 		ImageTable.DeletedAt.SET(TimestampzExp(Func("NOW"))),
 	).WHERE(
-		ImageTable.ID.EQ(UUID(uuid.MustParse(id))),
+		ImageTable.ID.IN(idExprs...),
 	)
-	_, err := stmt.Exec(repo.DB)
+	_, err = stmt.Exec(repo.DB)
 	return err
+}
+
+// SetImagesExpiration sets or clears (expiresAt == nil) the expiry of the given
+// images and returns how many were updated. Images that have already expired
+// are left unchanged: an expired image is only ever transitioned to deleted.
+func (repo *DBImageRepo) SetImagesExpiration(ids []string, expiresAt *time.Time) (int, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+	idExprs, err := imageIdExpressions(ids)
+	if err != nil {
+		return 0, err
+	}
+	var value TimestampzExpression = TimestampzExp(NULL)
+	if expiresAt != nil {
+		value = TimestampzT(*expiresAt)
+	}
+	stmt := ImageTable.UPDATE().SET(
+		ImageTable.ExpiresAt.SET(value),
+		ImageTable.UpdatedAt.SET(TimestampzExp(Func("NOW"))),
+	).WHERE(
+		ImageTable.ID.IN(idExprs...).
+			AND(ImageTable.DeletedAt.IS_NULL()).
+			AND(ImageTable.ExpiresAt.IS_NULL().OR(ImageTable.ExpiresAt.GT(NOW()))),
+	)
+	res, err := stmt.Exec(repo.DB)
+	if err != nil {
+		return 0, err
+	}
+	affected, err := res.RowsAffected()
+	return int(affected), err
+}
+
+// GetExpiredImageIds returns the ids of images whose expiry has passed.
+func (repo *DBImageRepo) GetExpiredImageIds() ([]string, error) {
+	stmt := ImageTable.SELECT(
+		ImageTable.ID,
+	).FROM(
+		ImageTable,
+	).WHERE(
+		ImageTable.DeletedAt.IS_NULL().
+			AND(ImageTable.ExpiresAt.IS_NOT_NULL()).
+			AND(ImageTable.ExpiresAt.LT_EQ(NOW())),
+	)
+	dest := []model.ImageTable{}
+	if err := stmt.Query(repo.DB, &dest); err != nil {
+		return nil, err
+	}
+	ids := make([]string, len(dest))
+	for i, d := range dest {
+		ids[i] = d.ID.String()
+	}
+	return ids, nil
 }

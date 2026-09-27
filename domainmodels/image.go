@@ -39,6 +39,14 @@ type Image struct {
 	NominalWidth    int32
 	NominalHeight   int32
 	NominalByteSize int32
+	// ExpiresAt is when the image expires. nil means it never expires.
+	// Expiry is only designed to transition an image to deleted, with no
+	// other special handling.
+	ExpiresAt *time.Time
+}
+
+func (i *Image) IsExpiredAt(t time.Time) bool {
+	return i.ExpiresAt != nil && !i.ExpiresAt.After(t)
 }
 
 func (i *Image) HashStr() string {
