@@ -151,6 +151,7 @@ func MakeServer(
 	imageCORS := makeImageCORSMiddleware(conf.WebUIOrigins)
 	rootRouter.PathPrefix("/image/").Handler(imageCORS(makeImageHandler(storageDefRepo, storedImageRepo, imageResponseCache)))
 	rootRouter.PathPrefix("/direct").Handler(imageCORS(makeDirectImageHandler(storageDefRepo, imageResponseCache)))
+	mountImageRedirectRoutes(rootRouter, conf.WebUIHost, storageDefRepo, storedImageRepo)
 	rootRouter.PathPrefix("/").Handler(appRouter)
 
 	srv := &http.Server{

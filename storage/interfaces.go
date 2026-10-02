@@ -39,6 +39,7 @@ type StorageDefRepo interface {
 
 type StoredImageRepo interface {
 	GetStoredImageByIdentifierAndMimeType(identifier, mime string) ([]*dm.StoredImage, error)
+	GetStoredImageByStorageDefinitionIdAndFileIdentifier(storageDefinitionId string, fileIdentifier string) (*dm.StoredImage, error)
 	GetStoredImagesByIds(ids []string) ([]*dm.StoredImage, error)
 	GetStoredImageIdsByImageIds(imageIds []string) (map[string][]string, error)
 	GetStoredImagesToDelete() ([]*dm.StoredImage, error)

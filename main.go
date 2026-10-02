@@ -353,8 +353,11 @@ func main() {
 			&cli.Command{
 				Name: "dev-server",
 				Action: func(ctx *cli.Context) error {
-					goBinPath := getGoBinPath()
-					cmd := exec.Command(goBinPath+"/air", "-c", ".air.toml", "serve")
+					airPath, err := exec.LookPath("air")
+					if err != nil {
+						airPath = getGoBinPath() + "/air"
+					}
+					cmd := exec.Command(airPath, "-c", ".air.toml", "serve")
 					cmd.Stdout = os.Stdout
 					cmd.Stderr = os.Stderr
 					cmd.Stdin = os.Stdin
