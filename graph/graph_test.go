@@ -163,7 +163,9 @@ func (tc *TestContext) reset() {
 
 func (tc *TestContext) runTestCase(f func(t *testing.T, tc *TestContext)) {
 	tc.reset()
-	name := strings.Split(runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name(), ".")[1]
+	// The full name is "<import path>.<func>", and the import path itself contains dots.
+	fullName := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
+	name := fullName[strings.LastIndex(fullName, ".")+1:]
 	tc.tObj.Run(name, func(innerT *testing.T) {
 		f(innerT, tc)
 	})
