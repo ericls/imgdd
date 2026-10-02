@@ -41,6 +41,19 @@ const _ImageDetailFields = gql(`
   }
 `);
 
+const _PublicImageDetailFields = gql(`
+  fragment PublicImageDetailFields on PublicImage {
+    id
+    url
+    name
+    nominalWidth
+    nominalHeight
+    MIMEType
+    createdAt
+    viewerIsOwner
+  }
+`);
+
 const ImageDetailDoc = gql(`
   query ImageDetail($id: ID!) {
     viewer {
@@ -64,7 +77,7 @@ const PublicImageDetailDoc = gql(`
       }
     }
     publicImage(id: $id) {
-      ...ImageDetailFields
+      ...PublicImageDetailFields
     }
   }
 `);
@@ -95,10 +108,11 @@ function ImageDetailContent({ mode }: { mode: ImageDetailMode }) {
     }
   }, [imageId, mode, fetchPrivateImage, fetchPublicImage]);
 
-  const image =
-    mode === "public"
-      ? publicResult.data?.publicImage
-      : privateResult.data?.viewer.image;
+  const privateImage =
+    mode === "private" ? privateResult.data?.viewer.image : undefined;
+  const publicImage =
+    mode === "public" ? publicResult.data?.publicImage : undefined;
+  const image = mode === "public" ? publicImage : privateImage;
   const currentUserId =
     mode === "public"
       ? publicResult.data?.viewer.organizationUser?.id
@@ -106,9 +120,10 @@ function ImageDetailContent({ mode }: { mode: ImageDetailMode }) {
   const loading =
     mode === "public" ? publicResult.loading : privateResult.loading;
   const error = mode === "public" ? publicResult.error : privateResult.error;
-  const isOwnImage = !!(
-    currentUserId && image?.createdBy?.id === currentUserId
-  );
+  const isOwnImage =
+    mode === "public"
+      ? !!publicImage?.viewerIsOwner
+      : !!(currentUserId && privateImage?.createdBy?.id === currentUserId);
   const canShowEdit =
     mode === "public" ? !currentUserId || isOwnImage : isOwnImage;
   const handleEdit = React.useCallback(() => {
@@ -134,7 +149,8 @@ function ImageDetailContent({ mode }: { mode: ImageDetailMode }) {
       </div>
     );
 
-  const lineage = image.lineage;
+  // Public images don't expose their edit history.
+  const lineage = privateImage?.lineage ?? [];
   const currentIndex = lineage.findIndex((img) => img.id === image.id);
   const imageRoute = mode === "public" ? routes.image : routes.profile.image;
 

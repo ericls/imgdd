@@ -174,36 +174,73 @@ func tNormalUserCanOnlyAcessOwnImages(t *testing.T, tc *TestContext) {
 	require.Len(t, resp.Viewer.Images.Edges, 1)
 }
 
-func tPublicImageOnlyResolvesOwnerlessImages(t *testing.T, tc *TestContext) {
-	var resp struct {
-		PublicImage *model.Image
+func tPublicImageResolvesAnyLiveImage(t *testing.T, tc *TestContext) {
+	type publicImageResp struct {
+		PublicImage *struct {
+			ID            string
+			Name          string
+			URL           string
+			ViewerIsOwner bool
+		}
 	}
+	queryPublicImage := func(id string) (*publicImageResp, error) {
+		var resp publicImageResp
+		err := tc.client.Post(`
+		query publicImage($id: ID!) {
+			publicImage(id: $id) {
+				id
+				name
+				url
+				viewerIsOwner
+			}
+		}`, &resp, client.Var("id", id))
+		return &resp, err
+	}
+
 	sd := createStorageDefinition(t, tc)
 	owner := tc.forceAuthenticate()
 	ownedImage := createImage(t, tc, owner.Id, sd.Id)
-	tc.clearAuthenticationInfo()
-
-	err := tc.client.Post(`
-	query publicImage($id: ID!) {
-		publicImage(id: $id) {
-			id
-			name
-		}
-	}`, &resp, client.Var("id", ownedImage.Id))
-	require.NoError(t, err)
-	require.Nil(t, resp.PublicImage)
-
 	ownerlessImage := createImage(t, tc, "", sd.Id)
-	err = tc.client.Post(`
-	query publicImage($id: ID!) {
-		publicImage(id: $id) {
-			id
-			name
-		}
-	}`, &resp, client.Var("id", ownerlessImage.Id))
+
+	resp, err := queryPublicImage(ownedImage.Id)
 	require.NoError(t, err)
 	require.NotNil(t, resp.PublicImage)
-	require.Equal(t, ownerlessImage.Id, resp.PublicImage.ID)
+	require.True(t, resp.PublicImage.ViewerIsOwner, "owner")
+
+	tc.forceAuthenticate()
+	resp, err = queryPublicImage(ownedImage.Id)
+	require.NoError(t, err)
+	require.NotNil(t, resp.PublicImage)
+	require.False(t, resp.PublicImage.ViewerIsOwner, "other user")
+
+	tc.clearAuthenticationInfo()
+	for _, img := range []*domainmodels.Image{ownedImage, ownerlessImage} {
+		resp, err = queryPublicImage(img.Id)
+		require.NoError(t, err)
+		require.NotNil(t, resp.PublicImage)
+		require.Equal(t, img.Id, resp.PublicImage.ID)
+		require.Equal(t, img.Name, resp.PublicImage.Name)
+		require.NotEmpty(t, resp.PublicImage.URL)
+		require.False(t, resp.PublicImage.ViewerIsOwner, "anonymous")
+	}
+
+	// Fields of the full Image type are not part of the public type.
+	for _, field := range []string{"storedImages { id }", "createdBy { id }", "lineage { id }", "root { id }", "parent { id }", "revisions { id }", "changes", "identifier"} {
+		var fieldResp publicImageResp
+		err = tc.client.Post(`
+		query publicImage($id: ID!) {
+			publicImage(id: $id) {
+				id
+				`+field+`
+			}
+		}`, &fieldResp, client.Var("id", ownedImage.Id))
+		require.Error(t, err, field)
+	}
+
+	require.NoError(t, tc.imageRepo.DeleteImageById(ownedImage.Id))
+	resp, err = queryPublicImage(ownedImage.Id)
+	require.Error(t, err, "deleted image")
+	require.Nil(t, resp.PublicImage)
 }
 
 func tBasicPagination(t *testing.T, tc *TestContext) {
@@ -1293,7 +1330,7 @@ func TestImageResolvers(t *testing.T) {
 		tImagesNoFilterNoOrderSiteOwner,
 		tSiteOwnerCanAccessAllImages,
 		tNormalUserCanOnlyAcessOwnImages,
-		tPublicImageOnlyResolvesOwnerlessImages,
+		tPublicImageResolvesAnyLiveImage,
 		tBasicPagination,
 		tBasicPaginationByCreatedAt,
 		tDeletingImage,
