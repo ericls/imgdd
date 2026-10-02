@@ -23,6 +23,7 @@ type HttpServerConfigDef struct {
 	SiteName                 string
 	SiteTitle                string
 	ImageDomain              string
+	WebUIHost                string
 	DefaultURLFormat         domainmodels.ImageURLFormat
 	EnableGqlPlayground      bool
 	EnableSafeImageCheck     bool
@@ -55,6 +56,7 @@ func ReadServerConfigFromEnv() HttpServerConfigDef {
 		SiteName:                 utils.GetEnv("IMGDD_SITE_NAME", ""),
 		SiteTitle:                utils.GetEnv("IMGDD_SITE_TITLE", "IMGDD - Image Direct Delivery"),
 		ImageDomain:              utils.GetEnv("IMGDD_IMAGE_DOMAIN", ""),
+		WebUIHost:                utils.GetEnv("IMGDD_WEB_UI_HOST", ""),
 		DefaultURLFormat:         domainmodels.ImageURLFormat(utils.GetEnv("IMGDD_DEFAULT_URL_FORMAT", "canonical")),
 		EnableSafeImageCheck:     utils.IsStrTruthy(utils.GetEnv("IMGDD_ENABLE_SAFE_IMAGE_CHECK", "false")),
 		SafeImageCheckEndpoint:   utils.GetEnv("IMGDD_SAFE_IMAGE_CHECK_ENDPOINT", ""),

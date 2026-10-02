@@ -22,6 +22,14 @@ func (r *testStoredImageRepo) GetStoredImageByIdentifierAndMimeType(identifier, 
 	return []*domainmodels.StoredImage{r.storedImage}, nil
 }
 
+func (r *testStoredImageRepo) GetStoredImageByStorageDefinitionIdAndFileIdentifier(storageDefinitionId string, fileIdentifier string) (*domainmodels.StoredImage, error) {
+	r.count++
+	if r.storedImage == nil || r.storedImage.StorageDefinitionId != storageDefinitionId || r.storedImage.FileIdentifier != fileIdentifier {
+		return nil, nil
+	}
+	return r.storedImage, nil
+}
+
 func (r *testStoredImageRepo) GetStoredImagesByIds(ids []string) ([]*domainmodels.StoredImage, error) {
 	return nil, nil
 }
