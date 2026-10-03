@@ -70,7 +70,7 @@ type StorageBackendItem struct {
 	ID           string `toml:"ID" comment:"ID for internal references, must be a valid and unique uuid"`
 	IDENTIFIER   string `toml:"IDENTIFIER" comment:"Storage identifier. \nThis value can be exposed to public. \nThis value must be unique. \nThis value is used in the URL format 'direct'"`
 	STORAGE_TYPE string `toml:"STORAGE_TYPE" comment:"Storage type"`
-	CONFIG       string `toml:"CONFIG" comment:"Storage configuration. \nFormat is dependent on STORAGE_TYPE"`
+	CONFIG       string `toml:"CONFIG" comment:"Storage configuration. \nFormat is dependent on STORAGE_TYPE. \nFor 'fs', see the notes on StorageConfig about mediaRoot."`
 	IS_ENABLED   bool   `toml:"IS_ENABLED" comment:"Is storage enabled"`
 	PRIORITY     int32  `toml:"PRIORITY" comment:"Storage priority. Lower value means higher priority"`
 }
@@ -102,7 +102,7 @@ type ConfigFileDef struct {
 	DB         *DBConfigFileDef          `toml:"DBConfig" comment:"Database configuration"`
 	Redis      *RedisConfigFileDef       `toml:"RedisConfig" comment:"Redis configuration"`
 	HTTPServer *HTTPServerConfigFileDef  `toml:"HTTPServerConfig" comment:"HTTP server configuration"`
-	Storage    *StorageConfigFileDef     `toml:"StorageConfig" comment:"Storage configuration"`
+	Storage    *StorageConfigFileDef     `toml:"StorageConfig" comment:"Storage configuration\n\nFor the 'fs' storage type, the operator must:\n- Create mediaRoot beforehand, as an absolute path to a dedicated media-only directory. imgdd never creates it.\n- Run imgdd as an unprivileged user. Its file permissions are the real boundary, since site owners can set mediaRoot from the web UI."`
 	Email      *EmailConfigFileDef       `toml:"EmailConfig" comment:"Email configuration"`
 	Cleanup    *CleanupTaskConfigFileDef `toml:"CleanupTaskConfig" comment:"Cleanup task configuration"`
 }

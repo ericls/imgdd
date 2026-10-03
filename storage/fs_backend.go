@@ -1,87 +1,115 @@
 package storage
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"mime"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/ericls/imgdd/utils"
 )
 
-type RootFS interface {
-	fs.ReadFileFS
-	fs.ReadDirFS
-	fs.StatFS
-}
-
-type WritableRootFs struct {
-	RootFS
-	rootPath string
-}
-
-func (w *WritableRootFs) getWriter(filename string, flag int, perm os.FileMode) (io.WriteCloser, error) {
-	fullPath := w.rootPath + "/" + filename
-	return os.OpenFile(fullPath, flag, perm)
-}
-
-func newRootFs(rootPath string) (*WritableRootFs, error) {
-	rootFS, ok := os.DirFS(rootPath).(RootFS)
-	if !ok {
-		return nil, fmt.Errorf("mediaRoot %s is not a valid root filesystem", rootPath)
-	}
-	return &WritableRootFs{
-		RootFS:   rootFS,
-		rootPath: rootPath,
-	}, nil
-}
-
 type FSStorageConfig struct {
 	MediaRoot string `json:"mediaRoot"`
+}
+
+func checkMediaRoot(mediaRoot string) (string, error) {
+	if mediaRoot == "" {
+		return "", errors.New("mediaRoot is required")
+	}
+	if !filepath.IsAbs(mediaRoot) {
+		return "", fmt.Errorf("mediaRoot %q must be an absolute path", mediaRoot)
+	}
+	return filepath.Clean(mediaRoot), nil
+}
+
+func parseFSStorageConfig(config []byte) (string, error) {
+	var conf FSStorageConfig
+	if err := json.Unmarshal(config, &conf); err != nil {
+		return "", err
+	}
+	return checkMediaRoot(conf.MediaRoot)
+}
+
+// checkFilename only allows a single plain path component, file identifiers are never nested.
+func checkFilename(filename string) error {
+	if filename == "" || filename == "." || filename == ".." || strings.ContainsAny(filename, "/\\\x00") {
+		return fmt.Errorf("invalid filename %q", filename)
+	}
+	return nil
 }
 
 type FSStorageBackend struct {
 }
 
 func (s *FSStorageBackend) FromJSONConfig(config []byte) (Storage, error) {
-	var conf FSStorageConfig
-	err := json.Unmarshal(config, &conf)
-	if err != nil {
-		return nil, err
-	}
-	rootFS, err := newRootFs(conf.MediaRoot)
+	rootPath, err := parseFSStorageConfig(config)
 	if err != nil {
 		return nil, err
 	}
 	return &FSStorage{
-		root: rootFS,
+		rootPath: rootPath,
 	}, nil
 }
 
 func (s *FSStorageBackend) ValidateJSONConfig(config []byte) error {
-	var conf FSStorageConfig
-	err := json.Unmarshal(config, &conf)
+	rootPath, err := parseFSStorageConfig(config)
 	if err != nil {
 		return err
 	}
-	if conf.MediaRoot == "" {
-		return fmt.Errorf("mediaRoot is required")
-	}
-	if err = os.MkdirAll(conf.MediaRoot, 0755); err != nil {
+	stat, err := os.Stat(rootPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("mediaRoot %s does not exist, it must be created by the operator", rootPath)
+		}
 		return err
 	}
-	return nil
+	if !stat.IsDir() {
+		return fmt.Errorf("mediaRoot %s is not a directory", rootPath)
+	}
+	storage := &FSStorage{rootPath: rootPath}
+	return storage.withRoot(func(root *os.Root) error {
+		suffix := make([]byte, 8)
+		if _, err := rand.Read(suffix); err != nil {
+			return err
+		}
+		probe := ".imgdd-write-check-" + hex.EncodeToString(suffix)
+		f, err := root.OpenFile(probe, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+		if err != nil {
+			return fmt.Errorf("mediaRoot %s is not writable: %w", rootPath, err)
+		}
+		f.Close()
+		return root.Remove(probe)
+	})
 }
 
+// FSStorage confines all file access to rootPath via os.Root, which rejects
+// ".." components, absolute paths and symlinks escaping the root.
+// The root is opened per operation so no file descriptor outlives the call.
 type FSStorage struct {
-	root *WritableRootFs
+	rootPath string
+}
+
+func (s *FSStorage) withRoot(fn func(root *os.Root) error) error {
+	root, err := os.OpenRoot(s.rootPath)
+	if err != nil {
+		return err
+	}
+	defer root.Close()
+	return fn(root)
 }
 
 func (s *FSStorage) GetReader(filename string) io.ReadCloser {
-	f, err := s.root.Open(filename)
+	if checkFilename(filename) != nil {
+		return nil
+	}
+	f, err := os.OpenInRoot(s.rootPath, filename)
 	if err != nil {
 		return nil
 	}
@@ -89,17 +117,30 @@ func (s *FSStorage) GetReader(filename string) io.ReadCloser {
 }
 
 func (s *FSStorage) Save(file utils.SeekerReader, filename string, mimeType string) error {
-	f, err := s.root.getWriter(filename, os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
+	if err := checkFilename(filename); err != nil {
 		return err
 	}
-	defer f.Close()
-	_, err = io.Copy(f, file)
-	return err
+	return s.withRoot(func(root *os.Root) error {
+		f, err := root.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		_, err = io.Copy(f, file)
+		return err
+	})
 }
 
 func (s *FSStorage) GetMeta(filename string) FileMeta {
-	stat, err := s.root.Stat(filename)
+	var stat os.FileInfo
+	err := checkFilename(filename)
+	if err == nil {
+		err = s.withRoot(func(root *os.Root) error {
+			var statErr error
+			stat, statErr = root.Stat(filename)
+			return statErr
+		})
+	}
 	if err != nil {
 		return FileMeta{
 			ByteSize:    0,
@@ -129,16 +170,21 @@ func (s *FSStorage) GetMeta(filename string) FileMeta {
 }
 
 func (s *FSStorage) Delete(filename string) error {
-	return os.Remove(s.root.rootPath + "/" + filename)
+	if err := checkFilename(filename); err != nil {
+		return err
+	}
+	return s.withRoot(func(root *os.Root) error {
+		return root.Remove(filename)
+	})
 }
 
 func (s *FSStorage) CheckConnection() error {
-	state, err := os.Stat(s.root.rootPath)
+	stat, err := os.Stat(s.rootPath)
 	if err != nil {
 		return err
 	}
-	if !state.IsDir() {
-		return fmt.Errorf("mediaRoot %s is not a directory", s.root.rootPath)
+	if !stat.IsDir() {
+		return fmt.Errorf("mediaRoot %s is not a directory", s.rootPath)
 	}
 	return nil
 }
