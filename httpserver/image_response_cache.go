@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"math"
 	"net/http"
 	"strconv"
 	"sync"
@@ -57,9 +58,8 @@ func newImageResponseCache(maxBytes, maxFileBytes int64) *imageResponseCache {
 }
 
 func maxEntriesForByteBudget(maxBytes int64) int {
-	maxInt := int(^uint(0) >> 1)
-	if maxBytes > int64(maxInt) {
-		return maxInt
+	if maxBytes > int64(math.MaxInt) {
+		return math.MaxInt
 	}
 	return int(maxBytes)
 }
