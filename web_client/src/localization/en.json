@@ -92,6 +92,7 @@
         "access": "Access",
         "secret": "Secret",
         "mediaRootPath": "Media root path",
+        "mediaRootNotice": "Must be an absolute path to an existing, dedicated media-only directory. imgdd will not create it. imgdd reads, writes and deletes files there, so never use a system or home directory.",
         "url": "URL",
         "username": "Username",
         "password": "Password",
