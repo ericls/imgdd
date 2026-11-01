@@ -27,20 +27,9 @@ func (r *imageResolver) URL(ctx context.Context, obj *model.Image) (string, erro
 		Identifier: obj.Identifier,
 		MIMEType:   obj.MIMEType,
 	}
-	loader := LoadersFor(ctx).StoredImagesByImageIdsLoader
-	storedImages, err := loader.Load(ctx, obj.ID)
+	externalIdentifiers, err := r.externalImageIdentifiers(ctx, obj.ID)
 	if err != nil {
 		return "", err
-	}
-	var externalIdentifiers []*domainmodels.ExternalImageIdentifier
-	for _, storedImage := range storedImages {
-		if storedImage == nil || storedImage.StorageDefinition == nil {
-			continue
-		}
-		externalIdentifiers = append(externalIdentifiers, &domainmodels.ExternalImageIdentifier{
-			StorageDefinitionIdentifier: storedImage.StorageDefinition.Identifier,
-			FileIdentifier:              storedImage.FileIdentifier,
-		})
 	}
 	return image.GetURL(r.ImageDomain, r.IsHttps(ctx), externalIdentifiers, r.DefaultURLFormat), nil
 }
@@ -461,6 +450,30 @@ func (r *mutationResolver) ApplyBlur(ctx context.Context, input model.ApplyBlurI
 	}, nil
 }
 
+// URL is the resolver for the url field.
+func (r *publicImageResolver) URL(ctx context.Context, obj *model.PublicImage) (string, error) {
+	image := domainmodels.PublicImage{
+		Id:         obj.ID,
+		Identifier: obj.Identifier,
+		MIMEType:   obj.MIMEType,
+	}
+	externalIdentifiers, err := r.externalImageIdentifiers(ctx, obj.ID)
+	if err != nil {
+		return "", err
+	}
+	return image.GetURL(r.ImageDomain, r.IsHttps(ctx), externalIdentifiers, r.DefaultURLFormat), nil
+}
+
+// ViewerIsOwner is the resolver for the viewerIsOwner field.
+func (r *publicImageResolver) ViewerIsOwner(ctx context.Context, obj *model.PublicImage) (bool, error) {
+	currentUser := identity.GetCurrentOrganizationUser(r.ContextUserManager, ctx)
+	if currentUser == nil {
+		return false, nil
+	}
+	image := domainmodels.PublicImage{CreatedById: obj.CreatedById}
+	return image.IsOwnedBy(currentUser.Id), nil
+}
+
 // Image is the resolver for the image field.
 func (r *viewerResolver) Image(ctx context.Context, obj *model.Viewer, id string) (*model.Image, error) {
 	currentUser := identity.GetCurrentOrganizationUser(r.ContextUserManager, ctx)
@@ -549,4 +562,8 @@ func (r *viewerResolver) Images(ctx context.Context, obj *model.Viewer, orderBy 
 // Image returns ImageResolver implementation.
 func (r *Resolver) Image() ImageResolver { return &imageResolver{r} }
 
+// PublicImage returns PublicImageResolver implementation.
+func (r *Resolver) PublicImage() PublicImageResolver { return &publicImageResolver{r} }
+
 type imageResolver struct{ *Resolver }
+type publicImageResolver struct{ *Resolver }

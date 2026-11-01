@@ -23,6 +23,24 @@ type Image {
   createdBy: OrganizationUser
 }
 
+"""
+An image as shown to anyone, including anonymous visitors. Any live image can be fetched by its
+link, so this only exposes what a link holder can already see, plus its name and upload time.
+It must not expose the owner or related images.
+"""
+type PublicImage {
+  id: ID!
+  url: String!
+  name: String!
+  nominalWidth: Int!
+  nominalHeight: Int!
+  nominalByteSize: Int!
+  MIMEType: String!
+  createdAt: Time!
+  "Whether the current viewer uploaded this image."
+  viewerIsOwner: Boolean!
+}
+
 enum Anchor {
   TOP_LEFT
   TOP_RIGHT

@@ -9,4 +9,4 @@ pre-commit:
       run: go vet ./...
     web-check:
       glob: "web_client/src/**/*.ts*"
-      run: pnpm --prefix web_client run check
+      run: cd web_client && pnpm run check

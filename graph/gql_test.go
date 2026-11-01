@@ -209,6 +209,30 @@ func tUpdateStorageDefinition(t *testing.T, tc *TestContext) {
 	require.Equal(t, 2, resp.UpdateStorageDefinition.Priority)
 }
 
+func tUpdateStorageDefinitionValidatesConfig(t *testing.T, tc *TestContext) {
+	var resp struct {
+		UpdateStorageDefinition *model.StorageDefinition
+	}
+	tc.forceAuthenticate(asSiteOwner)
+	mediaRoot := t.TempDir()
+	_, err := tc.storageDefRepo.CreateStorageDefinition("fs", `{"mediaRoot":"`+mediaRoot+`"}`, "test-fs-update", true, 1)
+	require.NoError(t, err)
+	err = tc.client.Post(`
+	mutation {
+		updateStorageDefinition(input: {
+			identifier: "test-fs-update"
+			configJSON: "`+utils.JsonEscape(`{"mediaRoot":"relative/media"}`)+`"
+		}) {
+			id
+		}
+	}`, &resp)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "absolute path")
+	sd, err := tc.storageDefRepo.GetStorageDefinitionByIdentifier("test-fs-update")
+	require.NoError(t, err)
+	require.Contains(t, sd.Config, mediaRoot)
+}
+
 func TestResolver(t *testing.T) {
 	tc := newTestContext(t)
 	tc.runTestCases(
@@ -217,5 +241,6 @@ func TestResolver(t *testing.T) {
 		tCreateStorageDefinitionWithInvalidConfig,
 		tListStorageDefinitions,
 		tUpdateStorageDefinition,
+		tUpdateStorageDefinitionValidatesConfig,
 	)
 }

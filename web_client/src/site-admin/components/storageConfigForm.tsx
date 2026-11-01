@@ -71,11 +71,16 @@ function FSSotrageConfigForm({
 }) {
   const { t } = useTranslation();
   return (
-    <InputWithLabel
-      containerClassName="flex flex-col gap-1 max-w-full"
-      label={t("storageConfigForm.mediaRootPath")}
-      {...form.register("mediaRoot", { required: true })}
-    />
+    <>
+      <InputWithLabel
+        containerClassName="flex flex-col gap-1 max-w-full"
+        label={t("storageConfigForm.mediaRootPath")}
+        {...form.register("mediaRoot", { required: true })}
+      />
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        {t("storageConfigForm.mediaRootNotice")}
+      </p>
+    </>
   );
 }
 

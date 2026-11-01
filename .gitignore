@@ -16,3 +16,5 @@ config.toml
 /dist/
 
 .hints
+
+/media/

@@ -1,0 +1,10 @@
+Breaking changes between versions. Newest first.
+
+
+0.10.0
+--------------------------
+
+fs storage: mediaRoot now must be an absolute path.
+  Relative paths (e.g. "./media") are rejected when saving a storage definition and
+  when an existing one is loaded, so storage using them stops working.
+  Action: change mediaRoot to an absolute path, in the DB (through site admin UI) or the config file.

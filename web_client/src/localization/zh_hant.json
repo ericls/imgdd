@@ -92,6 +92,7 @@
         "access": "Access Key",
         "secret": "Secret Key",
         "mediaRootPath": "媒體根路徑",
+        "mediaRootNotice": "必須是已存在且專用於媒體檔案的目錄的絕對路徑，imgdd 不會自動建立。imgdd 會在其中讀取、寫入和刪除檔案，請勿使用系統目錄或家目錄。",
         "url": "URL",
         "username": "使用者名稱",
         "password": "密碼",

@@ -19,6 +19,7 @@
     "node": ">=24.15.0 <25",
     "pnpm": ">=10.0.0 <11"
   },
+  "packageManager": "pnpm@10.34.6",
   "keywords": [],
   "author": "",
   "license": "AGPL-3.0-only",

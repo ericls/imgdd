@@ -21,6 +21,7 @@
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             go_1_25
+            air
 
             nodejs_24
             corepack_24
@@ -28,6 +29,10 @@
             git
             lefthook
           ];
+
+          # Use the Go from this shell; fail instead of silently downloading a newer
+          # toolchain (and bumping go.mod) when a dependency requires one.
+          GOTOOLCHAIN = "local";
 
           shellHook = ''
             lefthook install

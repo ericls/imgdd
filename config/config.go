@@ -166,6 +166,7 @@ func ConfigFromFile(filePath string) (*ConfigDef, error) {
 			SiteName:                 httpServerConfig.SITE_NAME,
 			SiteTitle:                httpServerConfig.SITE_TITLE,
 			ImageDomain:              httpServerConfig.IMAGE_DOMAIN,
+			WebUIHost:                httpServerConfig.WEB_UI_HOST,
 			DefaultURLFormat:         defaultURLFormat,
 			EnableSafeImageCheck:     utils.IsStrTruthy(httpServerConfig.ENABLE_SAFE_IMAGE_CHECK),
 			SafeImageCheckEndpoint:   httpServerConfig.SAFE_IMAGE_CHECK_ENDPOINT,
@@ -263,6 +264,9 @@ func mergeConfigs(configs ...*ConfigDef) *ConfigDef {
 		}
 		if config.HttpServer.ImageDomain != "" {
 			merged.HttpServer.ImageDomain = config.HttpServer.ImageDomain
+		}
+		if config.HttpServer.WebUIHost != "" {
+			merged.HttpServer.WebUIHost = config.HttpServer.WebUIHost
 		}
 		if config.HttpServer.DefaultURLFormat != "" && (fileConfig == nil || fileHTTPServerConfig != nil && fileHTTPServerConfig.DEFAULT_URL_FORMAT != "") {
 			merged.HttpServer.DefaultURLFormat = config.HttpServer.DefaultURLFormat

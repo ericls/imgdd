@@ -92,6 +92,7 @@
         "access": "Access Key",
         "secret": "Secret Key",
         "mediaRootPath": "미디어 루트 경로",
+        "mediaRootNotice": "이미 존재하는 미디어 전용 디렉터리의 절대 경로여야 합니다. imgdd는 이 디렉터리를 만들지 않습니다. imgdd가 이 안의 파일을 읽고, 쓰고, 삭제하므로 시스템 디렉터리나 홈 디렉터리를 사용하지 마세요.",
         "url": "URL",
         "username": "사용자 이름",
         "password": "비밀번호",

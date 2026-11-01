@@ -131,3 +131,9 @@ models:
         resolver: true
       changes:
         resolver: true
+  PublicImage:
+    fields:
+      url:
+        resolver: true
+      viewerIsOwner:
+        resolver: true

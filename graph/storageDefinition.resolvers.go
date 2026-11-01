@@ -51,9 +51,18 @@ func (r *mutationResolver) UpdateStorageDefinition(ctx context.Context, input mo
 		priority = int64(*input.Priority)
 		priorityPtr = &priority
 	}
-	_, err := repo.GetStorageDefinitionByIdentifier(input.Identifier)
+	existing, err := repo.GetStorageDefinitionByIdentifier(input.Identifier)
 	if err != nil {
 		return nil, err
+	}
+	if config != nil {
+		backend := storage.GetBackend(existing.StorageType)
+		if backend == nil {
+			return nil, errors.New("invalid storage type")
+		}
+		if err := backend.ValidateJSONConfig([]byte(*config)); err != nil {
+			return nil, err
+		}
 	}
 	updated, err := repo.UpdateStorageDefinition(
 		input.Identifier,

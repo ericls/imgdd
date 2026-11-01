@@ -9,11 +9,13 @@ func makeImageCORSMiddleware(allowedOrigins []string) func(http.Handler) http.Ha
 	}
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if len(allowed) > 0 {
+				w.Header().Add("Vary", "Origin")
+			}
 			origin := r.Header.Get("Origin")
 			if origin != "" {
 				if _, ok := allowed[origin]; ok {
 					w.Header().Set("Access-Control-Allow-Origin", origin)
-					w.Header().Add("Vary", "Origin")
 				}
 			}
 			next.ServeHTTP(w, r)

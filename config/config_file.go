@@ -45,6 +45,7 @@ type HTTPServerConfigFileDef struct {
 	SITE_NAME                    string `toml:"SITE_NAME" comment:"Site name"`
 	SITE_TITLE                   string `toml:"SITE_TITLE" comment:"Site title"`
 	IMAGE_DOMAIN                 string `toml:"IMAGE_DOMAIN" comment:"Image domain"`
+	WEB_UI_HOST                  string `toml:"WEB_UI_HOST" comment:"Host of the web UI. Image redirect routes (/i/...) send visitors to the image detail page on this host. Defaults to the requested host."`
 	DEFAULT_URL_FORMAT           string `toml:"DEFAULT_URL_FORMAT" comment:"Default URL format. Choices are \n1. 'canonical' - Chooses best backend, and proxies content from that backend. \n2. 'direct' - A backend identifier is included in the URL and directly proxies that storage backend. \n3. 'backend_direct' - URL directly links to the backend (not supported yet)"`
 	ENABLE_SAFE_IMAGE_CHECK      string `toml:"ENABLE_SAFE_IMAGE_CHECK" comment:"Enable safe image check. 'true', '1' or 'yes' to enable"`
 	SAFE_IMAGE_CHECK_ENDPOINT    string `toml:"SAFE_IMAGE_CHECK_ENDPOINT" comment:"Safe image check endpoint. Used if ENABLE_SAFE_IMAGE_CHECK is true"`
@@ -69,7 +70,7 @@ type StorageBackendItem struct {
 	ID           string `toml:"ID" comment:"ID for internal references, must be a valid and unique uuid"`
 	IDENTIFIER   string `toml:"IDENTIFIER" comment:"Storage identifier. \nThis value can be exposed to public. \nThis value must be unique. \nThis value is used in the URL format 'direct'"`
 	STORAGE_TYPE string `toml:"STORAGE_TYPE" comment:"Storage type"`
-	CONFIG       string `toml:"CONFIG" comment:"Storage configuration. \nFormat is dependent on STORAGE_TYPE"`
+	CONFIG       string `toml:"CONFIG" comment:"Storage configuration. \nFormat is dependent on STORAGE_TYPE. \nFor 'fs', see the notes on StorageConfig about mediaRoot."`
 	IS_ENABLED   bool   `toml:"IS_ENABLED" comment:"Is storage enabled"`
 	PRIORITY     int32  `toml:"PRIORITY" comment:"Storage priority. Lower value means higher priority"`
 }
@@ -106,7 +107,7 @@ type ConfigFileDef struct {
 	DB                  *DBConfigFileDef                      `toml:"DBConfig" comment:"Database configuration"`
 	Redis               *RedisConfigFileDef                   `toml:"RedisConfig" comment:"Redis configuration"`
 	HTTPServer          *HTTPServerConfigFileDef              `toml:"HTTPServerConfig" comment:"HTTP server configuration"`
-	Storage             *StorageConfigFileDef                 `toml:"StorageConfig" comment:"Storage configuration"`
+	Storage             *StorageConfigFileDef                 `toml:"StorageConfig" comment:"Storage configuration\n\nFor the 'fs' storage type, the operator must:\n- Create mediaRoot beforehand, as an absolute path to a dedicated media-only directory. imgdd never creates it.\n- Run imgdd as an unprivileged user. Its file permissions are the real boundary, since site owners can set mediaRoot from the web UI."`
 	Email               *EmailConfigFileDef                   `toml:"EmailConfig" comment:"Email configuration"`
 	Cleanup             *CleanupTaskConfigFileDef             `toml:"CleanupTaskConfig" comment:"Cleanup task configuration"`
 	DeleteExpiredImages *DeleteExpiredImagesTaskConfigFileDef `toml:"DeleteExpiredImagesTaskConfig" comment:"Configuration for the task that marks expired images as deleted"`

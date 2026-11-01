@@ -35,6 +35,8 @@ func NewDBStoredImageRepo(conn *sql.DB) *DBStoredImageRepo {
 func (repo *DBStoredImageRepo) GetStoredImageByIdentifierAndMimeType(identifier, mime string) ([]*dm.StoredImage, error) {
 	stmt := SELECT(
 		StoredImageTable.AllColumns,
+		ImageTable.MimeType,
+		ImageTable.ID,
 	).FROM(StoredImageTable.INNER_JOIN(
 		ImageTable, ImageTable.ID.EQ(StoredImageTable.ImageID),
 	)).WHERE(
@@ -49,6 +51,7 @@ func (repo *DBStoredImageRepo) GetStoredImageByIdentifierAndMimeType(identifier,
 	)
 	dest := []struct {
 		StoredImageTable model.StoredImageTable
+		ImageTable       model.ImageTable
 	}{}
 	err := stmt.Query(repo.DB, &dest)
 	if err != nil {
@@ -56,14 +59,39 @@ func (repo *DBStoredImageRepo) GetStoredImageByIdentifierAndMimeType(identifier,
 	}
 	result := make([]*dm.StoredImage, len(dest))
 	for i, d := range dest {
-		result[i] = &dm.StoredImage{
-			Id:                  d.StoredImageTable.ID.String(),
-			FileIdentifier:      d.StoredImageTable.FileIdentifier,
-			StorageDefinitionId: d.StoredImageTable.StorageDefinitionID.String(),
-			IsFileDeleted:       d.StoredImageTable.IsFileDeleted,
-		}
+		result[i] = storedImageFromJoinRow(d.StoredImageTable, d.ImageTable)
 	}
 	return result, nil
+}
+
+func (repo *DBStoredImageRepo) GetStoredImageByStorageDefinitionIdAndFileIdentifier(storageDefinitionId string, fileIdentifier string) (*dm.StoredImage, error) {
+	storageDefUUID, err := uuid.Parse(storageDefinitionId)
+	if err != nil {
+		return nil, err
+	}
+	stmt := SELECT(
+		StoredImageTable.AllColumns,
+		ImageTable.MimeType,
+		ImageTable.ID,
+	).FROM(
+		StoredImageTable.INNER_JOIN(ImageTable, StoredImageTable.ImageID.EQ(ImageTable.ID)),
+	).WHERE(
+		StoredImageTable.StorageDefinitionID.EQ(UUID(storageDefUUID)).
+			AND(StoredImageTable.FileIdentifier.EQ(String(fileIdentifier))).
+			AND(StoredImageTable.IsFileDeleted.EQ(Bool(false))).
+			AND(ImageTable.DeletedAt.IS_NULL()),
+	).LIMIT(1)
+	dest := []struct {
+		StoredImageTable model.StoredImageTable
+		ImageTable       model.ImageTable
+	}{}
+	if err := stmt.Query(repo.DB, &dest); err != nil {
+		return nil, err
+	}
+	if len(dest) == 0 {
+		return nil, nil
+	}
+	return storedImageFromJoinRow(dest[0].StoredImageTable, dest[0].ImageTable), nil
 }
 
 func (repo *DBStoredImageRepo) GetStoredImagesByIds(ids []string) ([]*dm.StoredImage, error) {

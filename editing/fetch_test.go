@@ -24,6 +24,10 @@ func (r *fakeStoredImageRepo) GetStoredImageByIdentifierAndMimeType(identifier, 
 	return nil, nil
 }
 
+func (r *fakeStoredImageRepo) GetStoredImageByStorageDefinitionIdAndFileIdentifier(storageDefinitionId string, fileIdentifier string) (*dm.StoredImage, error) {
+	return nil, nil
+}
+
 func (r *fakeStoredImageRepo) GetStoredImagesByIds(ids []string) ([]*dm.StoredImage, error) {
 	return nil, nil
 }

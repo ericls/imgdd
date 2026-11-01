@@ -32,6 +32,7 @@ type Config = graphql.Config[ResolverRoot, DirectiveRoot, ComplexityRoot]
 type ResolverRoot interface {
 	Image() ImageResolver
 	Mutation() MutationResolver
+	PublicImage() PublicImageResolver
 	Query() QueryResolver
 	StorageDefinition() StorageDefinitionResolver
 	User() UserResolver
@@ -147,6 +148,18 @@ type ComplexityRoot struct {
 		PageInfo func(childComplexity int) int
 	}
 
+	PublicImage struct {
+		CreatedAt       func(childComplexity int) int
+		ID              func(childComplexity int) int
+		MIMEType        func(childComplexity int) int
+		Name            func(childComplexity int) int
+		NominalByteSize func(childComplexity int) int
+		NominalHeight   func(childComplexity int) int
+		NominalWidth    func(childComplexity int) int
+		URL             func(childComplexity int) int
+		ViewerIsOwner   func(childComplexity int) int
+	}
+
 	Query struct {
 		PublicImage func(childComplexity int, id string) int
 		Viewer      func(childComplexity int) int
@@ -257,9 +270,14 @@ type MutationResolver interface {
 	UpdateStorageDefinition(ctx context.Context, input model.UpdateStorageDefinitionInput) (*model.StorageDefinition, error)
 	CheckStorageDefinitionConnectivity(ctx context.Context, input model.CheckStorageDefinitionConnectivityInput) (*model.StorageDefinitionConnectivityResult, error)
 }
+type PublicImageResolver interface {
+	URL(ctx context.Context, obj *model.PublicImage) (string, error)
+
+	ViewerIsOwner(ctx context.Context, obj *model.PublicImage) (bool, error)
+}
 type QueryResolver interface {
 	Viewer(ctx context.Context) (*model.Viewer, error)
-	PublicImage(ctx context.Context, id string) (*model.Image, error)
+	PublicImage(ctx context.Context, id string) (*model.PublicImage, error)
 }
 type StorageDefinitionResolver interface {
 	Connectivity(ctx context.Context, obj *model.StorageDefinition) (bool, error)
@@ -701,6 +719,61 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.PaginatedUsers.PageInfo(childComplexity), true
+
+	case "PublicImage.createdAt":
+		if e.ComplexityRoot.PublicImage.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicImage.CreatedAt(childComplexity), true
+	case "PublicImage.id":
+		if e.ComplexityRoot.PublicImage.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicImage.ID(childComplexity), true
+	case "PublicImage.MIMEType":
+		if e.ComplexityRoot.PublicImage.MIMEType == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicImage.MIMEType(childComplexity), true
+	case "PublicImage.name":
+		if e.ComplexityRoot.PublicImage.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicImage.Name(childComplexity), true
+	case "PublicImage.nominalByteSize":
+		if e.ComplexityRoot.PublicImage.NominalByteSize == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicImage.NominalByteSize(childComplexity), true
+	case "PublicImage.nominalHeight":
+		if e.ComplexityRoot.PublicImage.NominalHeight == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicImage.NominalHeight(childComplexity), true
+	case "PublicImage.nominalWidth":
+		if e.ComplexityRoot.PublicImage.NominalWidth == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicImage.NominalWidth(childComplexity), true
+	case "PublicImage.url":
+		if e.ComplexityRoot.PublicImage.URL == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicImage.URL(childComplexity), true
+	case "PublicImage.viewerIsOwner":
+		if e.ComplexityRoot.PublicImage.ViewerIsOwner == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicImage.ViewerIsOwner(childComplexity), true
 
 	case "Query.publicImage":
 		if e.ComplexityRoot.Query.PublicImage == nil {
@@ -1291,6 +1364,30 @@ func (ec *executionContext) childFields_PaginatedUsers(ctx context.Context, fiel
 		return ec.fieldContext_PaginatedUsers_pageInfo(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type PaginatedUsers", field.Name)
+}
+
+func (ec *executionContext) childFields_PublicImage(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_PublicImage_id(ctx, field)
+	case "url":
+		return ec.fieldContext_PublicImage_url(ctx, field)
+	case "name":
+		return ec.fieldContext_PublicImage_name(ctx, field)
+	case "nominalWidth":
+		return ec.fieldContext_PublicImage_nominalWidth(ctx, field)
+	case "nominalHeight":
+		return ec.fieldContext_PublicImage_nominalHeight(ctx, field)
+	case "nominalByteSize":
+		return ec.fieldContext_PublicImage_nominalByteSize(ctx, field)
+	case "MIMEType":
+		return ec.fieldContext_PublicImage_MIMEType(ctx, field)
+	case "createdAt":
+		return ec.fieldContext_PublicImage_createdAt(ctx, field)
+	case "viewerIsOwner":
+		return ec.fieldContext_PublicImage_viewerIsOwner(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type PublicImage", field.Name)
 }
 
 func (ec *executionContext) childFields_ResetPasswordResult(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -3741,6 +3838,213 @@ func (ec *executionContext) fieldContext_PaginatedUsers_pageInfo(_ context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _PublicImage_id(ctx context.Context, field graphql.CollectedField, obj *model.PublicImage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicImage_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicImage_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicImage", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _PublicImage_url(ctx context.Context, field graphql.CollectedField, obj *model.PublicImage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicImage_url(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.PublicImage().URL(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicImage_url(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicImage", field, true, true, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _PublicImage_name(ctx context.Context, field graphql.CollectedField, obj *model.PublicImage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicImage_name(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicImage_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicImage", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _PublicImage_nominalWidth(ctx context.Context, field graphql.CollectedField, obj *model.PublicImage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicImage_nominalWidth(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.NominalWidth, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicImage_nominalWidth(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicImage", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _PublicImage_nominalHeight(ctx context.Context, field graphql.CollectedField, obj *model.PublicImage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicImage_nominalHeight(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.NominalHeight, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicImage_nominalHeight(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicImage", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _PublicImage_nominalByteSize(ctx context.Context, field graphql.CollectedField, obj *model.PublicImage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicImage_nominalByteSize(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.NominalByteSize, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicImage_nominalByteSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicImage", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _PublicImage_MIMEType(ctx context.Context, field graphql.CollectedField, obj *model.PublicImage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicImage_MIMEType(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.MIMEType, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicImage_MIMEType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicImage", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _PublicImage_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.PublicImage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicImage_createdAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicImage_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicImage", field, false, false, errors.New("field of type Time does not have child fields"))
+}
+
+func (ec *executionContext) _PublicImage_viewerIsOwner(ctx context.Context, field graphql.CollectedField, obj *model.PublicImage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicImage_viewerIsOwner(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.PublicImage().ViewerIsOwner(ctx, obj)
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicImage_viewerIsOwner(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicImage", field, true, true, errors.New("field of type Boolean does not have child fields"))
+}
+
 func (ec *executionContext) _Query_viewer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -3786,8 +4090,8 @@ func (ec *executionContext) _Query_publicImage(ctx context.Context, field graphq
 			return ec.Resolvers.Query().PublicImage(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		func(ctx context.Context, selections ast.SelectionSet, v *model.Image) graphql.Marshaler {
-			return ec.marshalOImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐImage(ctx, selections, v)
+		func(ctx context.Context, selections ast.SelectionSet, v *model.PublicImage) graphql.Marshaler {
+			return ec.marshalOPublicImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPublicImage(ctx, selections, v)
 		},
 		true,
 		false,
@@ -3800,7 +4104,7 @@ func (ec *executionContext) fieldContext_Query_publicImage(ctx context.Context, 
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return ec.childFields_Image(ctx, field)
+			return ec.childFields_PublicImage(ctx, field)
 		},
 	}
 	defer func() {
@@ -7844,6 +8148,147 @@ func (ec *executionContext) _PaginatedUsers(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var publicImageImplementors = []string{"PublicImage"}
+
+func (ec *executionContext) _PublicImage(ctx context.Context, sel ast.SelectionSet, obj *model.PublicImage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, publicImageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PublicImage")
+		case "id":
+			out.Values[i] = ec._PublicImage_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "url":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PublicImage_url(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "name":
+			out.Values[i] = ec._PublicImage_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "nominalWidth":
+			out.Values[i] = ec._PublicImage_nominalWidth(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "nominalHeight":
+			out.Values[i] = ec._PublicImage_nominalHeight(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "nominalByteSize":
+			out.Values[i] = ec._PublicImage_nominalByteSize(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "MIMEType":
+			out.Values[i] = ec._PublicImage_MIMEType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "createdAt":
+			out.Values[i] = ec._PublicImage_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "viewerIsOwner":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PublicImage_viewerIsOwner(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -10124,6 +10569,13 @@ func (ec *executionContext) marshalOPaginationDirection2ᚖgithubᚗcomᚋericls
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalOPublicImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPublicImage(ctx context.Context, sel ast.SelectionSet, v *model.PublicImage) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PublicImage(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOStorageDefinition2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐStorageDefinition(ctx context.Context, sel ast.SelectionSet, v *model.StorageDefinition) graphql.Marshaler {

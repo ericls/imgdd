@@ -92,6 +92,7 @@
         "access": "Access Key",
         "secret": "Secret Key",
         "mediaRootPath": "媒体根路径",
+        "mediaRootNotice": "必须是已存在且专用于媒体文件的目录的绝对路径，imgdd 不会自动创建。imgdd 会在其中读取、写入和删除文件，请勿使用系统目录或主目录。",
         "url": "URL",
         "username": "用户名",
         "password": "密码",
