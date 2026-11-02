@@ -145,6 +145,83 @@ ENABLED = true
 	}
 }
 
+func TestDeleteExpiredImagesEnabledByDefault(t *testing.T) {
+	t.Setenv("DELETE_EXPIRED_IMAGES_ENABLED", "")
+	t.Setenv("DELETE_EXPIRED_IMAGES_INTERVAL_SECONDS", "")
+
+	conf, err := GetConfig("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := conf.DeleteExpiredImagesConfig
+	if c == nil || !c.Enabled || c.Interval != 60*time.Second {
+		t.Fatalf("expected delete expired images enabled at 60s by default, got %+v", c)
+	}
+
+	// A config file without the section keeps the default too.
+	conf, err = GetConfig(writeTestConfig(t, `
+[HTTPServerConfig]
+SITE_NAME = "custom"
+`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	c = conf.DeleteExpiredImagesConfig
+	if c == nil || !c.Enabled || c.Interval != 60*time.Second {
+		t.Fatalf("expected delete expired images enabled at 60s by default, got %+v", c)
+	}
+}
+
+func TestDeleteExpiredImagesConfigFromFile(t *testing.T) {
+	conf, err := ConfigFromFile(writeTestConfig(t, `
+[DeleteExpiredImagesTaskConfig]
+INTERVAL_SECONDS = 30
+`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := conf.DeleteExpiredImagesConfig
+	if c == nil || !c.Enabled || c.Interval != 30*time.Second {
+		t.Fatalf("expected enabled at 30s when only INTERVAL_SECONDS is set, got %+v", c)
+	}
+	if conf.CleanupConfig != nil {
+		t.Fatal("delete expired images config should not enable cleanup config")
+	}
+
+	conf, err = ConfigFromFile(writeTestConfig(t, `
+[DeleteExpiredImagesTaskConfig]
+ENABLED = false
+`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c := conf.DeleteExpiredImagesConfig; c == nil || c.Enabled {
+		t.Fatalf("expected disabled, got %+v", c)
+	}
+}
+
+func TestDeleteExpiredImagesConfigFromEnv(t *testing.T) {
+	t.Setenv("DELETE_EXPIRED_IMAGES_ENABLED", "false")
+	t.Setenv("DELETE_EXPIRED_IMAGES_INTERVAL_SECONDS", "")
+	conf, err := GetConfig("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c := conf.DeleteExpiredImagesConfig; c == nil || c.Enabled {
+		t.Fatalf("expected disabled via env, got %+v", c)
+	}
+
+	t.Setenv("DELETE_EXPIRED_IMAGES_ENABLED", "")
+	t.Setenv("DELETE_EXPIRED_IMAGES_INTERVAL_SECONDS", "15")
+	conf, err = GetConfig("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c := conf.DeleteExpiredImagesConfig; c == nil || !c.Enabled || c.Interval != 15*time.Second {
+		t.Fatalf("expected enabled at 15s via env, got %+v", c)
+	}
+}
+
 func TestGetConfigDoesNotLetFileRuntimeDefaultsOverrideEnv(t *testing.T) {
 	t.Setenv("IMGDD_DEFAULT_URL_FORMAT", "direct")
 	t.Setenv("EMAIL_BACKEND_TYPE", "smtp")

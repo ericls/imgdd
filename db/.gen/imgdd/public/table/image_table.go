@@ -32,6 +32,7 @@ type imageTableTable struct {
 	CreatedAt       postgres.ColumnTimestampz
 	UpdatedAt       postgres.ColumnTimestampz
 	DeletedAt       postgres.ColumnTimestampz
+	ExpiresAt       postgres.ColumnTimestampz
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -88,8 +89,9 @@ func newImageTableTableImpl(schemaName, tableName, alias string) imageTableTable
 		CreatedAtColumn       = postgres.TimestampzColumn("created_at")
 		UpdatedAtColumn       = postgres.TimestampzColumn("updated_at")
 		DeletedAtColumn       = postgres.TimestampzColumn("deleted_at")
-		allColumns            = postgres.ColumnList{IDColumn, CreatedByIDColumn, NameColumn, IdentifierColumn, RootIDColumn, ParentIDColumn, ChangesColumn, UploaderIPColumn, MimeTypeColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn}
-		mutableColumns        = postgres.ColumnList{CreatedByIDColumn, NameColumn, IdentifierColumn, RootIDColumn, ParentIDColumn, ChangesColumn, UploaderIPColumn, MimeTypeColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn}
+		ExpiresAtColumn       = postgres.TimestampzColumn("expires_at")
+		allColumns            = postgres.ColumnList{IDColumn, CreatedByIDColumn, NameColumn, IdentifierColumn, RootIDColumn, ParentIDColumn, ChangesColumn, UploaderIPColumn, MimeTypeColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn, ExpiresAtColumn}
+		mutableColumns        = postgres.ColumnList{CreatedByIDColumn, NameColumn, IdentifierColumn, RootIDColumn, ParentIDColumn, ChangesColumn, UploaderIPColumn, MimeTypeColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn, ExpiresAtColumn}
 		defaultColumns        = postgres.ColumnList{IDColumn, ChangesColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn}
 	)
 
@@ -112,6 +114,7 @@ func newImageTableTableImpl(schemaName, tableName, alias string) imageTableTable
 		CreatedAt:       CreatedAtColumn,
 		UpdatedAt:       UpdatedAtColumn,
 		DeletedAt:       DeletedAtColumn,
+		ExpiresAt:       ExpiresAtColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
