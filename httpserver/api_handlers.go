@@ -165,7 +165,13 @@ func makeAPICreateImagesHandler(
 
 		maxBodyBytes := apiMaxImagesPerRequest*conf.ImageMaxUploadBytes + apiMultipartOverheadBytes
 		r.Body = http.MaxBytesReader(w, r.Body, maxBodyBytes)
-		if err := r.ParseMultipartForm(conf.ImageMaxUploadBytes); err != nil {
+		err = r.ParseMultipartForm(conf.ImageMaxUploadBytes)
+		// The form can be populated even when an error is returned, for example
+		// when only the query string is malformed.
+		if r.MultipartForm != nil {
+			defer r.MultipartForm.RemoveAll()
+		}
+		if err != nil {
 			var maxBytesErr *http.MaxBytesError
 			if errors.As(err, &maxBytesErr) {
 				writeAPIError(w, http.StatusRequestEntityTooLarge, "request_too_large", "Request body is too large")
@@ -174,7 +180,6 @@ func makeAPICreateImagesHandler(
 			writeAPIError(w, http.StatusBadRequest, "invalid_request", "Expected a multipart/form-data body")
 			return
 		}
-		defer r.MultipartForm.RemoveAll()
 
 		fileHeaders := r.MultipartForm.File["image"]
 		if len(fileHeaders) == 0 {

@@ -82,7 +82,11 @@ func createUploadedImage(
 	}
 	defer src.Close()
 
-	imgBytes, _ := io.ReadAll(src)
+	imgBytes, err := io.ReadAll(src)
+	if err != nil {
+		httpLogger.Error().Err(err).Msg("Unable to read file")
+		return nil, newUploadError(http.StatusBadRequest, "unreadable_file", "Unable to read file")
+	}
 	exifRemovedBytes, err := utils.MaybeRemoveExif(imgBytes)
 	if err != nil || len(exifRemovedBytes) == 0 {
 		exifRemovedBytes = imgBytes
@@ -154,8 +158,8 @@ func createUploadedImage(
 	imageIdentifier := uuid.New().String()
 	width, height, err := utils.GetImageDimensions(exifRemovedBytes)
 	if err != nil {
-		httpLogger.Error().Err(err).Msg("Unable to get image dimensions")
-		return nil, internalUploadError()
+		httpLogger.Warn().Err(err).Msg("Unable to get image dimensions")
+		return nil, newUploadError(http.StatusBadRequest, "invalid_image", "The file is not a valid image")
 	}
 	img := domainmodels.Image{
 		UploaderIP:      uploaderIp,

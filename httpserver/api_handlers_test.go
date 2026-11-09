@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -279,6 +280,35 @@ func TestAPICreateImages(t *testing.T) {
 		res := serve(&small, nil, newCreateImagesRequest(t, apiTestFile{"image", "a.png", img}))
 		require.Equal(t, http.StatusBadRequest, res.Code)
 		require.Equal(t, "file_too_large", decodeCreateImages(t, res).Results[0].Error.Code)
+	})
+
+	t.Run("undecodable images are rejected as invalid", func(t *testing.T) {
+		for name, file := range map[string]apiTestFile{
+			"truncated image": {"image", "a.png", img[:16]},
+			"not an image":    {"image", "a.pdf", []byte("%PDF-1.7")},
+		} {
+			res := serve(conf, nil, newCreateImagesRequest(t, file))
+			require.Equal(t, http.StatusBadRequest, res.Code, name)
+			out := decodeCreateImages(t, res)
+			require.Nil(t, out.Results[0].Image, name)
+			require.Equal(t, "invalid_image", out.Results[0].Error.Code, name)
+		}
+	})
+
+	t.Run("temporary files are removed when the query string is malformed", func(t *testing.T) {
+		tmp := t.TempDir()
+		t.Setenv("TMPDIR", tmp)
+		small := *conf
+		small.ImageMaxUploadBytes = 1024
+		// Larger than ImageMaxUploadBytes, so the part is spooled to disk.
+		req := newCreateImagesRequest(t, apiTestFile{"image", "a.png", make([]byte, 4096)})
+		req.URL.RawQuery = "a=%zz"
+		res := serve(&small, nil, req)
+		require.Equal(t, http.StatusBadRequest, res.Code)
+		require.Equal(t, "invalid_request", decodeCreateImages(t, res).Error.Code)
+		entries, err := os.ReadDir(tmp)
+		require.NoError(t, err)
+		require.Empty(t, entries)
 	})
 
 	t.Run("request errors", func(t *testing.T) {

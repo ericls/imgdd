@@ -41,6 +41,11 @@ const ERROR_CODES: [string, number | string, string][] = [
     "The file extension does not match the file's content, e.g. a PNG named photo.jpg.",
   ],
   ["empty_file", "400 (per image)", "The file is empty."],
+  [
+    "invalid_image",
+    "400 (per image)",
+    "The file is corrupt, truncated, or not a supported image.",
+  ],
   ["unreadable_file", "400 (per image)", "The file could not be read."],
   [
     "bad_image",
