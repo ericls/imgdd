@@ -40,6 +40,9 @@ func makeUploadHandler(
 			return
 		}
 		r.ParseMultipartForm(conf.ImageMaxUploadBytes)
+		if r.MultipartForm != nil {
+			defer r.MultipartForm.RemoveAll()
+		}
 		_, fileHeader, err := r.FormFile("image")
 		if err != nil {
 			httpLogger.Error().Err(err).Msg("Unable to read file")

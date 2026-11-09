@@ -8,11 +8,14 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/ericls/imgdd/domainmodels"
 	"github.com/ericls/imgdd/identity"
+
+	"github.com/gorilla/mux"
 )
 
 // guestContextUserManager always returns nil (unauthenticated guest).
@@ -112,6 +115,42 @@ func assertNotFileTooLarge(t *testing.T, res *httptest.ResponseRecorder) {
 	t.Helper()
 	if res.Code == http.StatusBadRequest && strings.Contains(res.Body.String(), "File too large") {
 		t.Fatalf("file was wrongly rejected as too large")
+	}
+}
+
+// The request goes through a real server and router because the router hands
+// the handler a copy of the request, so net/http's own cleanup of the original
+// request never sees the parsed form.
+func TestUploadHandlerRemovesTemporaryFiles(t *testing.T) {
+	tmp := t.TempDir()
+	t.Setenv("TMPDIR", tmp)
+	content := makePNGBytes(10, 10)
+	conf := &HttpServerConfigDef{
+		AllowUpload: true,
+		// Smaller than the file, so the part is spooled to disk.
+		ImageMaxUploadBytes: int64(len(content) - 1),
+	}
+	router := mux.NewRouter()
+	router.Handle("/upload", makeUploadHandler(conf, guestIdentityManager(), nil, nil, nil))
+	server := httptest.NewServer(router)
+	defer server.Close()
+
+	req := makeMultipartRequest(t, "image", "test.png", content)
+	res, err := http.Post(server.URL+"/upload", req.Header.Get("Content-Type"), req.Body)
+	if err != nil {
+		t.Fatalf("upload failed: %v", err)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", res.StatusCode)
+	}
+
+	entries, err := os.ReadDir(tmp)
+	if err != nil {
+		t.Fatalf("failed to read temp dir: %v", err)
+	}
+	if len(entries) != 0 {
+		t.Fatalf("expected no temporary files, found %v", entries)
 	}
 }
 
