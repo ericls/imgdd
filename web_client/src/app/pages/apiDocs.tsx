@@ -225,7 +225,6 @@ const { results } = await res.json();`}</CodeBlock>
       "filename": "photo.png",
       "image": {
         "id": "4a0b6f0e-1c5d-4f3a-9a53-2d1f6b8e0c11",
-        "identifier": "8f1c2d7e-0b4a-4c9e-a1f2-3d4e5f6a7b8c",
         "filename": "photo.png",
         "url": "${origin}/image/8f1c2d7e-0b4a-4c9e-a1f2-3d4e5f6a7b8c.png",
         "mimeType": "image/png",
@@ -246,7 +245,12 @@ const { results } = await res.json();`}</CodeBlock>
 }`}</CodeBlock>
       <ul>
         <li>
-          <code>url</code> is the public link to the image.
+          <code>id</code> uniquely identifies the image. It is not part of{" "}
+          <code>url</code>.
+        </li>
+        <li>
+          <code>url</code> is the public link to the image. Use it as returned
+          rather than building links yourself.
         </li>
         <li>
           <code>byteSize</code> is the stored size, after EXIF removal.

@@ -45,14 +45,13 @@ type apiErrorResponse struct {
 }
 
 type apiImage struct {
-	ID         string `json:"id"`
-	Identifier string `json:"identifier"`
-	Filename   string `json:"filename"`
-	URL        string `json:"url"`
-	MIMEType   string `json:"mimeType"`
-	Width      int32  `json:"width"`
-	Height     int32  `json:"height"`
-	ByteSize   int32  `json:"byteSize"`
+	ID       string `json:"id"`
+	Filename string `json:"filename"`
+	URL      string `json:"url"`
+	MIMEType string `json:"mimeType"`
+	Width    int32  `json:"width"`
+	Height   int32  `json:"height"`
+	ByteSize int32  `json:"byteSize"`
 	// ExpiresAt is null for images that never expire.
 	ExpiresAt *time.Time `json:"expiresAt"`
 }
@@ -214,15 +213,14 @@ func makeAPICreateImagesHandler(
 			}
 			status = http.StatusOK
 			results[i].Image = &apiImage{
-				ID:         uploaded.ID,
-				Identifier: uploaded.Identifier,
-				Filename:   uploaded.Filename,
-				URL:        absoluteImageURL(r, uploaded.URL),
-				MIMEType:   uploaded.MIMEType,
-				Width:      uploaded.Width,
-				Height:     uploaded.Height,
-				ByteSize:   uploaded.ByteSize,
-				ExpiresAt:  uploaded.ExpiresAt,
+				ID:        uploaded.ID,
+				Filename:  uploaded.Filename,
+				URL:       absoluteImageURL(r, uploaded.URL),
+				MIMEType:  uploaded.MIMEType,
+				Width:     uploaded.Width,
+				Height:    uploaded.Height,
+				ByteSize:  uploaded.ByteSize,
+				ExpiresAt: uploaded.ExpiresAt,
 			}
 		}
 		writeAPIJSON(w, status, apiCreateImagesResponse{Results: results})

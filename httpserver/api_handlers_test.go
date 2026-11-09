@@ -64,15 +64,14 @@ type createImagesResponse struct {
 	Results []struct {
 		Filename string
 		Image    *struct {
-			ID         string
-			Identifier string
-			Filename   string
-			URL        string
-			MIMEType   string
-			Width      int
-			Height     int
-			ByteSize   int
-			ExpiresAt  *time.Time
+			ID        string
+			Filename  string
+			URL       string
+			MIMEType  string
+			Width     int
+			Height    int
+			ByteSize  int
+			ExpiresAt *time.Time
 		}
 		Error *struct {
 			Code    string
@@ -134,10 +133,11 @@ func TestAPICreateImages(t *testing.T) {
 		require.Equal(t, "image/png", got.MIMEType)
 		require.Equal(t, 7, got.Width)
 		require.Equal(t, 5, got.Height)
-		require.Equal(t, "http://example.com/image/"+got.Identifier+".png", got.URL)
+		require.NotContains(t, res.Body.String(), `"identifier"`)
 
 		stored, err := imageRepo.GetImageById(got.ID)
 		require.NoError(t, err)
+		require.Equal(t, "http://example.com/image/"+stored.Identifier+".png", got.URL)
 		require.NotEqual(t, orgUser.Id, stored.CreatedById)
 		require.Nil(t, got.ExpiresAt)
 		require.Nil(t, stored.ExpiresAt)
