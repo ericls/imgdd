@@ -39,6 +39,16 @@ type BlurRegionInput struct {
 	Y2 float64 `json:"y2"`
 }
 
+type CreateAPIKeyInput struct {
+	Name string `json:"name"`
+}
+
+type CreateAPIKeyResult struct {
+	APIKey *APIKey `json:"apiKey"`
+	// The full key. It is only returned once and cannot be retrieved later.
+	Secret string `json:"secret"`
+}
+
 type CreateUserWithOrganizationInput struct {
 	UserEmail        string `json:"userEmail"`
 	UserPassword     string `json:"userPassword"`
@@ -55,6 +65,14 @@ type PageInfo struct {
 }
 
 type Query struct {
+}
+
+type RevokeAPIKeyInput struct {
+	ID string `json:"id"`
+}
+
+type RevokeAPIKeyResult struct {
+	ID string `json:"id"`
 }
 
 type ViewerResult struct {

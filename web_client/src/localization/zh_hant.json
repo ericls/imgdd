@@ -202,7 +202,27 @@
     "profile": {
       "nav": {
         "general": "一般",
-        "images": "圖片"
+        "images": "圖片",
+        "apiKeys": "API 金鑰"
+      },
+      "apiKeys": {
+        "title": "API 金鑰",
+        "description": "使用 API 金鑰，透過 HTTP API 將圖片上傳到你的帳戶。",
+        "docsLink": "查看 API 文件",
+        "namePlaceholder": "金鑰名稱，例如：我的筆電",
+        "create": "建立金鑰",
+        "newKeyTitle": "你的新 API 金鑰",
+        "newKeyWarning": "請立即複製並妥善保存。之後將無法再次查看。",
+        "copy": "複製",
+        "done": "完成",
+        "empty": "你還沒有 API 金鑰。",
+        "createdAt": "建立於 {{time}}",
+        "lastUsedAt": "最近使用於 {{time}}",
+        "neverUsed": "從未使用",
+        "revoke": "撤銷",
+        "revokeConfirmTitle": "撤銷 API 金鑰？",
+        "revokeConfirmBody": "所有使用「{{name}}」的程式將立即失效。此操作無法復原。",
+        "revoked": "API 金鑰已撤銷"
       },
       "images": {
         "list": {

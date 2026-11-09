@@ -97,8 +97,3 @@ func (r *mutationResolver) ResetPassword(ctx context.Context, input model.ResetP
 	}
 	return &model.ResetPasswordResult{Success: true}, nil
 }
-
-// Mutation returns MutationResolver implementation.
-func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
-
-type mutationResolver struct{ *Resolver }

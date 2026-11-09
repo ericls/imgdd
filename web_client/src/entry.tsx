@@ -126,6 +126,16 @@ const router = createBrowserRouter([
         },
       },
       {
+        path: routeSegments.apiKeys,
+        lazy: async () => {
+          const { APIKeys } =
+            await import("~src/profile/pages/apiKeys/apiKeys");
+          return {
+            element: <APIKeys />,
+          };
+        },
+      },
+      {
         path: `${routeSegments.images}/:imageId/edit`,
         lazy: async () => {
           const { ImageEditor } = await import("~src/editor/ImageEditor");
@@ -152,6 +162,15 @@ const router = createBrowserRouter([
           const { PublicImageDetail } = await import("~src/editor/ImageDetail");
           return {
             element: <PublicImageDetail />,
+          };
+        },
+      },
+      {
+        path: routes.apiDocs,
+        lazy: async () => {
+          const { APIDocsPage } = await import("./app/pages/apiDocs");
+          return {
+            element: <APIDocsPage />,
           };
         },
       },

@@ -1,0 +1,35 @@
+type APIKey {
+  id: ID!
+  name: String!
+  "The first characters of the key, for telling keys apart. Not a secret."
+  keyPrefix: String!
+  createdAt: Time!
+  lastUsedAt: Time
+}
+
+extend type Viewer {
+  apiKeys: [APIKey!]! @isAuthenticated
+}
+
+input CreateAPIKeyInput {
+  name: String!
+}
+
+type CreateAPIKeyResult {
+  apiKey: APIKey!
+  "The full key. It is only returned once and cannot be retrieved later."
+  secret: String!
+}
+
+input RevokeAPIKeyInput {
+  id: ID!
+}
+
+type RevokeAPIKeyResult {
+  id: ID!
+}
+
+extend type Mutation {
+  createAPIKey(input: CreateAPIKeyInput!): CreateAPIKeyResult! @isAuthenticated
+  revokeAPIKey(input: RevokeAPIKeyInput!): RevokeAPIKeyResult! @isAuthenticated
+}

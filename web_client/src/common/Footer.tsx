@@ -1,10 +1,16 @@
 import classNames from "classnames";
 import React from "react";
+import { Link } from "react-router";
+import { routes } from "~src/routes";
 import { Slot } from "~src/lib/slot";
 import { SECONDARY_TEXT_COLOR_DIM } from "~src/ui/classNames";
 
 const DefaultFooterContent = (
   <ul className="flex space-x-1">
+    <li>
+      <Link to={routes.apiDocs}>API</Link>
+    </li>
+    <li className="hidden md:inline select-none">|</li>
     <li>
       <a href="https://hub.docker.com/r/ericls/imgdd">Docker</a>
     </li>

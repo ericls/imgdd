@@ -202,7 +202,27 @@
     "profile": {
       "nav": {
         "general": "常规",
-        "images": "图片"
+        "images": "图片",
+        "apiKeys": "API 密钥"
+      },
+      "apiKeys": {
+        "title": "API 密钥",
+        "description": "使用 API 密钥，通过 HTTP API 将图片上传到你的账户。",
+        "docsLink": "查看 API 文档",
+        "namePlaceholder": "密钥名称，例如：我的笔记本",
+        "create": "创建密钥",
+        "newKeyTitle": "你的新 API 密钥",
+        "newKeyWarning": "请立即复制并妥善保存。之后将无法再次查看。",
+        "copy": "复制",
+        "done": "完成",
+        "empty": "你还没有 API 密钥。",
+        "createdAt": "创建于 {{time}}",
+        "lastUsedAt": "最近使用于 {{time}}",
+        "neverUsed": "从未使用",
+        "revoke": "吊销",
+        "revokeConfirmTitle": "吊销 API 密钥？",
+        "revokeConfirmBody": "所有使用“{{name}}”的程序将立即失效。此操作无法撤销。",
+        "revoked": "API 密钥已吊销"
       },
       "images": {
         "list": {

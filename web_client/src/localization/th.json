@@ -202,7 +202,27 @@
     "profile": {
       "nav": {
         "general": "ทั่วไป",
-        "images": "ภาพ"
+        "images": "ภาพ",
+        "apiKeys": "คีย์ API"
+      },
+      "apiKeys": {
+        "title": "คีย์ API",
+        "description": "ใช้คีย์ API เพื่ออัปโหลดรูปภาพเข้าบัญชีของคุณผ่าน HTTP API",
+        "docsLink": "อ่านเอกสาร API",
+        "namePlaceholder": "ชื่อคีย์ เช่น แล็ปท็อปของฉัน",
+        "create": "สร้างคีย์",
+        "newKeyTitle": "คีย์ API ใหม่ของคุณ",
+        "newKeyWarning": "คัดลอกตอนนี้และเก็บไว้ในที่ปลอดภัย คุณจะไม่สามารถดูคีย์นี้ได้อีก",
+        "copy": "คัดลอก",
+        "done": "เสร็จสิ้น",
+        "empty": "คุณยังไม่มีคีย์ API",
+        "createdAt": "สร้างเมื่อ {{time}}",
+        "lastUsedAt": "ใช้ล่าสุดเมื่อ {{time}}",
+        "neverUsed": "ยังไม่เคยใช้",
+        "revoke": "เพิกถอน",
+        "revokeConfirmTitle": "เพิกถอนคีย์ API?",
+        "revokeConfirmBody": "ทุกอย่างที่ใช้ \"{{name}}\" จะหยุดทำงานทันที และไม่สามารถย้อนกลับได้",
+        "revoked": "เพิกถอนคีย์ API แล้ว"
       },
       "images": {
         "list": {
