@@ -8,7 +8,7 @@ type PublicAlbum {
   title: String!
   createdAt: Time!
   images: [PublicAlbumImage!]!
-  "Whether the album has more images than are listed."
+  "Whether the album has more images than are listed. Only the newest images are listed then."
   truncated: Boolean!
 }
 

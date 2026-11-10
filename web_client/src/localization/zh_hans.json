@@ -167,7 +167,7 @@
       "imageCount_other": "{{count}} 张图片",
       "live": "实时更新",
       "empty": "还没有图片。新上传的图片会自动显示在这里。",
-      "truncated": "仅显示前 {{count}} 张图片。",
+      "truncated": "仅显示最新的 {{count}} 张图片。",
       "jumpToLatest": "跳到最新",
       "newImages_other": "{{count}} 张新图片",
       "openFullSize": "查看原图",

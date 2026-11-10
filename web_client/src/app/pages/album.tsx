@@ -79,7 +79,10 @@ export function AlbumPage() {
   // Follow new images like a log: keep the latest in view while the reader
   // is at the bottom, otherwise offer a button instead of jumping.
   const following = React.useRef(true);
-  const seenCount = React.useRef<number | null>(null);
+  // createdAt of the newest image already shown; undefined before the first
+  // load. Counting by time rather than list length keeps working once the
+  // album is truncated, when new images push old ones out of the list.
+  const newestSeen = React.useRef<string | null | undefined>(undefined);
   const [unseenCount, setUnseenCount] = React.useState(0);
   React.useEffect(() => {
     const onScroll = () => {
@@ -91,14 +94,20 @@ export function AlbumPage() {
   }, []);
   React.useEffect(() => {
     if (images === undefined) return;
-    const previous = seenCount.current;
-    seenCount.current = images.length;
-    if (previous === null) {
+    const previous = newestSeen.current;
+    const newest = images.at(-1)?.image.createdAt ?? null;
+    newestSeen.current = newest;
+    if (previous === undefined) {
       // First load: start at the latest image.
       if (images.length > 0) scrollToBottom("auto");
       return;
     }
-    const added = images.length - previous;
+    const added =
+      previous === null
+        ? images.length
+        : images.filter(
+            (item) => Date.parse(item.image.createdAt) > Date.parse(previous),
+          ).length;
     if (added <= 0) return;
     if (following.current) {
       scrollToBottom("smooth");

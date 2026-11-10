@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/graph"
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/google/uuid"
@@ -135,11 +136,35 @@ func tPublicAlbumNotFound(t *testing.T, tc *TestContext) {
 	}
 }
 
+func tPublicAlbumKeepsNewestImagesWhenTruncated(t *testing.T, tc *TestContext) {
+	previous := graph.PublicAlbumMaxImages
+	graph.PublicAlbumMaxImages = 2
+	defer func() { graph.PublicAlbumMaxImages = previous }()
+
+	sd := createStorageDefinition(t, tc)
+	owner := tc.forceAuthenticate()
+	album, err := tc.imageRepo.CreateAlbum("long run", owner.Id)
+	require.NoError(t, err)
+	createAlbumImage(t, tc, owner.Id, sd.Id, album.Id, "oldest")
+	middle := createAlbumImage(t, tc, owner.Id, sd.Id, album.Id, "middle")
+	newest := createAlbumImage(t, tc, owner.Id, sd.Id, album.Id, "newest")
+
+	resp, err := queryPublicAlbum(tc, album.Identifier)
+	require.NoError(t, err)
+	got := resp.PublicAlbum
+	require.NotNil(t, got)
+	require.True(t, got.Truncated)
+	require.Len(t, got.Images, 2)
+	require.Equal(t, middle.Id, got.Images[0].Image.ID)
+	require.Equal(t, newest.Id, got.Images[1].Image.ID)
+}
+
 func TestAlbumResolvers(t *testing.T) {
 	tc := newTestContext(t)
 	tc.runTestCases(
 		tPublicAlbumIsReadableByLinkHolders,
 		tPublicAlbumDoesNotExposeOwner,
 		tPublicAlbumNotFound,
+		tPublicAlbumKeepsNewestImagesWhenTruncated,
 	)
 }
