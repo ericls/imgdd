@@ -5,10 +5,12 @@ export const routeSegments = {
   images: "images",
   storage: "storage",
   apiKeys: "api-keys",
+  albums: "albums",
 } as const;
 
 export const routes = {
   image: (imageId: string) => `/${routeSegments.images}/${imageId}`,
+  album: (albumId: string) => `/${routeSegments.albums}/${albumId}`,
   apiDocs: "/docs/api",
   siteAdmin: {
     root: `/${routeSegments.siteAdmin}`,
