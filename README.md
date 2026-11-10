@@ -23,8 +23,9 @@ As of February 2025, the project handles over 1 TB of traffic and 4.2 million re
 - **Rate limiting** on uploads and other sensitive endpoints.
 - **Identity & access control**: email/password auth, organizations, role/permission system with built-in roles, site-owner privilege, and password reset via email.
 - **Email backends**: SMTP or a dummy backend for development, with templated messages.
-- **HTTP API for uploads**: `POST /api/v1/createImages` works anonymously or with per-user API keys (`Authorization: Bearer …`), managed from the profile page. The API is intentionally intention based (`/api/v1/<intention>`, always `POST`) rather than resource based; full docs are served at `/docs/api`.
+- **HTTP API for uploads**: `POST /api/v1/createImages` works anonymously or with per-user API keys (`Authorization: Bearer …`), managed from the profile page. The API is intentionally intention based (`/api/v1/<intention>`, always `POST`) rather than resource based; full docs are served at `/docs/api`, and as plain markdown at `/docs/api.md` for agents.
 - **GraphQL API** (gqlgen) covering images, viewer, users, organizations, roles/permissions, and storage definitions, with `@isAuthenticated` / `@isSiteOwner` directives.
+- **Live albums**: group uploads into an album with per-image captions; the album page updates live, which suits AI agents sharing screenshots of their work (see below).
 - **Image editor**: in-browser editing with watermark support; edits are saved as new images with full lineage tracking (parent/child DAG), so the original is never modified.
 - **Web client**: React + Tailwind admin & user UI, including a site-admin area for managing users, roles, and storage definitions.
 - **Client plugin hooks**: a lightweight `window.registerPlugin` API lets custom JS inject content into named UI slots without rebuilding the frontend.
@@ -33,6 +34,27 @@ As of February 2025, the project handles over 1 TB of traffic and 4.2 million re
 - **Background cleanup** of orphaned stored images across backends.
 - **Deployment-friendly**: single Go binary, official Docker image, TOML + env configuration, optional migrate-on-start, Nix flake for reproducible dev.
 - **CLI tooling**: migrations, user/role management, config generation, test email, storage replication, and dev helpers (`gql`, `jet`, `reset-db`, `dev-server` with hot reload).
+
+## Using imgdd from an AI agent
+
+Coding agents running in a sandbox can use imgdd to share screenshots of their work with the person they work for. The agent creates an album, uploads each screenshot with a caption, and gives the person the album link. The album page updates live while the agent works.
+
+1. Create an API key on your profile's **API keys** page. Give the agent `IMGDD_URL` (your instance's URL) and `IMGDD_API_KEY`.
+2. Point the agent at `$IMGDD_URL/docs/api.md`, or at `$IMGDD_URL/llms.txt`. It's a plain-text API reference with a quick start for this workflow, filled in with your instance's URL and limits.
+
+```sh
+ALBUM=$(curl -s -H "Authorization: Bearer $IMGDD_API_KEY" \
+  --data-urlencode "title=Fix login page layout" \
+  "$IMGDD_URL/api/v1/createAlbum" | jq -r .album.id)
+
+curl -s -H "Authorization: Bearer $IMGDD_API_KEY" \
+  --form-string "album=$ALBUM" \
+  --form-string "caption=step 1: before the fix" \
+  -F "image=@step-1.png" \
+  "$IMGDD_URL/api/v1/createImages"
+```
+
+Anyone with an album's link can view it, but only the album's creator can add images to it.
 
 ## Development
 
