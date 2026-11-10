@@ -43,6 +43,10 @@ type Image struct {
 	// Expiry is only designed to transition an image to deleted, with no
 	// other special handling.
 	ExpiresAt *time.Time
+	// AlbumId is the album the image was uploaded into, or "" for none.
+	AlbumId string
+	// Caption is a free-form description of the image, or "" for none.
+	Caption string
 }
 
 func (i *Image) IsExpiredAt(t time.Time) bool {

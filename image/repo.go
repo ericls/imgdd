@@ -22,6 +22,37 @@ var logger = logging.GetLogger("image-repo")
 
 var ZeroUUID = uuid.UUID{}
 
+// imageFromRow converts an image_table row into a domain image. Unset
+// optional ids become "".
+func imageFromRow(row *model.ImageTable) *dm.Image {
+	return &dm.Image{
+		Id:              row.ID.String(),
+		Identifier:      row.Identifier,
+		CreatedAt:       row.CreatedAt,
+		Name:            row.Name,
+		ParentId:        optionalUUIDString(row.ParentID),
+		RootId:          optionalUUIDString(row.RootID),
+		Changes:         row.Changes,
+		UploaderIP:      utils.SafeDeref(row.UploaderIP),
+		MIMEType:        row.MimeType,
+		NominalWidth:    row.NominalWidth,
+		NominalHeight:   row.NominalHeight,
+		NominalByteSize: row.NominalByteSize,
+		CreatedById:     utils.SafeDerefWithDefault(row.CreatedByID, ZeroUUID).String(),
+		ExpiresAt:       row.ExpiresAt,
+		AlbumId:         optionalUUIDString(row.AlbumID),
+		Caption:         utils.SafeDeref(row.Caption),
+	}
+}
+
+// optionalUUIDString returns the string form of id, or "" when it is nil.
+func optionalUUIDString(id *uuid.UUID) string {
+	if id == nil {
+		return ""
+	}
+	return id.String()
+}
+
 type DBImageRepo struct {
 	db.RepoConn
 }
@@ -56,31 +87,7 @@ func (repo *DBImageRepo) GetImageById(id string) (*dm.Image, error) {
 		return nil, err
 	}
 
-	var parentId string
-	if dest.ParentID != nil {
-		parentId = dest.ParentID.String()
-	}
-	var rootId string
-	if dest.RootID != nil {
-		rootId = dest.RootID.String()
-	}
-
-	return &dm.Image{
-		Id:              dest.ID.String(),
-		Identifier:      dest.Identifier,
-		CreatedAt:       dest.CreatedAt,
-		Name:            dest.Name,
-		ParentId:        parentId,
-		RootId:          rootId,
-		Changes:         dest.Changes,
-		UploaderIP:      utils.SafeDeref(dest.UploaderIP),
-		MIMEType:        dest.MimeType,
-		NominalWidth:    dest.NominalWidth,
-		NominalHeight:   dest.NominalHeight,
-		NominalByteSize: dest.NominalByteSize,
-		CreatedById:     utils.SafeDerefWithDefault(dest.CreatedByID, ZeroUUID).String(),
-		ExpiresAt:       dest.ExpiresAt,
-	}, nil
+	return imageFromRow(&dest), nil
 }
 
 func (repo *DBImageRepo) GetImagesByIds(ids []string) ([]*dm.Image, error) {
@@ -109,31 +116,8 @@ func (repo *DBImageRepo) GetImagesByIds(ids []string) ([]*dm.Image, error) {
 	}
 
 	idToImage := make(map[string]*dm.Image, len(dest))
-	for _, d := range dest {
-		var parentId string
-		if d.ParentID != nil {
-			parentId = d.ParentID.String()
-		}
-		var rootId string
-		if d.RootID != nil {
-			rootId = d.RootID.String()
-		}
-		img := &dm.Image{
-			Id:              d.ID.String(),
-			Identifier:      d.Identifier,
-			CreatedAt:       d.CreatedAt,
-			Name:            d.Name,
-			ParentId:        parentId,
-			RootId:          rootId,
-			Changes:         d.Changes,
-			UploaderIP:      utils.SafeDeref(d.UploaderIP),
-			MIMEType:        d.MimeType,
-			NominalWidth:    d.NominalWidth,
-			NominalHeight:   d.NominalHeight,
-			NominalByteSize: d.NominalByteSize,
-			CreatedById:     utils.SafeDerefWithDefault(d.CreatedByID, ZeroUUID).String(),
-			ExpiresAt:       d.ExpiresAt,
-		}
+	for i := range dest {
+		img := imageFromRow(&dest[i])
 		idToImage[img.Id] = img
 	}
 
@@ -173,6 +157,15 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 		uploaderIP = &image.UploaderIP
 	}
 
+	var albumId *string
+	if image.AlbumId != "" {
+		albumId = &image.AlbumId
+	}
+	var caption *string
+	if image.Caption != "" {
+		caption = &image.Caption
+	}
+
 	changes := image.Changes
 	if changes == "" || changes == "{}" {
 		changes = "[]"
@@ -191,6 +184,8 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 		ImageTable.NominalWidth,
 		ImageTable.NominalHeight,
 		ImageTable.ExpiresAt,
+		ImageTable.AlbumID,
+		ImageTable.Caption,
 	).VALUES(
 		image.Identifier,
 		image.Name,
@@ -204,6 +199,8 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 		image.NominalWidth,
 		image.NominalHeight,
 		image.ExpiresAt,
+		albumId,
+		caption,
 	).RETURNING(
 		ImageTable.AllColumns,
 	)
@@ -457,6 +454,8 @@ func (repo *DBImageRepo) ListImages(
 			NominalByteSize: image.NominalByteSize,
 			CreatedById:     utils.SafeDerefWithDefault(image.CreatedByID, ZeroUUID).String(),
 			ExpiresAt:       image.ExpiresAt,
+			AlbumId:         optionalUUIDString(image.AlbumID),
+			Caption:         utils.SafeDeref(image.Caption),
 		}
 	}
 	hasNext := false
