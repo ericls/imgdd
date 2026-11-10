@@ -160,6 +160,19 @@
       "copyReferences": "คัดลอกลิงก์อ้างอิง",
       "copy": "คัดลอก"
     },
+    "album": {
+      "untitled": "อัลบั้มไม่มีชื่อ",
+      "notFound": "ไม่พบอัลบั้ม",
+      "errorLoading": "เกิดข้อผิดพลาดในการโหลดอัลบั้ม",
+      "imageCount_other": "{{count}} รูปภาพ",
+      "live": "อัปเดตแบบเรียลไทม์",
+      "empty": "ยังไม่มีรูปภาพ รูปที่อัปโหลดใหม่จะแสดงที่นี่โดยอัตโนมัติ",
+      "truncated": "แสดงเฉพาะ {{count}} รูปแรกเท่านั้น",
+      "jumpToLatest": "ไปที่ล่าสุด",
+      "newImages_other": "รูปใหม่ {{count}} รูป",
+      "openFullSize": "เปิดขนาดเต็ม",
+      "details": "รายละเอียด"
+    },
     "imageEditor": {
       "title": "แก้ไข: {{name}}",
       "errorLoading": "เกิดข้อผิดพลาดในการโหลดภาพ",

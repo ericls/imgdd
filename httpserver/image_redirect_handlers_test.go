@@ -132,3 +132,29 @@ func TestImageDetailPathMatchesWebClientRoute(t *testing.T) {
 		t.Fatal("web_client/src/entry.tsx no longer serves PublicImageDetail at ${routeSegments.images}/:imageId")
 	}
 }
+
+// Album URLs returned by the API must point at the web client's album route.
+func TestAlbumPathMatchesWebClientRoute(t *testing.T) {
+	routesSrc, err := os.ReadFile("../web_client/src/routes.ts")
+	if err != nil {
+		t.Fatalf("failed to read web client routes: %v", err)
+	}
+	segment := regexp.MustCompile(`(?s)routeSegments = \{.*?\balbums: "([^"]+)"`).FindSubmatch(routesSrc)
+	if segment == nil {
+		t.Fatal("routeSegments.albums not found in web_client/src/routes.ts")
+	}
+	if expected := "/" + string(segment[1]) + "/"; albumPathPrefix != expected {
+		t.Fatalf("albumPathPrefix is %q, but the web client's albums segment gives %q", albumPathPrefix, expected)
+	}
+	if !regexp.MustCompile(`\balbum: \(albumId: string\) =>\s*` + "`" + `/\$\{routeSegments\.albums\}/\$\{albumId\}` + "`").Match(routesSrc) {
+		t.Fatal("routes.album in web_client/src/routes.ts is not /${routeSegments.albums}/${albumId}")
+	}
+
+	entrySrc, err := os.ReadFile("../web_client/src/entry.tsx")
+	if err != nil {
+		t.Fatalf("failed to read web client entry: %v", err)
+	}
+	if !regexp.MustCompile(`path: ` + "`" + `\$\{routeSegments\.albums\}/:albumId` + "`").Match(entrySrc) {
+		t.Fatal("web_client/src/entry.tsx does not serve an album page at ${routeSegments.albums}/:albumId")
+	}
+}

@@ -13,6 +13,9 @@
 <title>{{.SiteTitle}}</title>
 <meta name="description" content="The Image Direct Delivery service" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
+{{ if .PrivateLink }}
+<meta name="robots" content="noindex, nofollow" />
+{{ end }}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 {{ if eq .CaptchaProvider "recaptcha"}}
@@ -45,7 +48,7 @@
       }
       window.VERSION = "{{.Version}}";
       window.SITE_NAME = "{{.SiteName}}";
-      window.GAID = "{{.GoogleAnalyticsID}}";
+      window.GAID = "{{if not .PrivateLink}}{{.GoogleAnalyticsID}}{{end}}";
       window.SUPPORT_EMAIL = "support@imgdd.com"
       window.SESSION_HEADER_NAME = "{{.SessionHeaderName}}";
 </script>
@@ -56,7 +59,7 @@
 {{.CustomCSS}}
 </style>
 {{ end }}
-{{ if and (not .Debug) .GoogleAnalyticsID }}
+{{ if and (not .Debug) .GoogleAnalyticsID (not .PrivateLink) }}
 <script async src="https://www.googletagmanager.com/gtag/js?id={{.GoogleAnalyticsID}}"></script>
 <script>
   window.dataLayer = window.dataLayer || [];

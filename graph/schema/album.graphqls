@@ -1,0 +1,22 @@
+"""
+An album as shown to anyone holding its link, including anonymous visitors. Like PublicImage, it
+must not expose the owner. Images are listed oldest first; deleted and expired images are left out.
+"""
+type PublicAlbum {
+  "The album's public identifier, as used in its link and the HTTP API."
+  id: ID!
+  title: String!
+  createdAt: Time!
+  images: [PublicAlbumImage!]!
+  "Whether the album has more images than are listed."
+  truncated: Boolean!
+}
+
+type PublicAlbumImage {
+  image: PublicImage!
+  caption: String
+}
+
+extend type Query {
+  publicAlbum(id: ID!): PublicAlbum
+}
