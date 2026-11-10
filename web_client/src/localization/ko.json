@@ -167,7 +167,7 @@
       "imageCount_other": "이미지 {{count}}개",
       "live": "실시간 업데이트",
       "empty": "아직 이미지가 없습니다. 새로 업로드된 이미지가 자동으로 표시됩니다.",
-      "truncated": "처음 {{count}}개의 이미지만 표시됩니다.",
+      "truncated": "최근 {{count}}개의 이미지만 표시됩니다.",
       "jumpToLatest": "최신으로 이동",
       "newImages_other": "새 이미지 {{count}}개",
       "openFullSize": "원본 크기로 열기",
