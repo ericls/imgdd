@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"slices"
 	"unicode/utf8"
 
 	"github.com/ericls/imgdd/db/.gen/imgdd/public/model"
@@ -92,7 +93,9 @@ func (repo *DBImageRepo) GetAlbumByIdentifier(identifier string) (*dm.Album, err
 
 // ListAlbumImages returns the album's live images, oldest first. Deleted and
 // expired images are left out, including expired ones the cleanup task has
-// not deleted yet. A limit of 0 or less means no limit.
+// not deleted yet. A positive limit keeps the newest limit images (still
+// returned oldest first), so a live view keeps showing new uploads; 0 or less
+// means no limit.
 func (repo *DBImageRepo) ListAlbumImages(albumId string, limit int) ([]*dm.Image, error) {
 	parsed, err := uuid.Parse(albumId)
 	if err != nil {
@@ -105,10 +108,11 @@ func (repo *DBImageRepo) ListAlbumImages(albumId string, limit int) ([]*dm.Image
 			ImageTable.AlbumID.EQ(UUID(parsed)).
 				AND(ImageTable.DeletedAt.IS_NULL()).
 				AND(ImageTable.ExpiresAt.IS_NULL().OR(ImageTable.ExpiresAt.GT(NOW()))),
-		).
-		ORDER_BY(ImageTable.CreatedAt.ASC(), ImageTable.ID.ASC())
+		)
 	if limit > 0 {
-		stmt = stmt.LIMIT(int64(limit))
+		stmt = stmt.ORDER_BY(ImageTable.CreatedAt.DESC(), ImageTable.ID.DESC()).LIMIT(int64(limit))
+	} else {
+		stmt = stmt.ORDER_BY(ImageTable.CreatedAt.ASC(), ImageTable.ID.ASC())
 	}
 	dest := []model.ImageTable{}
 	if err := stmt.Query(repo.DB, &dest); err != nil {
@@ -117,6 +121,9 @@ func (repo *DBImageRepo) ListAlbumImages(albumId string, limit int) ([]*dm.Image
 	images := make([]*dm.Image, len(dest))
 	for i := range dest {
 		images[i] = imageFromRow(&dest[i])
+	}
+	if limit > 0 {
+		slices.Reverse(images)
 	}
 	return images, nil
 }

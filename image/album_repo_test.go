@@ -172,8 +172,8 @@ func TestAlbumRepo(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if len(limited) != 2 || limited[0].Id != first.Id {
-			t.Errorf("limit should keep the oldest images, got %d", len(limited))
+		if len(limited) != 2 || limited[0].Id != expiresLater.Id || limited[1].Id != last.Id {
+			t.Errorf("limit should keep the newest images, oldest first, got %d", len(limited))
 		}
 	})
 }

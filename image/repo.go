@@ -438,25 +438,12 @@ func (repo *DBImageRepo) ListImages(
 		return dm.ListImageResult{}, err
 	}
 	images := make([]*dm.Image, len(dest))
-	for i, image := range dest {
-		images[i] = &dm.Image{
-			Id:              image.ID.String(),
-			Identifier:      image.Identifier,
-			CreatedAt:       image.CreatedAt,
-			Name:            image.Name,
-			ParentId:        utils.SafeDeref(image.ParentID).String(),
-			RootId:          utils.SafeDeref(image.RootID).String(),
-			Changes:         image.Changes,
-			UploaderIP:      utils.SafeDeref(image.UploaderIP),
-			MIMEType:        image.MimeType,
-			NominalWidth:    image.NominalWidth,
-			NominalHeight:   image.NominalHeight,
-			NominalByteSize: image.NominalByteSize,
-			CreatedById:     utils.SafeDerefWithDefault(image.CreatedByID, ZeroUUID).String(),
-			ExpiresAt:       image.ExpiresAt,
-			AlbumId:         optionalUUIDString(image.AlbumID),
-			Caption:         utils.SafeDeref(image.Caption),
-		}
+	for i := range dest {
+		// ListImages has always reported a missing parent/root as the zero
+		// UUID rather than "", and its callers depend on that.
+		images[i] = imageFromRow(&dest[i])
+		images[i].ParentId = utils.SafeDeref(dest[i].ParentID).String()
+		images[i].RootId = utils.SafeDeref(dest[i].RootID).String()
 	}
 	hasNext := false
 	hasPrev := false
