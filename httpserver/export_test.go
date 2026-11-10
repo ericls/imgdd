@@ -8,3 +8,5 @@ var MakeAPIRemoveImagesFromAlbumHandler = makeAPIRemoveImagesFromAlbumHandler
 var MakeAppHandler = makeAppHandler
 var WithTemplateFS = withTemplateFS
 var WithGoogleAnalyticsID = withGoogleAnalyticsID
+var MakeAPIDocsMarkdownHandler = makeAPIDocsMarkdownHandler
+var MakeLlmsTxtHandler = makeLlmsTxtHandler
