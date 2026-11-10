@@ -50,7 +50,7 @@ func makeUploadHandler(
 			return
 		}
 		orgUser := identity.GetCurrentOrganizationUser(identityManager.ContextUserManager, r.Context())
-		uploaded, uploadErr := createUploadedImage(r, conf, orgUser, fileHeader, storageDefRepo, imageRepo, limiter, nil)
+		uploaded, uploadErr := createUploadedImage(r, conf, orgUser, fileHeader, storageDefRepo, imageRepo, limiter, uploadOptions{})
 		if uploadErr != nil {
 			http.Error(w, uploadErr.Message, uploadErr.Status)
 			return

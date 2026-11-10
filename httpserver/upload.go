@@ -43,6 +43,18 @@ type uploadedImage struct {
 	Height     int32
 	ByteSize   int32
 	ExpiresAt  *time.Time
+	Caption    string
+}
+
+// uploadOptions are the optional properties given to every image created by
+// one upload request. The zero value means none.
+type uploadOptions struct {
+	// ExpiresAt is nil for images that never expire.
+	ExpiresAt *time.Time
+	// AlbumId is the internal id of an album the uploader owns, or "".
+	AlbumId string
+	// Caption is a description of the image, or "".
+	Caption string
 }
 
 // effectiveUploadLimit returns the maximum image size for orgUser (nil for
@@ -64,7 +76,8 @@ func effectiveUploadLimit(conf *HttpServerConfigDef, orgUser *domainmodels.Organ
 
 // createUploadedImage validates and stores one uploaded file on behalf of
 // orgUser (nil for guests). It is shared by every upload entry point so they
-// apply the same checks. expiresAt is nil for images that never expire.
+// apply the same checks. Callers must have checked that orgUser owns
+// opts.AlbumId.
 func createUploadedImage(
 	r *http.Request,
 	conf *HttpServerConfigDef,
@@ -73,7 +86,7 @@ func createUploadedImage(
 	storageDefRepo storage.StorageDefRepo,
 	imageRepo image.ImageRepo,
 	limiter *ratelimit.RateLimiter,
-	expiresAt *time.Time,
+	opts uploadOptions,
 ) (*uploadedImage, *uploadError) {
 	src, err := fileHeader.Open()
 	if err != nil {
@@ -170,7 +183,9 @@ func createUploadedImage(
 		NominalByteSize: int32(len(exifRemovedBytes)),
 		NominalWidth:    width,
 		NominalHeight:   height,
-		ExpiresAt:       expiresAt,
+		ExpiresAt:       opts.ExpiresAt,
+		AlbumId:         opts.AlbumId,
+		Caption:         opts.Caption,
 	}
 	storedImage, err := imageRepo.CreateAndSaveUploadedImage(&img, detectedMimeType, exifRemovedBytes, storageDef.Id, storageInstance.Save)
 	if err != nil {
@@ -193,5 +208,6 @@ func createUploadedImage(
 		Height:     height,
 		ByteSize:   int32(len(exifRemovedBytes)),
 		ExpiresAt:  storedImage.Image.ExpiresAt,
+		Caption:    storedImage.Image.Caption,
 	}, nil
 }
