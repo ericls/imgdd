@@ -109,6 +109,9 @@ func MakeServer(
 
 	uploadLimiter := ratelimit.NewRateLimiter(5, 5)
 	go uploadLimiter.Cleanup()
+	// Keyed by organization user, since creating albums needs an API key.
+	createAlbumLimiter := ratelimit.NewRateLimiter(1, 30)
+	go createAlbumLimiter.Cleanup()
 
 	if cleanupConf != nil && cleanupConf.Enabled {
 		redisClient := redis.NewClient(&redis.Options{
@@ -164,6 +167,7 @@ func MakeServer(
 	// The API authenticates with API keys only, so it is mounted outside of
 	// appRouter and its session middleware.
 	rootRouter.Handle(apiCreateImagesPath, makeAPICreateImagesHandler(conf, identityRepo, storageDefRepo, imageRepo, uploadLimiter))
+	rootRouter.Handle(apiCreateAlbumPath, makeAPICreateAlbumHandler(identityRepo, imageRepo, createAlbumLimiter))
 	rootRouter.PathPrefix("/").Handler(appRouter)
 
 	srv := &http.Server{

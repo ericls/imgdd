@@ -72,6 +72,9 @@ type createImagesResponse struct {
 			Height    int
 			ByteSize  int
 			ExpiresAt *time.Time
+			PageURL   string
+			Caption   *string
+			AlbumURL  *string
 		}
 		Error *struct {
 			Code    string
@@ -142,6 +145,9 @@ func TestAPICreateImages(t *testing.T) {
 		require.Nil(t, got.ExpiresAt)
 		require.Nil(t, stored.ExpiresAt)
 		require.Contains(t, res.Body.String(), `"expiresAt":null`)
+		require.Equal(t, "http://example.com/images/"+got.ID, got.PageURL)
+		require.Contains(t, res.Body.String(), `"caption":null`)
+		require.Contains(t, res.Body.String(), `"albumUrl":null`)
 	})
 
 	t.Run("expires_in applies to every image in the request", func(t *testing.T) {
