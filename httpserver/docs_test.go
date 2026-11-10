@@ -16,10 +16,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var docsTestConf = &httpserver.HttpServerConfigDef{DefaultURLFormat: domainmodels.ImageURLFormat_CANONICAL}
+
 func TestAPIDocsMarkdown(t *testing.T) {
 	serve := func(method string) *httptest.ResponseRecorder {
 		res := httptest.NewRecorder()
-		httpserver.MakeAPIDocsMarkdownHandler().ServeHTTP(res, httptest.NewRequest(method, "/docs/api.md", nil))
+		httpserver.MakeAPIDocsMarkdownHandler(docsTestConf).ServeHTTP(res, httptest.NewRequest(method, "/docs/api.md", nil))
 		return res
 	}
 
@@ -36,6 +38,10 @@ func TestAPIDocsMarkdown(t *testing.T) {
 	require.Contains(t, body, "at most "+strconv.Itoa(domainmodels.ImageMaxCaptionLength)+" characters")
 	require.Contains(t, body, "at most "+strconv.Itoa(domainmodels.AlbumMaxTitleLength)+"\ncharacters")
 	require.Contains(t, body, "from 60 to 31536000")
+	require.Contains(t, body, `"url": "http://example.com/image/8f1c2d7e-0b4a-4c9e-a1f2-3d4e5f6a7b8c.png"`)
+	require.Contains(t, body, `"pageUrl": "http://example.com/images/`)
+	// Built from the request's Host, so shared caches must not store it.
+	require.Equal(t, "private, max-age=300", res.Header().Get("Cache-Control"))
 
 	head := serve(http.MethodHead)
 	require.Equal(t, http.StatusOK, head.Code)
@@ -46,9 +52,29 @@ func TestAPIDocsMarkdown(t *testing.T) {
 	require.Equal(t, http.StatusMethodNotAllowed, post.Code)
 }
 
+// Links in the docs follow the instance's image domain and web UI host, like
+// the URLs the API returns.
+func TestAPIDocsMarkdownUsesConfiguredHosts(t *testing.T) {
+	conf := &httpserver.HttpServerConfigDef{
+		ImageDomain:      "img.example.net",
+		WebUIHost:        "app.example.net",
+		DefaultURLFormat: domainmodels.ImageURLFormat_CANONICAL,
+	}
+	req := httptest.NewRequest(http.MethodGet, "/docs/api.md", nil)
+	req.Header.Set("X-Forwarded-Proto", "https")
+	res := httptest.NewRecorder()
+	httpserver.MakeAPIDocsMarkdownHandler(conf).ServeHTTP(res, req)
+	body := res.Body.String()
+	require.Contains(t, body, "POST https://example.com/api/v1/createImages")
+	require.Contains(t, body, `"url": "https://img.example.net/8f1c2d7e-0b4a-4c9e-a1f2-3d4e5f6a7b8c.png"`)
+	require.Contains(t, body, `"pageUrl": "https://app.example.net/images/`)
+	require.Contains(t, body, `"albumUrl": "https://app.example.net/albums/`)
+	require.Contains(t, body, "https://app.example.net/profile/api-keys")
+}
+
 func TestLlmsTxt(t *testing.T) {
 	res := httptest.NewRecorder()
-	httpserver.MakeLlmsTxtHandler().ServeHTTP(res, httptest.NewRequest(http.MethodGet, "/llms.txt", nil))
+	httpserver.MakeLlmsTxtHandler(docsTestConf).ServeHTTP(res, httptest.NewRequest(http.MethodGet, "/llms.txt", nil))
 	require.Equal(t, http.StatusOK, res.Code)
 	require.Equal(t, "text/plain; charset=utf-8", res.Header().Get("Content-Type"))
 	require.True(t, strings.HasPrefix(res.Body.String(), "# imgdd\n\n> "))

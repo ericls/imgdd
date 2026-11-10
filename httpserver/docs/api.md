@@ -1,7 +1,7 @@
 # imgdd HTTP API
 
 Upload images to {{BASE_URL}} from scripts, tools and AI agents. This is the
-plain-text version of {{BASE_URL}}/docs/api, written to be read by programs as
+plain-text version of {{WEB_UI_URL}}/docs/api, written to be read by programs as
 well as people.
 
 - Base URL: `{{BASE_URL}}`
@@ -26,7 +26,7 @@ that updates live.
 You need two environment variables from the person you work for:
 
 - `IMGDD_URL`: `{{BASE_URL}}`
-- `IMGDD_API_KEY`: an API key, created at `{{BASE_URL}}/profile/api-keys`.
+- `IMGDD_API_KEY`: an API key, created at `{{WEB_UI_URL}}/profile/api-keys`.
   Albums need a key. Plain uploads work without one.
 
 1. Create an album once per task. Give its `url` to the person; it is the page
@@ -39,7 +39,7 @@ You need two environment variables from the person you work for:
    ```
 
    ```json
-   {"album": {"id": "O96EBCnmxZoNOUE4rJDw0A", "url": "{{BASE_URL}}/albums/O96EBCnmxZoNOUE4rJDw0A", "title": "Fix login page layout"}}
+   {"album": {"id": "O96EBCnmxZoNOUE4rJDw0A", "url": "{{WEB_UI_URL}}/albums/O96EBCnmxZoNOUE4rJDw0A", "title": "Fix login page layout"}}
    ```
 
 2. Upload each screenshot into the album with a caption that says what it shows.
@@ -88,7 +88,7 @@ an anonymous request.
 - Anonymous requests can only call `createImages`. They use the guest size
   limit, are rate limited per IP address, and are not tied to any account.
 - With an API key, images are added to the key owner's account and use their
-  size limit. Keys are created and revoked at `{{BASE_URL}}/profile/api-keys`.
+  size limit. Keys are created and revoked at `{{WEB_UI_URL}}/profile/api-keys`.
 - A malformed `Authorization` header, or an unknown or revoked key, fails with
   `401 invalid_api_key`. It is never treated as anonymous.
 - Browser session cookies and session tokens are not accepted.
@@ -115,7 +115,7 @@ characters. An album without a title is shown as "Untitled album".
 {
   "album": {
     "id": "O96EBCnmxZoNOUE4rJDw0A",
-    "url": "{{BASE_URL}}/albums/O96EBCnmxZoNOUE4rJDw0A",
+    "url": "{{WEB_UI_URL}}/albums/O96EBCnmxZoNOUE4rJDw0A",
     "title": "Fix login page layout"
   }
 }
@@ -164,15 +164,15 @@ either an `image` or an `error`; one file failing does not stop the others.
       "image": {
         "id": "4a0b6f0e-1c5d-4f3a-9a53-2d1f6b8e0c11",
         "filename": "step-2.png",
-        "url": "{{BASE_URL}}/image/8f1c2d7e-0b4a-4c9e-a1f2-3d4e5f6a7b8c.png",
+        "url": "{{EXAMPLE_IMAGE_URL}}",
         "mimeType": "image/png",
         "width": 1280,
         "height": 720,
         "byteSize": 183204,
         "expiresAt": null,
-        "pageUrl": "{{BASE_URL}}/images/4a0b6f0e-1c5d-4f3a-9a53-2d1f6b8e0c11",
+        "pageUrl": "{{WEB_UI_URL}}/images/4a0b6f0e-1c5d-4f3a-9a53-2d1f6b8e0c11",
         "caption": "step 2: after the fix; the button no longer wraps at 375px",
-        "albumUrl": "{{BASE_URL}}/albums/O96EBCnmxZoNOUE4rJDw0A"
+        "albumUrl": "{{WEB_UI_URL}}/albums/O96EBCnmxZoNOUE4rJDw0A"
       }
     },
     {
