@@ -202,7 +202,27 @@
     "profile": {
       "nav": {
         "general": "일반",
-        "images": "이미지"
+        "images": "이미지",
+        "apiKeys": "API 키"
+      },
+      "apiKeys": {
+        "title": "API 키",
+        "description": "API 키를 사용하면 HTTP API로 내 계정에 이미지를 업로드할 수 있습니다.",
+        "docsLink": "API 문서 보기",
+        "namePlaceholder": "키 이름 (예: 내 노트북)",
+        "create": "키 만들기",
+        "newKeyTitle": "새 API 키",
+        "newKeyWarning": "지금 복사해서 안전한 곳에 보관하세요. 다시 볼 수 없습니다.",
+        "copy": "복사",
+        "done": "완료",
+        "empty": "아직 API 키가 없습니다.",
+        "createdAt": "생성: {{time}}",
+        "lastUsedAt": "마지막 사용: {{time}}",
+        "neverUsed": "사용한 적 없음",
+        "revoke": "폐기",
+        "revokeConfirmTitle": "API 키를 폐기할까요?",
+        "revokeConfirmBody": "\"{{name}}\"을(를) 사용하는 모든 곳이 즉시 작동을 멈춥니다. 되돌릴 수 없습니다.",
+        "revoked": "API 키가 폐기되었습니다"
       },
       "images": {
         "list": {

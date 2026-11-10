@@ -23,6 +23,7 @@ As of February 2025, the project handles over 1 TB of traffic and 4.2 million re
 - **Rate limiting** on uploads and other sensitive endpoints.
 - **Identity & access control**: email/password auth, organizations, role/permission system with built-in roles, site-owner privilege, and password reset via email.
 - **Email backends**: SMTP or a dummy backend for development, with templated messages.
+- **HTTP API for uploads**: `POST /api/v1/createImages` works anonymously or with per-user API keys (`Authorization: Bearer …`), managed from the profile page. The API is intentionally intention based (`/api/v1/<intention>`, always `POST`) rather than resource based; full docs are served at `/docs/api`.
 - **GraphQL API** (gqlgen) covering images, viewer, users, organizations, roles/permissions, and storage definitions, with `@isAuthenticated` / `@isSiteOwner` directives.
 - **Image editor**: in-browser editing with watermark support; edits are saved as new images with full lineage tracking (parent/child DAG), so the original is never modified.
 - **Web client**: React + Tailwind admin & user UI, including a site-admin area for managing users, roles, and storage definitions.

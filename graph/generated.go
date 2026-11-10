@@ -46,12 +46,25 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	APIKey struct {
+		CreatedAt  func(childComplexity int) int
+		ID         func(childComplexity int) int
+		KeyPrefix  func(childComplexity int) int
+		LastUsedAt func(childComplexity int) int
+		Name       func(childComplexity int) int
+	}
+
 	ApplyBlurResult struct {
 		Image func(childComplexity int) int
 	}
 
 	ApplyWatermarkResult struct {
 		Image func(childComplexity int) int
+	}
+
+	CreateAPIKeyResult struct {
+		APIKey func(childComplexity int) int
+		Secret func(childComplexity int) int
 	}
 
 	DeleteImageResult struct {
@@ -111,11 +124,13 @@ type ComplexityRoot struct {
 		ApplyWatermark                     func(childComplexity int, input model.ApplyWatermarkInput) int
 		Authenticate                       func(childComplexity int, email string, password string, organizationID *string) int
 		CheckStorageDefinitionConnectivity func(childComplexity int, input model.CheckStorageDefinitionConnectivityInput) int
+		CreateAPIKey                       func(childComplexity int, input model.CreateAPIKeyInput) int
 		CreateStorageDefinition            func(childComplexity int, input model.CreateStorageDefinitionInput) int
 		CreateUserWithOrganization         func(childComplexity int, input model.CreateUserWithOrganizationInput) int
 		DeleteImage                        func(childComplexity int, input model.DeleteImageInput) int
 		Logout                             func(childComplexity int) int
 		ResetPassword                      func(childComplexity int, input model.ResetPasswordInput) int
+		RevokeAPIKey                       func(childComplexity int, input model.RevokeAPIKeyInput) int
 		SendResetPasswordEmail             func(childComplexity int, input model.SendResetPasswordEmailInput) int
 		UpdateStorageDefinition            func(childComplexity int, input model.UpdateStorageDefinitionInput) int
 	}
@@ -169,6 +184,10 @@ type ComplexityRoot struct {
 		Success func(childComplexity int) int
 	}
 
+	RevokeAPIKeyResult struct {
+		ID func(childComplexity int) int
+	}
+
 	Role struct {
 		Key  func(childComplexity int) int
 		Name func(childComplexity int) int
@@ -219,6 +238,7 @@ type ComplexityRoot struct {
 	}
 
 	Viewer struct {
+		APIKeys              func(childComplexity int) int
 		AllUsers             func(childComplexity int, limit *int, offset *int, search *string) int
 		GetStorageDefinition func(childComplexity int, id string) int
 		HasPermission        func(childComplexity int, permission model.PermissionNameEnum) int
@@ -258,6 +278,8 @@ type ImageResolver interface {
 	CreatedBy(ctx context.Context, obj *model.Image) (*model.OrganizationUser, error)
 }
 type MutationResolver interface {
+	CreateAPIKey(ctx context.Context, input model.CreateAPIKeyInput) (*model.CreateAPIKeyResult, error)
+	RevokeAPIKey(ctx context.Context, input model.RevokeAPIKeyInput) (*model.RevokeAPIKeyResult, error)
 	Authenticate(ctx context.Context, email string, password string, organizationID *string) (*model.ViewerResult, error)
 	Logout(ctx context.Context) (*model.ViewerResult, error)
 	CreateUserWithOrganization(ctx context.Context, input model.CreateUserWithOrganizationInput) (*model.ViewerResult, error)
@@ -290,6 +312,7 @@ type ViewerResolver interface {
 	OrganizationUser(ctx context.Context, obj *model.Viewer) (*model.OrganizationUser, error)
 	OrganizationUserByID(ctx context.Context, obj *model.Viewer, id string) (*model.OrganizationUser, error)
 	UploadLimitBytes(ctx context.Context, obj *model.Viewer) (int, error)
+	APIKeys(ctx context.Context, obj *model.Viewer) ([]*model.APIKey, error)
 	Image(ctx context.Context, obj *model.Viewer, id string) (*model.Image, error)
 	Images(ctx context.Context, obj *model.Viewer, orderBy *model.ImageOrderByInput, filters *model.ImageFilterInput, after *string, before *string) (*model.ImagesResult, error)
 	HasPermission(ctx context.Context, obj *model.Viewer, permission model.PermissionNameEnum) (bool, error)
@@ -313,6 +336,37 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 	_ = ec
 	switch typeName + "." + field {
 
+	case "APIKey.createdAt":
+		if e.ComplexityRoot.APIKey.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.APIKey.CreatedAt(childComplexity), true
+	case "APIKey.id":
+		if e.ComplexityRoot.APIKey.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.APIKey.ID(childComplexity), true
+	case "APIKey.keyPrefix":
+		if e.ComplexityRoot.APIKey.KeyPrefix == nil {
+			break
+		}
+
+		return e.ComplexityRoot.APIKey.KeyPrefix(childComplexity), true
+	case "APIKey.lastUsedAt":
+		if e.ComplexityRoot.APIKey.LastUsedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.APIKey.LastUsedAt(childComplexity), true
+	case "APIKey.name":
+		if e.ComplexityRoot.APIKey.Name == nil {
+			break
+		}
+
+		return e.ComplexityRoot.APIKey.Name(childComplexity), true
+
 	case "ApplyBlurResult.image":
 		if e.ComplexityRoot.ApplyBlurResult.Image == nil {
 			break
@@ -326,6 +380,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.ApplyWatermarkResult.Image(childComplexity), true
+
+	case "CreateAPIKeyResult.apiKey":
+		if e.ComplexityRoot.CreateAPIKeyResult.APIKey == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreateAPIKeyResult.APIKey(childComplexity), true
+	case "CreateAPIKeyResult.secret":
+		if e.ComplexityRoot.CreateAPIKeyResult.Secret == nil {
+			break
+		}
+
+		return e.ComplexityRoot.CreateAPIKeyResult.Secret(childComplexity), true
 
 	case "DeleteImageResult.id":
 		if e.ComplexityRoot.DeleteImageResult.ID == nil {
@@ -564,6 +631,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.CheckStorageDefinitionConnectivity(childComplexity, args["input"].(model.CheckStorageDefinitionConnectivityInput)), true
+	case "Mutation.createAPIKey":
+		if e.ComplexityRoot.Mutation.CreateAPIKey == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createAPIKey_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.CreateAPIKey(childComplexity, args["input"].(model.CreateAPIKeyInput)), true
 	case "Mutation.createStorageDefinition":
 		if e.ComplexityRoot.Mutation.CreateStorageDefinition == nil {
 			break
@@ -614,6 +692,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.Mutation.ResetPassword(childComplexity, args["input"].(model.ResetPasswordInput)), true
+	case "Mutation.revokeAPIKey":
+		if e.ComplexityRoot.Mutation.RevokeAPIKey == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_revokeAPIKey_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Mutation.RevokeAPIKey(childComplexity, args["input"].(model.RevokeAPIKeyInput)), true
 	case "Mutation.sendResetPasswordEmail":
 		if e.ComplexityRoot.Mutation.SendResetPasswordEmail == nil {
 			break
@@ -800,6 +889,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.ResetPasswordResult.Success(childComplexity), true
 
+	case "RevokeAPIKeyResult.id":
+		if e.ComplexityRoot.RevokeAPIKeyResult.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.RevokeAPIKeyResult.ID(childComplexity), true
+
 	case "Role.key":
 		if e.ComplexityRoot.Role.Key == nil {
 			break
@@ -958,6 +1054,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.UserWithOrganizationUsers.OrganizationUsers(childComplexity), true
 
+	case "Viewer.apiKeys":
+		if e.ComplexityRoot.Viewer.APIKeys == nil {
+			break
+		}
+
+		return e.ComplexityRoot.Viewer.APIKeys(childComplexity), true
 	case "Viewer.allUsers":
 		if e.ComplexityRoot.Viewer.AllUsers == nil {
 			break
@@ -1103,11 +1205,13 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputApplyBlurInput,
 		ec.unmarshalInputApplyWatermarkInput,
 		ec.unmarshalInputBlurRegionInput,
+		ec.unmarshalInputCreateAPIKeyInput,
 		ec.unmarshalInputCreateUserWithOrganizationInput,
 		ec.unmarshalInputDeleteImageInput,
 		ec.unmarshalInputImageFilterInput,
 		ec.unmarshalInputImageOrderByInput,
 		ec.unmarshalInputResetPasswordInput,
+		ec.unmarshalInputRevokeAPIKeyInput,
 		ec.unmarshalInputSendResetPasswordEmailInput,
 		ec.unmarshalInputWatermarkPositionInput,
 		ec.unmarshalInputcheckStorageDefinitionConnectivityInput,
@@ -1187,7 +1291,7 @@ func newExecutionContext(
 	}
 }
 
-//go:embed "schema/identity.mutations.graphqls" "schema/images.graphqls" "schema/main.graphqls" "schema/organization.graphqls" "schema/organizationUser.graphqls" "schema/permission.graphqls" "schema/role.graphqls" "schema/schema.graphqls" "schema/storageDefinition.graphqls" "schema/user-management.graphqls" "schema/user.graphqls" "schema/viewer.graphqls"
+//go:embed "schema/apiKey.graphqls" "schema/identity.mutations.graphqls" "schema/images.graphqls" "schema/main.graphqls" "schema/organization.graphqls" "schema/organizationUser.graphqls" "schema/permission.graphqls" "schema/role.graphqls" "schema/schema.graphqls" "schema/storageDefinition.graphqls" "schema/user-management.graphqls" "schema/user.graphqls" "schema/viewer.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -1199,6 +1303,7 @@ func sourceData(filename string) string {
 }
 
 var sources = []*ast.Source{
+	{Name: "schema/apiKey.graphqls", Input: sourceData("schema/apiKey.graphqls"), BuiltIn: false},
 	{Name: "schema/identity.mutations.graphqls", Input: sourceData("schema/identity.mutations.graphqls"), BuiltIn: false},
 	{Name: "schema/images.graphqls", Input: sourceData("schema/images.graphqls"), BuiltIn: false},
 	{Name: "schema/main.graphqls", Input: sourceData("schema/main.graphqls"), BuiltIn: false},
@@ -1218,6 +1323,22 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // Each function is generated once per unique object type, deduplicating the
 // switch statements that were previously inlined in every fieldContext_* function.
 
+func (ec *executionContext) childFields_APIKey(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_APIKey_id(ctx, field)
+	case "name":
+		return ec.fieldContext_APIKey_name(ctx, field)
+	case "keyPrefix":
+		return ec.fieldContext_APIKey_keyPrefix(ctx, field)
+	case "createdAt":
+		return ec.fieldContext_APIKey_createdAt(ctx, field)
+	case "lastUsedAt":
+		return ec.fieldContext_APIKey_lastUsedAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type APIKey", field.Name)
+}
+
 func (ec *executionContext) childFields_ApplyBlurResult(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "image":
@@ -1232,6 +1353,16 @@ func (ec *executionContext) childFields_ApplyWatermarkResult(ctx context.Context
 		return ec.fieldContext_ApplyWatermarkResult_image(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type ApplyWatermarkResult", field.Name)
+}
+
+func (ec *executionContext) childFields_CreateAPIKeyResult(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "apiKey":
+		return ec.fieldContext_CreateAPIKeyResult_apiKey(ctx, field)
+	case "secret":
+		return ec.fieldContext_CreateAPIKeyResult_secret(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type CreateAPIKeyResult", field.Name)
 }
 
 func (ec *executionContext) childFields_DeleteImageResult(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -1398,6 +1529,14 @@ func (ec *executionContext) childFields_ResetPasswordResult(ctx context.Context,
 	return nil, fmt.Errorf("no field named %q was found under type ResetPasswordResult", field.Name)
 }
 
+func (ec *executionContext) childFields_RevokeAPIKeyResult(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_RevokeAPIKeyResult_id(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type RevokeAPIKeyResult", field.Name)
+}
+
 func (ec *executionContext) childFields_Role(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 	switch field.Name {
 	case "key":
@@ -1492,6 +1631,8 @@ func (ec *executionContext) childFields_Viewer(ctx context.Context, field graphq
 		return ec.fieldContext_Viewer_organizationUserById(ctx, field)
 	case "uploadLimitBytes":
 		return ec.fieldContext_Viewer_uploadLimitBytes(ctx, field)
+	case "apiKeys":
+		return ec.fieldContext_Viewer_apiKeys(ctx, field)
 	case "image":
 		return ec.fieldContext_Viewer_image(ctx, field)
 	case "images":
@@ -1720,6 +1861,20 @@ func (ec *executionContext) field_Mutation_checkStorageDefinitionConnectivity_ar
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createAPIKey_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (model.CreateAPIKeyInput, error) {
+			return ec.unmarshalNCreateAPIKeyInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐCreateAPIKeyInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createStorageDefinition_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1768,6 +1923,20 @@ func (ec *executionContext) field_Mutation_resetPassword_args(ctx context.Contex
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
 		func(ctx context.Context, v any) (model.ResetPasswordInput, error) {
 			return ec.unmarshalNResetPasswordInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐResetPasswordInput(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_revokeAPIKey_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input",
+		func(ctx context.Context, v any) (model.RevokeAPIKeyInput, error) {
+			return ec.unmarshalNRevokeAPIKeyInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐRevokeAPIKeyInput(ctx, v)
 		})
 	if err != nil {
 		return nil, err
@@ -2050,6 +2219,121 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _APIKey_id(ctx context.Context, field graphql.CollectedField, obj *model.APIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_APIKey_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_APIKey_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("APIKey", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _APIKey_name(ctx context.Context, field graphql.CollectedField, obj *model.APIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_APIKey_name(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_APIKey_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("APIKey", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _APIKey_keyPrefix(ctx context.Context, field graphql.CollectedField, obj *model.APIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_APIKey_keyPrefix(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.KeyPrefix, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_APIKey_keyPrefix(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("APIKey", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _APIKey_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.APIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_APIKey_createdAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_APIKey_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("APIKey", field, false, false, errors.New("field of type Time does not have child fields"))
+}
+
+func (ec *executionContext) _APIKey_lastUsedAt(ctx context.Context, field graphql.CollectedField, obj *model.APIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_APIKey_lastUsedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.LastUsedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *time.Time) graphql.Marshaler {
+			return ec.marshalOTime2ᚖtimeᚐTime(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_APIKey_lastUsedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("APIKey", field, false, false, errors.New("field of type Time does not have child fields"))
+}
+
 func (ec *executionContext) _ApplyBlurResult_image(ctx context.Context, field graphql.CollectedField, obj *model.ApplyBlurResult) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -2112,6 +2396,61 @@ func (ec *executionContext) fieldContext_ApplyWatermarkResult_image(_ context.Co
 		},
 	}
 	return fc, nil
+}
+
+func (ec *executionContext) _CreateAPIKeyResult_apiKey(ctx context.Context, field graphql.CollectedField, obj *model.CreateAPIKeyResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreateAPIKeyResult_apiKey(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.APIKey, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.APIKey) graphql.Marshaler {
+			return ec.marshalNAPIKey2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐAPIKey(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CreateAPIKeyResult_apiKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreateAPIKeyResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_APIKey(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CreateAPIKeyResult_secret(ctx context.Context, field graphql.CollectedField, obj *model.CreateAPIKeyResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_CreateAPIKeyResult_secret(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Secret, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_CreateAPIKeyResult_secret(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("CreateAPIKeyResult", field, false, false, errors.New("field of type String does not have child fields"))
 }
 
 func (ec *executionContext) _DeleteImageResult_id(ctx context.Context, field graphql.CollectedField, obj *model.DeleteImageResult) (ret graphql.Marshaler) {
@@ -2904,6 +3243,120 @@ func (ec *executionContext) fieldContext_ImagesResult_pageInfo(_ context.Context
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return ec.childFields_ImagePageInfo(ctx, field)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createAPIKey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_createAPIKey(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().CreateAPIKey(ctx, fc.Args["input"].(model.CreateAPIKeyInput))
+		},
+		func(ctx context.Context, next graphql.Resolver) graphql.Resolver {
+			directive0 := next
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.Directives.IsAuthenticated == nil {
+					var zeroVal *model.CreateAPIKeyResult
+					return zeroVal, errors.New("directive isAuthenticated is not implemented")
+				}
+				return ec.Directives.IsAuthenticated(ctx, nil, directive0)
+			}
+
+			next = directive1
+			return next
+		},
+		func(ctx context.Context, selections ast.SelectionSet, v *model.CreateAPIKeyResult) graphql.Marshaler {
+			return ec.marshalNCreateAPIKeyResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐCreateAPIKeyResult(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_createAPIKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_CreateAPIKeyResult(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createAPIKey_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_revokeAPIKey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Mutation_revokeAPIKey(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Mutation().RevokeAPIKey(ctx, fc.Args["input"].(model.RevokeAPIKeyInput))
+		},
+		func(ctx context.Context, next graphql.Resolver) graphql.Resolver {
+			directive0 := next
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.Directives.IsAuthenticated == nil {
+					var zeroVal *model.RevokeAPIKeyResult
+					return zeroVal, errors.New("directive isAuthenticated is not implemented")
+				}
+				return ec.Directives.IsAuthenticated(ctx, nil, directive0)
+			}
+
+			next = directive1
+			return next
+		},
+		func(ctx context.Context, selections ast.SelectionSet, v *model.RevokeAPIKeyResult) graphql.Marshaler {
+			return ec.marshalNRevokeAPIKeyResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐRevokeAPIKeyResult(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Mutation_revokeAPIKey(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_RevokeAPIKeyResult(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_revokeAPIKey_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -4220,6 +4673,29 @@ func (ec *executionContext) fieldContext_ResetPasswordResult_success(_ context.C
 	return graphql.NewScalarFieldContext("ResetPasswordResult", field, false, false, errors.New("field of type Boolean does not have child fields"))
 }
 
+func (ec *executionContext) _RevokeAPIKeyResult_id(ctx context.Context, field graphql.CollectedField, obj *model.RevokeAPIKeyResult) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_RevokeAPIKeyResult_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_RevokeAPIKeyResult_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("RevokeAPIKeyResult", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
 func (ec *executionContext) _Role_key(ctx context.Context, field graphql.CollectedField, obj *model.Role) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -4946,6 +5422,51 @@ func (ec *executionContext) _Viewer_uploadLimitBytes(ctx context.Context, field 
 }
 func (ec *executionContext) fieldContext_Viewer_uploadLimitBytes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("Viewer", field, true, true, errors.New("field of type Int does not have child fields"))
+}
+
+func (ec *executionContext) _Viewer_apiKeys(ctx context.Context, field graphql.CollectedField, obj *model.Viewer) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Viewer_apiKeys(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return ec.Resolvers.Viewer().APIKeys(ctx, obj)
+		},
+		func(ctx context.Context, next graphql.Resolver) graphql.Resolver {
+			directive0 := next
+
+			directive1 := func(ctx context.Context) (any, error) {
+				if ec.Directives.IsAuthenticated == nil {
+					var zeroVal []*model.APIKey
+					return zeroVal, errors.New("directive isAuthenticated is not implemented")
+				}
+				return ec.Directives.IsAuthenticated(ctx, obj, directive0)
+			}
+
+			next = directive1
+			return next
+		},
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.APIKey) graphql.Marshaler {
+			return ec.marshalNAPIKey2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐAPIKeyᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_Viewer_apiKeys(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Viewer",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_APIKey(ctx, field)
+		},
+	}
+	return fc, nil
 }
 
 func (ec *executionContext) _Viewer_image(ctx context.Context, field graphql.CollectedField, obj *model.Viewer) (ret graphql.Marshaler) {
@@ -6652,6 +7173,36 @@ func (ec *executionContext) unmarshalInputBlurRegionInput(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateAPIKeyInput(ctx context.Context, obj any) (model.CreateAPIKeyInput, error) {
+	var it model.CreateAPIKeyInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		}
+	}
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateUserWithOrganizationInput(ctx context.Context, obj any) (model.CreateUserWithOrganizationInput, error) {
 	var it model.CreateUserWithOrganizationInput
 	if obj == nil {
@@ -6853,6 +7404,36 @@ func (ec *executionContext) unmarshalInputResetPasswordInput(ctx context.Context
 				return it, err
 			}
 			it.Password = data
+		}
+	}
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputRevokeAPIKeyInput(ctx context.Context, obj any) (model.RevokeAPIKeyInput, error) {
+	var it model.RevokeAPIKeyInput
+	if obj == nil {
+		return it, nil
+	}
+
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
 		}
 	}
 	return it, nil
@@ -7120,6 +7701,62 @@ func (ec *executionContext) _StorageConfig(ctx context.Context, sel ast.Selectio
 
 // region    **************************** object.gotpl ****************************
 
+var aPIKeyImplementors = []string{"APIKey"}
+
+func (ec *executionContext) _APIKey(ctx context.Context, sel ast.SelectionSet, obj *model.APIKey) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, aPIKeyImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("APIKey")
+		case "id":
+			out.Values[i] = ec._APIKey_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._APIKey_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "keyPrefix":
+			out.Values[i] = ec._APIKey_keyPrefix(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._APIKey_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lastUsedAt":
+			out.Values[i] = ec._APIKey_lastUsedAt(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var applyBlurResultImplementors = []string{"ApplyBlurResult"}
 
 func (ec *executionContext) _ApplyBlurResult(ctx context.Context, sel ast.SelectionSet, obj *model.ApplyBlurResult) graphql.Marshaler {
@@ -7169,6 +7806,50 @@ func (ec *executionContext) _ApplyWatermarkResult(ctx context.Context, sel ast.S
 			out.Values[i] = graphql.MarshalString("ApplyWatermarkResult")
 		case "image":
 			out.Values[i] = ec._ApplyWatermarkResult_image(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var createAPIKeyResultImplementors = []string{"CreateAPIKeyResult"}
+
+func (ec *executionContext) _CreateAPIKeyResult(ctx context.Context, sel ast.SelectionSet, obj *model.CreateAPIKeyResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, createAPIKeyResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CreateAPIKeyResult")
+		case "apiKey":
+			out.Values[i] = ec._CreateAPIKeyResult_apiKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "secret":
+			out.Values[i] = ec._CreateAPIKeyResult_secret(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7825,6 +8506,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createAPIKey":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createAPIKey(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "revokeAPIKey":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_revokeAPIKey(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "authenticate":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_authenticate(ctx, field)
@@ -8393,6 +9088,45 @@ func (ec *executionContext) _ResetPasswordResult(ctx context.Context, sel ast.Se
 			out.Values[i] = graphql.MarshalString("ResetPasswordResult")
 		case "success":
 			out.Values[i] = ec._ResetPasswordResult_success(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var revokeAPIKeyResultImplementors = []string{"RevokeAPIKeyResult"}
+
+func (ec *executionContext) _RevokeAPIKeyResult(ctx context.Context, sel ast.SelectionSet, obj *model.RevokeAPIKeyResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, revokeAPIKeyResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RevokeAPIKeyResult")
+		case "id":
+			out.Values[i] = ec._RevokeAPIKeyResult_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -8998,6 +9732,42 @@ func (ec *executionContext) _Viewer(ctx context.Context, sel ast.SelectionSet, o
 					}
 				}()
 				res = ec._Viewer_uploadLimitBytes(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "apiKeys":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Viewer_apiKeys(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -9721,6 +10491,32 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) marshalNAPIKey2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐAPIKeyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.APIKey) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNAPIKey2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐAPIKey(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNAPIKey2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐAPIKey(ctx context.Context, sel ast.SelectionSet, v *model.APIKey) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._APIKey(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNAnchor2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐAnchor(ctx context.Context, v any) (model.Anchor, error) {
 	var res model.Anchor
 	err := res.UnmarshalGQL(v)
@@ -9788,6 +10584,25 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNCreateAPIKeyInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐCreateAPIKeyInput(ctx context.Context, v any) (model.CreateAPIKeyInput, error) {
+	res, err := ec.unmarshalInputCreateAPIKeyInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCreateAPIKeyResult2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐCreateAPIKeyResult(ctx context.Context, sel ast.SelectionSet, v model.CreateAPIKeyResult) graphql.Marshaler {
+	return ec._CreateAPIKeyResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCreateAPIKeyResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐCreateAPIKeyResult(ctx context.Context, sel ast.SelectionSet, v *model.CreateAPIKeyResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CreateAPIKeyResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNCreateUserWithOrganizationInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐCreateUserWithOrganizationInput(ctx context.Context, v any) (model.CreateUserWithOrganizationInput, error) {
@@ -10043,6 +10858,25 @@ func (ec *executionContext) marshalNResetPasswordResult2ᚖgithubᚗcomᚋericls
 		return graphql.Null
 	}
 	return ec._ResetPasswordResult(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNRevokeAPIKeyInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐRevokeAPIKeyInput(ctx context.Context, v any) (model.RevokeAPIKeyInput, error) {
+	res, err := ec.unmarshalInputRevokeAPIKeyInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRevokeAPIKeyResult2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐRevokeAPIKeyResult(ctx context.Context, sel ast.SelectionSet, v model.RevokeAPIKeyResult) graphql.Marshaler {
+	return ec._RevokeAPIKeyResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRevokeAPIKeyResult2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐRevokeAPIKeyResult(ctx context.Context, sel ast.SelectionSet, v *model.RevokeAPIKeyResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RevokeAPIKeyResult(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNRole2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐRoleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Role) graphql.Marshaler {

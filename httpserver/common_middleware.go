@@ -67,7 +67,10 @@ func IsHttps(c context.Context) bool {
 }
 
 func GetBaseURL(c context.Context) *url.URL {
-	r := GetRequest(c)
+	return baseURLFromRequest(GetRequest(c))
+}
+
+func baseURLFromRequest(r *http.Request) *url.URL {
 	url := &url.URL{
 		Scheme: "http",
 		Host:   r.Host,

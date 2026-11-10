@@ -31,6 +31,13 @@ type IdentityRepo interface {
 
 	// GetAllUsers returns a paginated list of users with optional search criteria.
 	GetAllUsers(limit int, offset int, search *string) ([]*dm.User, int)
+
+	CreateAPIKey(organizationUserId string, name string) (*dm.APIKey, string, error)
+	ListAPIKeys(organizationUserId string) ([]*dm.APIKey, error)
+	RevokeAPIKey(organizationUserId string, apiKeyId string) error
+	// GetOrganizationUserByAPIKeySecret returns nil if the secret does not
+	// belong to an active API key.
+	GetOrganizationUserByAPIKeySecret(secret string) *dm.OrganizationUser
 }
 
 type ContextUserManager interface {

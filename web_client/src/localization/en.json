@@ -202,7 +202,27 @@
     "profile": {
       "nav": {
         "general": "General",
-        "images": "Images"
+        "images": "Images",
+        "apiKeys": "API keys"
+      },
+      "apiKeys": {
+        "title": "API keys",
+        "description": "Use an API key to upload images to your account with the HTTP API.",
+        "docsLink": "Read the API documentation",
+        "namePlaceholder": "Key name, e.g. My laptop",
+        "create": "Create key",
+        "newKeyTitle": "Your new API key",
+        "newKeyWarning": "Copy it now and store it somewhere safe. You won't be able to see it again.",
+        "copy": "Copy",
+        "done": "Done",
+        "empty": "You don't have any API keys yet.",
+        "createdAt": "Created {{time}}",
+        "lastUsedAt": "Last used {{time}}",
+        "neverUsed": "Never used",
+        "revoke": "Revoke",
+        "revokeConfirmTitle": "Revoke API key?",
+        "revokeConfirmBody": "Anything using \"{{name}}\" will stop working immediately. This can't be undone.",
+        "revoked": "API key revoked"
       },
       "images": {
         "list": {

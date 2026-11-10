@@ -161,6 +161,9 @@ func MakeServer(
 	rootRouter.PathPrefix("/image/").Handler(imageCORS(makeImageHandler(storageDefRepo, storedImageRepo, imageResponseCache)))
 	rootRouter.PathPrefix("/direct").Handler(imageCORS(makeDirectImageHandler(storageDefRepo, imageResponseCache)))
 	mountImageRedirectRoutes(rootRouter, conf.WebUIHost, storageDefRepo, storedImageRepo)
+	// The API authenticates with API keys only, so it is mounted outside of
+	// appRouter and its session middleware.
+	rootRouter.Handle(apiCreateImagesPath, makeAPICreateImagesHandler(conf, identityRepo, storageDefRepo, imageRepo, uploadLimiter))
 	rootRouter.PathPrefix("/").Handler(appRouter)
 
 	srv := &http.Server{

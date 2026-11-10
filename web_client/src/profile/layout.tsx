@@ -1,10 +1,11 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router";
-import { PiImages as ImagesIcon } from "react-icons/pi";
+import { PiImages as ImagesIcon, PiKey as KeyIcon } from "react-icons/pi";
 import { DashboardLayout } from "~src/common/layout/dashboardLayout";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "~src/lib/auth";
 import { FullScreenLoader } from "~src/ui/fullscreenLoader";
+import { routes } from "~src/routes";
 
 export function ProfileLayout() {
   const { t } = useTranslation();
@@ -21,6 +22,13 @@ export function ProfileLayout() {
             icon: <ImagesIcon />,
             active: (location: { pathname: string }) =>
               location.pathname.startsWith("/profile/images"),
+          },
+          {
+            title: t("profile.nav.apiKeys"),
+            to: routes.profile.apiKeys,
+            icon: <KeyIcon />,
+            active: (location: { pathname: string }) =>
+              location.pathname.startsWith(routes.profile.apiKeys),
           },
         ],
       },

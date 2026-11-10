@@ -29,6 +29,9 @@ type Documents = {
     "\n  mutation ApplyBlur($input: ApplyBlurInput!) {\n    applyBlur(input: $input) {\n      image {\n        id\n        url\n        name\n        identifier\n        nominalWidth\n        nominalHeight\n        nominalByteSize\n        MIMEType\n        parent {\n          id\n          name\n        }\n        changes\n      }\n    }\n  }\n": typeof types.ApplyBlurDocument,
     "\nquery Auth {\n  viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n    uploadLimitBytes\n  }\n}\n": typeof types.AuthDocument,
     "\nmutation Logout {\n  logout {\n    viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n    uploadLimitBytes\n  }\n  }\n}\n": typeof types.LogoutDocument,
+    "\n  query APIKeys {\n    viewer {\n      id\n      apiKeys {\n        id\n        name\n        keyPrefix\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n": typeof types.ApiKeysDocument,
+    "\n  mutation CreateAPIKey($input: CreateAPIKeyInput!) {\n    createAPIKey(input: $input) {\n      apiKey {\n        id\n      }\n      secret\n    }\n  }\n": typeof types.CreateApiKeyDocument,
+    "\n  mutation RevokeAPIKey($input: RevokeAPIKeyInput!) {\n    revokeAPIKey(input: $input) {\n      id\n    }\n  }\n": typeof types.RevokeApiKeyDocument,
     "\nmutation StorageDefTableConnectivityCellMutation(\n    $input: checkStorageDefinitionConnectivityInput!\n  ) {\n    checkStorageDefinitionConnectivity(input: $input) {\n      ok\n      error\n    }\n  }\n": typeof types.StorageDefTableConnectivityCellMutationDocument,
     "\n  query ListStorageDef {\n    viewer {\n      id\n      storageDefinitions {\n        ...StorageDefinitionFragment\n      }\n    }\n  }\n": typeof types.ListStorageDefDocument,
     "\n  query GetStorageDef($id: ID!) {\n    viewer {\n      id\n      getStorageDefinition(id: $id) {\n        ...StorageDefinitionFragment\n      }\n    }\n  }\n": typeof types.GetStorageDefDocument,
@@ -54,6 +57,9 @@ const documents: Documents = {
     "\n  mutation ApplyBlur($input: ApplyBlurInput!) {\n    applyBlur(input: $input) {\n      image {\n        id\n        url\n        name\n        identifier\n        nominalWidth\n        nominalHeight\n        nominalByteSize\n        MIMEType\n        parent {\n          id\n          name\n        }\n        changes\n      }\n    }\n  }\n": types.ApplyBlurDocument,
     "\nquery Auth {\n  viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n    uploadLimitBytes\n  }\n}\n": types.AuthDocument,
     "\nmutation Logout {\n  logout {\n    viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n    uploadLimitBytes\n  }\n  }\n}\n": types.LogoutDocument,
+    "\n  query APIKeys {\n    viewer {\n      id\n      apiKeys {\n        id\n        name\n        keyPrefix\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n": types.ApiKeysDocument,
+    "\n  mutation CreateAPIKey($input: CreateAPIKeyInput!) {\n    createAPIKey(input: $input) {\n      apiKey {\n        id\n      }\n      secret\n    }\n  }\n": types.CreateApiKeyDocument,
+    "\n  mutation RevokeAPIKey($input: RevokeAPIKeyInput!) {\n    revokeAPIKey(input: $input) {\n      id\n    }\n  }\n": types.RevokeApiKeyDocument,
     "\nmutation StorageDefTableConnectivityCellMutation(\n    $input: checkStorageDefinitionConnectivityInput!\n  ) {\n    checkStorageDefinitionConnectivity(input: $input) {\n      ok\n      error\n    }\n  }\n": types.StorageDefTableConnectivityCellMutationDocument,
     "\n  query ListStorageDef {\n    viewer {\n      id\n      storageDefinitions {\n        ...StorageDefinitionFragment\n      }\n    }\n  }\n": types.ListStorageDefDocument,
     "\n  query GetStorageDef($id: ID!) {\n    viewer {\n      id\n      getStorageDefinition(id: $id) {\n        ...StorageDefinitionFragment\n      }\n    }\n  }\n": types.GetStorageDefDocument,
@@ -138,6 +144,18 @@ export function gql(source: "\nquery Auth {\n  viewer {\n    id\n    organizatio
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\nmutation Logout {\n  logout {\n    viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n    uploadLimitBytes\n  }\n  }\n}\n"): (typeof documents)["\nmutation Logout {\n  logout {\n    viewer {\n    id\n    organizationUser {\n      id\n      user {\n        id\n        email\n        name\n      }\n    }\n    hasAdminAccess: hasPermission(permission: AdminAccess)\n    hasSiteOwnerAccess: hasPermission(permission: SiteOwnerAccess)\n    uploadLimitBytes\n  }\n  }\n}\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query APIKeys {\n    viewer {\n      id\n      apiKeys {\n        id\n        name\n        keyPrefix\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n"): (typeof documents)["\n  query APIKeys {\n    viewer {\n      id\n      apiKeys {\n        id\n        name\n        keyPrefix\n        createdAt\n        lastUsedAt\n      }\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation CreateAPIKey($input: CreateAPIKeyInput!) {\n    createAPIKey(input: $input) {\n      apiKey {\n        id\n      }\n      secret\n    }\n  }\n"): (typeof documents)["\n  mutation CreateAPIKey($input: CreateAPIKeyInput!) {\n    createAPIKey(input: $input) {\n      apiKey {\n        id\n      }\n      secret\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  mutation RevokeAPIKey($input: RevokeAPIKeyInput!) {\n    revokeAPIKey(input: $input) {\n      id\n    }\n  }\n"): (typeof documents)["\n  mutation RevokeAPIKey($input: RevokeAPIKeyInput!) {\n    revokeAPIKey(input: $input) {\n      id\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -1,7 +1,6 @@
 package httpserver
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,14 +11,10 @@ import (
 	"strings"
 
 	"github.com/ericls/imgdd/domainmodels"
-	"github.com/ericls/imgdd/httpserver/imagechecks"
 	"github.com/ericls/imgdd/identity"
 	"github.com/ericls/imgdd/image"
 	"github.com/ericls/imgdd/ratelimit"
 	"github.com/ericls/imgdd/storage"
-	"github.com/ericls/imgdd/utils"
-
-	"github.com/google/uuid"
 )
 
 type UploadReturn struct {
@@ -29,6 +24,9 @@ type UploadReturn struct {
 	Identifier string `json:"identifier"`
 }
 
+// makeUploadHandler serves /upload, which the web client uses. It
+// authenticates with the browser session. Third-party clients should use the
+// documented API at /api/v1/createImages instead.
 func makeUploadHandler(
 	conf *HttpServerConfigDef,
 	identityManager *IdentityManager,
@@ -42,144 +40,26 @@ func makeUploadHandler(
 			return
 		}
 		r.ParseMultipartForm(conf.ImageMaxUploadBytes)
+		if r.MultipartForm != nil {
+			defer r.MultipartForm.RemoveAll()
+		}
 		_, fileHeader, err := r.FormFile("image")
 		if err != nil {
 			httpLogger.Error().Err(err).Msg("Unable to read file")
 			http.Error(w, "Unable to read file", http.StatusBadRequest)
 			return
 		}
-		src, err := fileHeader.Open()
-		if err != nil {
-			httpLogger.Error().Err(err).Msg("Unable to open file")
-			http.Error(w, "Unable to open file", http.StatusBadRequest)
-			return
-		}
-		defer src.Close()
-
-		imgBytes, _ := io.ReadAll(src)
-		exifRemovedBytes, err := utils.MaybeRemoveExif(imgBytes)
-		if err != nil || len(exifRemovedBytes) == 0 {
-			exifRemovedBytes = imgBytes
-		}
-
-		bytesLength := len(exifRemovedBytes)
-		if bytesLength == 0 {
-			http.Error(w, "Empty file", http.StatusBadRequest)
-			return
-		}
-
 		orgUser := identity.GetCurrentOrganizationUser(identityManager.ContextUserManager, r.Context())
-
-		baseLimit := conf.ImageMaxUploadBytes
-		if conf.GuestImageMaxUploadBytes > 0 {
-			baseLimit = conf.GuestImageMaxUploadBytes
-		}
-		effectiveLimit := baseLimit
-		if orgUser != nil && orgUser.UploadLimitBytes != nil {
-			effectiveLimit = *orgUser.UploadLimitBytes
-			if effectiveLimit > conf.ImageMaxUploadBytes {
-				effectiveLimit = conf.ImageMaxUploadBytes
-			}
-		}
-		if int64(bytesLength) > effectiveLimit {
-			http.Error(w, "File too large", http.StatusBadRequest)
+		uploaded, uploadErr := createUploadedImage(r, conf, orgUser, fileHeader, storageDefRepo, imageRepo, limiter, nil)
+		if uploadErr != nil {
+			http.Error(w, uploadErr.Message, uploadErr.Status)
 			return
-		}
-
-		declaredMimeType := utils.GetMimeTypeFromFilename(fileHeader.Filename)
-		detectedMimeType := utils.DetectMIMEType(&exifRemovedBytes)
-		if declaredMimeType != detectedMimeType {
-			httpLogger.Warn().Msgf("Declared MIME type: %s, Detected MIME type: %s", declaredMimeType, detectedMimeType)
-			http.Error(w, "Declared MIME type does not match detected MIME type", http.StatusBadRequest)
-			return
-		}
-
-		checkers := make([]imagechecks.Checker, 0)
-		if conf.EnableSafeImageCheck && conf.SafeImageCheckEndpoint != "" {
-			checkers = append(checkers, imagechecks.MakeImageChecker(conf.SafeImageCheckEndpoint))
-		}
-		if len(checkers) > 0 {
-			imageReader := bytes.NewReader(exifRemovedBytes)
-			ok := imagechecks.CheckAll(checkers, imageReader)
-			if !ok {
-				http.Error(w, "Bad image", http.StatusBadRequest)
-				return
-			}
-		}
-
-		uploaderIp := ExtractIP(r)
-
-		// Find the best storage definition for storing the image
-		storageDefs, err := storageDefRepo.ListStorageDefinitions()
-		if err != nil {
-			httpLogger.Error().Err(err).Msg("Unable to list storage definitions")
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			return
-		}
-		var storageDef *domainmodels.StorageDefinition
-		for _, def := range storageDefs {
-			if def.IsEnabled {
-				storageDef = def
-				break
-			}
-		}
-		if storageDef == nil {
-			httpLogger.Error().Err(err).Msg("No enabled storage definitions found")
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			return
-		}
-
-		storageInstance, err := storage.GetStorage(storageDef)
-		if err != nil {
-			httpLogger.Error().Err(err).Msg("Unable to get storage")
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			return
-		}
-
-		var createdById string
-		if orgUser != nil {
-			createdById = orgUser.Id
-		}
-
-		if orgUser == nil && limiter.IsRateLimited(uploaderIp) {
-			http.Error(w, "Rate limited", http.StatusTooManyRequests)
-			return
-		}
-
-		imageIdentifier := uuid.New().String()
-		width, height, err := utils.GetImageDimensions(exifRemovedBytes)
-		if err != nil {
-			httpLogger.Error().Err(err).Msg("Unable to get image dimensions")
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			return
-		}
-		image := domainmodels.Image{
-			UploaderIP:      uploaderIp,
-			CreatedById:     createdById,
-			MIMEType:        detectedMimeType,
-			Name:            fileHeader.Filename,
-			Identifier:      imageIdentifier,
-			NominalByteSize: int32(len(exifRemovedBytes)),
-			NominalWidth:    width,
-			NominalHeight:   height,
-		}
-		storedImage, err := imageRepo.CreateAndSaveUploadedImage(&image, detectedMimeType, exifRemovedBytes, storageDef.Id, storageInstance.Save)
-		if err != nil {
-			httpLogger.Error().Stack().Err(err).Msg("Unable to save image")
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			return
-		}
-		externalImageIdentifiers := []*domainmodels.ExternalImageIdentifier{
-			{
-				StorageDefinitionIdentifier: storageDef.Identifier,
-				FileIdentifier:              storedImage.FileIdentifier,
-			},
 		}
 		ret := UploadReturn{
-			ID:         storedImage.Image.Id,
-			Filename:   storedImage.Image.Name,
-			URL:        image.GetURL(conf.ImageDomain, IsSecure(r), externalImageIdentifiers, conf.DefaultURLFormat),
-			Identifier: storedImage.Image.Identifier,
+			ID:         uploaded.ID,
+			Filename:   uploaded.Filename,
+			URL:        uploaded.URL,
+			Identifier: uploaded.Identifier,
 		}
 		serialized, err := json.Marshal(ret)
 		if err != nil {
