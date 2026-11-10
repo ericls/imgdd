@@ -84,7 +84,7 @@ func TestAPIAlbums(t *testing.T) {
 			req.Header.Set("Authorization", "Bearer "+secret)
 		}
 		res := httptest.NewRecorder()
-		httpserver.MakeAPICreateAlbumHandler(identityRepo, imageRepo, limiter).ServeHTTP(res, req)
+		httpserver.MakeAPICreateAlbumHandler(conf, identityRepo, imageRepo, limiter).ServeHTTP(res, req)
 		return res
 	}
 	newAlbum := func(title string) string {
@@ -130,6 +130,29 @@ func TestAPIAlbums(t *testing.T) {
 		}
 	})
 
+	t.Run("page URLs use the configured web UI host", func(t *testing.T) {
+		webUIConf := *conf
+		webUIConf.WebUIHost = "app.example.net"
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/createAlbum", nil)
+		req.Header.Set("Authorization", "Bearer "+ownerSecret)
+		res := httptest.NewRecorder()
+		httpserver.MakeAPICreateAlbumHandler(&webUIConf, identityRepo, imageRepo, ratelimit.NewRateLimiter(100, 100)).ServeHTTP(res, req)
+		require.Equal(t, http.StatusOK, res.Code, res.Body.String())
+		albumID := decodeCreateAlbum(t, res).Album.ID
+		require.Equal(t, "http://app.example.net/albums/"+albumID, decodeCreateAlbum(t, res).Album.URL)
+
+		req = newCreateImagesRequestWithFields(t, [][2]string{{"album", albumID}}, apiTestFile{"image", "shot.png", img})
+		req.Header.Set("Authorization", "Bearer "+ownerSecret)
+		req.Header.Set("X-Forwarded-Proto", "https")
+		res = httptest.NewRecorder()
+		httpserver.MakeAPICreateImagesHandler(&webUIConf, identityRepo, storageDefRepo, imageRepo, ratelimit.NewRateLimiter(100, 100)).ServeHTTP(res, req)
+		require.Equal(t, http.StatusOK, res.Code, res.Body.String())
+		got := decodeCreateImages(t, res).Results[0].Image
+		require.NotNil(t, got)
+		require.Equal(t, "https://app.example.net/albums/"+albumID, *got.AlbumURL)
+		require.Equal(t, "https://app.example.net/images/"+got.ID, got.PageURL)
+	})
+
 	t.Run("create album requires an API key", func(t *testing.T) {
 		for _, secret := range []string{"", "imgdd_wrong"} {
 			res := createAlbum(nil, secret, "application/json", `{"title":"x"}`)
@@ -146,6 +169,8 @@ func TestAPIAlbums(t *testing.T) {
 		for _, tc := range [][2]string{
 			{"application/json", `{"title":`},
 			{"application/json", `{"title":1}`},
+			{"application/json", `{"name":"misspelled field"}`},
+			{"application/json", `{"title":"a"}{"title":"b"}`},
 			{"text/plain", "title"},
 			{"application/x-www-form-urlencoded", "title=a&title=b"},
 		} {
@@ -156,7 +181,7 @@ func TestAPIAlbums(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/createAlbum", nil)
 		res = httptest.NewRecorder()
-		httpserver.MakeAPICreateAlbumHandler(identityRepo, imageRepo, ratelimit.NewRateLimiter(100, 100)).ServeHTTP(res, req)
+		httpserver.MakeAPICreateAlbumHandler(conf, identityRepo, imageRepo, ratelimit.NewRateLimiter(100, 100)).ServeHTTP(res, req)
 		require.Equal(t, http.StatusMethodNotAllowed, res.Code)
 	})
 

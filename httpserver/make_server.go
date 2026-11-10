@@ -167,7 +167,7 @@ func MakeServer(
 	// The API authenticates with API keys only, so it is mounted outside of
 	// appRouter and its session middleware.
 	rootRouter.Handle(apiCreateImagesPath, makeAPICreateImagesHandler(conf, identityRepo, storageDefRepo, imageRepo, uploadLimiter))
-	rootRouter.Handle(apiCreateAlbumPath, makeAPICreateAlbumHandler(identityRepo, imageRepo, createAlbumLimiter))
+	rootRouter.Handle(apiCreateAlbumPath, makeAPICreateAlbumHandler(conf, identityRepo, imageRepo, createAlbumLimiter))
 	rootRouter.PathPrefix("/").Handler(appRouter)
 
 	srv := &http.Server{
