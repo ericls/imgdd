@@ -112,14 +112,25 @@ func absoluteImageURL(r *http.Request, imageURL string) string {
 	return baseURLFromRequest(r).ResolveReference(parsed).String()
 }
 
+// webUIBaseURL is the base URL of the web UI: the configured web UI host
+// when there is one (the API may be served from another host), otherwise the
+// host of the request.
+func webUIBaseURL(r *http.Request, webUIHost string) *url.URL {
+	base := baseURLFromRequest(r)
+	if webUIHost != "" {
+		base.Host = webUIHost
+	}
+	return base
+}
+
 // imagePageURL is the absolute URL of an image's page in the web UI.
-func imagePageURL(r *http.Request, imageId string) string {
-	return baseURLFromRequest(r).JoinPath("images", imageId).String()
+func imagePageURL(r *http.Request, webUIHost string, imageId string) string {
+	return webUIBaseURL(r, webUIHost).JoinPath("images", imageId).String()
 }
 
 // albumPageURL is the absolute URL of an album's page in the web UI.
-func albumPageURL(r *http.Request, albumIdentifier string) string {
-	return baseURLFromRequest(r).JoinPath("albums", albumIdentifier).String()
+func albumPageURL(r *http.Request, webUIHost string, albumIdentifier string) string {
+	return webUIBaseURL(r, webUIHost).JoinPath("albums", albumIdentifier).String()
 }
 
 // resolveUploadAlbum reads the optional album form field. It returns the
@@ -309,7 +320,7 @@ func makeAPICreateImagesHandler(
 		var albumURL *string
 		if album != nil {
 			opts.AlbumId = album.Id
-			u := albumPageURL(r, album.Identifier)
+			u := albumPageURL(r, conf.WebUIHost, album.Identifier)
 			albumURL = &u
 		}
 
@@ -336,7 +347,7 @@ func makeAPICreateImagesHandler(
 				Height:    uploaded.Height,
 				ByteSize:  uploaded.ByteSize,
 				ExpiresAt: uploaded.ExpiresAt,
-				PageURL:   imagePageURL(r, uploaded.ID),
+				PageURL:   imagePageURL(r, conf.WebUIHost, uploaded.ID),
 				AlbumURL:  albumURL,
 			}
 			if uploaded.Caption != "" {
@@ -356,7 +367,15 @@ func readCreateAlbumTitle(r *http.Request) (string, bool) {
 		var body struct {
 			Title string `json:"title"`
 		}
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil && !errors.Is(err, io.EOF) {
+		decoder := json.NewDecoder(r.Body)
+		// Reject misspelled fields, so {"name": ...} is an error rather than
+		// an untitled album.
+		decoder.DisallowUnknownFields()
+		if err := decoder.Decode(&body); err != nil && !errors.Is(err, io.EOF) {
+			return "", false
+		}
+		// Exactly one JSON value: reject trailing data.
+		if _, err := decoder.Token(); !errors.Is(err, io.EOF) {
 			return "", false
 		}
 		return body.Title, true
@@ -390,6 +409,7 @@ func readCreateAlbumTitle(r *http.Request) (string, bool) {
 // Response: {"album": {"id", "url", "title"}}. Pass the id as the "album"
 // field of createImages; share the url with whoever should see the album.
 func makeAPICreateAlbumHandler(
+	conf *HttpServerConfigDef,
 	identityRepo identity.IdentityRepo,
 	imageRepo image.ImageRepo,
 	limiter *ratelimit.RateLimiter,
@@ -431,7 +451,7 @@ func makeAPICreateAlbumHandler(
 		}
 		writeAPIJSON(w, http.StatusOK, apiCreateAlbumResponse{Album: apiAlbum{
 			ID:    album.Identifier,
-			URL:   albumPageURL(r, album.Identifier),
+			URL:   albumPageURL(r, conf.WebUIHost, album.Identifier),
 			Title: album.Title,
 		}})
 	}
