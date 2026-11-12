@@ -40,8 +40,6 @@ func imageFromRow(row *model.ImageTable) *dm.Image {
 		NominalByteSize: row.NominalByteSize,
 		CreatedById:     utils.SafeDerefWithDefault(row.CreatedByID, ZeroUUID).String(),
 		ExpiresAt:       row.ExpiresAt,
-		AlbumId:         optionalUUIDString(row.AlbumID),
-		Caption:         utils.SafeDeref(row.Caption),
 	}
 }
 
@@ -157,15 +155,6 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 		uploaderIP = &image.UploaderIP
 	}
 
-	var albumId *string
-	if image.AlbumId != "" {
-		albumId = &image.AlbumId
-	}
-	var caption *string
-	if image.Caption != "" {
-		caption = &image.Caption
-	}
-
 	changes := image.Changes
 	if changes == "" || changes == "{}" {
 		changes = "[]"
@@ -184,8 +173,6 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 		ImageTable.NominalWidth,
 		ImageTable.NominalHeight,
 		ImageTable.ExpiresAt,
-		ImageTable.AlbumID,
-		ImageTable.Caption,
 	).VALUES(
 		image.Identifier,
 		image.Name,
@@ -199,8 +186,6 @@ func (repo *DBImageRepo) CreateImage(image *dm.Image) (*dm.Image, error) {
 		image.NominalWidth,
 		image.NominalHeight,
 		image.ExpiresAt,
-		albumId,
-		caption,
 	).RETURNING(
 		ImageTable.AllColumns,
 	)

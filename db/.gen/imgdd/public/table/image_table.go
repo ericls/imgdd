@@ -33,8 +33,6 @@ type imageTableTable struct {
 	UpdatedAt       postgres.ColumnTimestampz
 	DeletedAt       postgres.ColumnTimestampz
 	ExpiresAt       postgres.ColumnTimestampz
-	AlbumID         postgres.ColumnString
-	Caption         postgres.ColumnString
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -92,11 +90,9 @@ func newImageTableTableImpl(schemaName, tableName, alias string) imageTableTable
 		UpdatedAtColumn       = postgres.TimestampzColumn("updated_at")
 		DeletedAtColumn       = postgres.TimestampzColumn("deleted_at")
 		ExpiresAtColumn       = postgres.TimestampzColumn("expires_at")
-		AlbumIDColumn         = postgres.StringColumn("album_id")
-		CaptionColumn         = postgres.StringColumn("caption")
-		allColumns            = postgres.ColumnList{IDColumn, CreatedByIDColumn, NameColumn, IdentifierColumn, RootIDColumn, ParentIDColumn, ChangesColumn, UploaderIPColumn, MimeTypeColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn, ExpiresAtColumn, AlbumIDColumn, CaptionColumn}
-		mutableColumns        = postgres.ColumnList{CreatedByIDColumn, NameColumn, IdentifierColumn, RootIDColumn, ParentIDColumn, ChangesColumn, UploaderIPColumn, MimeTypeColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn, ExpiresAtColumn, AlbumIDColumn, CaptionColumn}
-		defaultColumns        = postgres.ColumnList{IDColumn, ChangesColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn, CaptionColumn}
+		allColumns            = postgres.ColumnList{IDColumn, CreatedByIDColumn, NameColumn, IdentifierColumn, RootIDColumn, ParentIDColumn, ChangesColumn, UploaderIPColumn, MimeTypeColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn, ExpiresAtColumn}
+		mutableColumns        = postgres.ColumnList{CreatedByIDColumn, NameColumn, IdentifierColumn, RootIDColumn, ParentIDColumn, ChangesColumn, UploaderIPColumn, MimeTypeColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn, ExpiresAtColumn}
+		defaultColumns        = postgres.ColumnList{IDColumn, ChangesColumn, NominalWidthColumn, NominalHeightColumn, NominalByteSizeColumn, CreatedAtColumn, UpdatedAtColumn}
 	)
 
 	return imageTableTable{
@@ -119,8 +115,6 @@ func newImageTableTableImpl(schemaName, tableName, alias string) imageTableTable
 		UpdatedAt:       UpdatedAtColumn,
 		DeletedAt:       DeletedAtColumn,
 		ExpiresAt:       ExpiresAtColumn,
-		AlbumID:         AlbumIDColumn,
-		Caption:         CaptionColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

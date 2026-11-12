@@ -15,11 +15,22 @@ CREATE TABLE album_table (
 
 CREATE INDEX album_table_created_by_id_idx ON album_table(created_by_id);
 
-ALTER TABLE image_table
-  ADD COLUMN album_id UUID NULL DEFAULT NULL REFERENCES album_table(id) ON DELETE SET NULL,
-  ADD COLUMN caption CHARACTER VARYING(2000) NULL DEFAULT NULL;
+-- Albums and images are many-to-many. The caption describes the image's place
+-- in this album, so the same image can carry a different caption elsewhere.
+-- Removing a row removes the image from the album; it never deletes the image.
+CREATE TABLE album_image_table (
+    album_id UUID NOT NULL REFERENCES album_table(id) ON DELETE CASCADE,
+    image_id UUID NOT NULL REFERENCES image_table(id) ON DELETE CASCADE,
+    caption CHARACTER VARYING(2000) NULL DEFAULT NULL,
+    added_by_id UUID REFERENCES organization_user_table(id) ON DELETE SET NULL,
+    added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
 
-CREATE INDEX image_table_album_id_created_at_idx ON image_table(album_id, created_at)
-  WHERE album_id IS NOT NULL;
+    PRIMARY KEY (album_id, image_id)
+);
+
+-- Album pages list images in the order they were added.
+CREATE INDEX album_image_table_album_id_added_at_idx ON album_image_table(album_id, added_at, image_id);
+-- Lets image deletes find their memberships.
+CREATE INDEX album_image_table_image_id_idx ON album_image_table(image_id);
 
 COMMIT;

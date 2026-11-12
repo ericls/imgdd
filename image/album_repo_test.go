@@ -1,6 +1,7 @@
 package image_test
 
 import (
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -9,8 +10,11 @@ import (
 	dm "github.com/ericls/imgdd/domainmodels"
 	"github.com/ericls/imgdd/identity"
 	"github.com/ericls/imgdd/image"
+	"github.com/ericls/imgdd/storage"
 	"github.com/ericls/imgdd/test_support"
+	"github.com/ericls/imgdd/utils"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAlbumRepo(t *testing.T) {
@@ -25,7 +29,7 @@ func TestAlbumRepo(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	createImage := func(albumId string, caption string) *dm.Image {
+	createImage := func() *dm.Image {
 		t.Helper()
 		id := uuid.New().String()
 		img, err := imageRepo.CreateImage(&dm.Image{
@@ -33,15 +37,45 @@ func TestAlbumRepo(t *testing.T) {
 			Name:        id + ".png",
 			MIMEType:    "image/png",
 			CreatedById: owner.Id,
-			AlbumId:     albumId,
-			Caption:     caption,
 		})
 		if err != nil {
 			t.Fatal(err)
 		}
-		// created_at has microsecond resolution; keep insertion order unambiguous.
-		time.Sleep(2 * time.Millisecond)
 		return img
+	}
+	addToAlbum := func(album *dm.Album, img *dm.Image, caption string) {
+		t.Helper()
+		added, err := imageRepo.AddImagesToAlbum(album.Id, []dm.AlbumImageEntry{{ImageId: img.Id, Caption: caption}}, owner.Id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if added != 1 {
+			t.Fatalf("expected 1 image added, got %d", added)
+		}
+		// added_at has microsecond resolution; keep the order unambiguous.
+		time.Sleep(2 * time.Millisecond)
+	}
+	listIds := func(album *dm.Album, limit int) ([]string, []string) {
+		t.Helper()
+		images, err := imageRepo.ListAlbumImages(album.Id, limit)
+		if err != nil {
+			t.Fatal(err)
+		}
+		ids := make([]string, len(images))
+		captions := make([]string, len(images))
+		for i, img := range images {
+			ids[i] = img.Image.Id
+			captions[i] = img.Caption
+		}
+		return ids, captions
+	}
+	newAlbum := func(title string) *dm.Album {
+		t.Helper()
+		album, err := imageRepo.CreateAlbum(title, owner.Id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return album
 	}
 
 	t.Run("create and get", func(t *testing.T) {
@@ -102,78 +136,125 @@ func TestAlbumRepo(t *testing.T) {
 		}
 	})
 
-	t.Run("images carry album and caption", func(t *testing.T) {
-		album, err := imageRepo.CreateAlbum("captions", owner.Id)
-		if err != nil {
-			t.Fatal(err)
+	t.Run("an image can be in several albums with a caption in each", func(t *testing.T) {
+		run := newAlbum("run")
+		showcase := newAlbum("showcase")
+		shot := createImage()
+		addToAlbum(run, shot, "step 3: button still wraps")
+		addToAlbum(showcase, shot, "")
+
+		ids, captions := listIds(run, 0)
+		require.Equal(t, []string{shot.Id}, ids)
+		require.Equal(t, []string{"step 3: button still wraps"}, captions)
+		ids, captions = listIds(showcase, 0)
+		require.Equal(t, []string{shot.Id}, ids)
+		require.Equal(t, []string{""}, captions)
+	})
+
+	t.Run("adding is idempotent and keeps the first caption", func(t *testing.T) {
+		album := newAlbum("idempotent")
+		shot := createImage()
+		addToAlbum(album, shot, "first")
+		added, err := imageRepo.AddImagesToAlbum(album.Id, []dm.AlbumImageEntry{{ImageId: shot.Id, Caption: "second"}}, owner.Id)
+		require.NoError(t, err)
+		require.Equal(t, 0, added)
+		_, captions := listIds(album, 0)
+		require.Equal(t, []string{"first"}, captions)
+
+		_, err = imageRepo.AddImagesToAlbum(album.Id, []dm.AlbumImageEntry{{ImageId: shot.Id, Caption: strings.Repeat("a", dm.ImageMaxCaptionLength+1)}}, owner.Id)
+		require.ErrorIs(t, err, image.ErrCaptionTooLong)
+	})
+
+	t.Run("albums list images in the order they were added", func(t *testing.T) {
+		album := newAlbum("order")
+		older := createImage()
+		newer := createImage()
+		addToAlbum(album, newer, "")
+		addToAlbum(album, older, "")
+		ids, _ := listIds(album, 0)
+		require.Equal(t, []string{newer.Id, older.Id}, ids)
+	})
+
+	t.Run("removing leaves the image and its other albums alone", func(t *testing.T) {
+		album := newAlbum("remove")
+		other := newAlbum("keep")
+		shot := createImage()
+		kept := createImage()
+		addToAlbum(album, shot, "")
+		addToAlbum(album, kept, "")
+		addToAlbum(other, shot, "")
+
+		removed, err := imageRepo.RemoveImagesFromAlbum(album.Id, []string{shot.Id, uuid.New().String()})
+		require.NoError(t, err)
+		require.Equal(t, 1, removed)
+		ids, _ := listIds(album, 0)
+		require.Equal(t, []string{kept.Id}, ids)
+		ids, _ = listIds(other, 0)
+		require.Equal(t, []string{shot.Id}, ids)
+		stillThere, err := imageRepo.GetImageById(shot.Id)
+		require.NoError(t, err)
+		require.NotNil(t, stillThere)
+	})
+
+	t.Run("uploading into an album is atomic", func(t *testing.T) {
+		album := newAlbum("upload")
+		storageDef, err := storage.NewDBStorageDefRepo(conn).CreateStorageDefinition("fs", `{"mediaRoot":"/nonexistent"}`, "album-upload", true, 1)
+		require.NoError(t, err)
+		storageDefId := storageDef.Id
+		newUpload := func() *dm.Image {
+			id := uuid.New().String()
+			return &dm.Image{Identifier: id, Name: id + ".png", MIMEType: "image/png", CreatedById: owner.Id}
 		}
-		withAlbum := createImage(album.Id, "step 1: before fix")
-		got, err := imageRepo.GetImageById(withAlbum.Id)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if got.AlbumId != album.Id || got.Caption != "step 1: before fix" {
-			t.Errorf("album/caption not persisted: %+v", got)
-		}
-		plain := createImage("", "")
-		got, err = imageRepo.GetImageById(plain.Id)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if got.AlbumId != "" || got.Caption != "" {
-			t.Errorf("expected no album or caption, got %+v", got)
-		}
+		ok := func(utils.SeekerReader, string, string) error { return nil }
+		stored, err := imageRepo.CreateAndSaveUploadedImageInAlbum(newUpload(), "image/png", []byte("png"), storageDefId, ok, album.Id, "uploaded")
+		require.NoError(t, err)
+		ids, captions := listIds(album, 0)
+		require.Equal(t, []string{stored.Image.Id}, ids)
+		require.Equal(t, []string{"uploaded"}, captions)
+
+		failing := func(utils.SeekerReader, string, string) error { return errors.New("storage is down") }
+		failed := newUpload()
+		_, err = imageRepo.CreateAndSaveUploadedImageInAlbum(failed, "image/png", []byte("png"), storageDefId, failing, album.Id, "")
+		require.Error(t, err)
+		ids, _ = listIds(album, 0)
+		require.Equal(t, []string{stored.Image.Id}, ids)
+
+		// A failure adding to the album rolls back the image too.
+		before, err := imageRepo.CountImages(&image.ListImagesFilters{})
+		require.NoError(t, err)
+		_, err = imageRepo.CreateAndSaveUploadedImageInAlbum(newUpload(), "image/png", []byte("png"), storageDefId, ok, uuid.New().String(), "")
+		require.Error(t, err)
+		after, err := imageRepo.CountImages(&image.ListImagesFilters{})
+		require.NoError(t, err)
+		require.Equal(t, before, after)
 	})
 
 	t.Run("list album images", func(t *testing.T) {
-		album, err := imageRepo.CreateAlbum("listing", owner.Id)
-		if err != nil {
-			t.Fatal(err)
+		album := newAlbum("listing")
+		otherAlbum := newAlbum("other")
+		first := createImage()
+		deleted := createImage()
+		expired := createImage()
+		expiresLater := createImage()
+		last := createImage()
+		for _, img := range []*dm.Image{first, deleted, expired, expiresLater, last} {
+			addToAlbum(album, img, "")
 		}
-		otherAlbum, err := imageRepo.CreateAlbum("other", owner.Id)
-		if err != nil {
-			t.Fatal(err)
-		}
-		first := createImage(album.Id, "first")
-		deleted := createImage(album.Id, "deleted")
-		expired := createImage(album.Id, "expired")
-		createImage(otherAlbum.Id, "other album")
-		createImage("", "no album")
-		expiresLater := createImage(album.Id, "expires later")
-		last := createImage(album.Id, "last")
+		addToAlbum(otherAlbum, createImage(), "")
+		createImage()
 
-		if err := imageRepo.DeleteImageById(deleted.Id); err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, imageRepo.DeleteImageById(deleted.Id))
 		past := time.Now().Add(-time.Minute)
-		if _, err := imageRepo.SetImagesExpiration([]string{expired.Id}, &past); err != nil {
-			t.Fatal(err)
-		}
+		_, err := imageRepo.SetImagesExpiration([]string{expired.Id}, &past)
+		require.NoError(t, err)
 		future := time.Now().Add(time.Hour)
-		if _, err := imageRepo.SetImagesExpiration([]string{expiresLater.Id}, &future); err != nil {
-			t.Fatal(err)
-		}
+		_, err = imageRepo.SetImagesExpiration([]string{expiresLater.Id}, &future)
+		require.NoError(t, err)
 
-		images, err := imageRepo.ListAlbumImages(album.Id, 0)
-		if err != nil {
-			t.Fatal(err)
-		}
-		want := []string{first.Id, expiresLater.Id, last.Id}
-		if len(images) != len(want) {
-			t.Fatalf("got %d images, want %d", len(images), len(want))
-		}
-		for i, img := range images {
-			if img.Id != want[i] {
-				t.Errorf("image %d: got %s (%q), want %s", i, img.Id, img.Caption, want[i])
-			}
-		}
-
-		limited, err := imageRepo.ListAlbumImages(album.Id, 2)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if len(limited) != 2 || limited[0].Id != expiresLater.Id || limited[1].Id != last.Id {
-			t.Errorf("limit should keep the newest images, oldest first, got %d", len(limited))
-		}
+		ids, _ := listIds(album, 0)
+		require.Equal(t, []string{first.Id, expiresLater.Id, last.Id}, ids)
+		// A limit keeps the most recently added images, oldest first.
+		ids, _ = listIds(album, 2)
+		require.Equal(t, []string{expiresLater.Id, last.Id}, ids)
 	})
 }

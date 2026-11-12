@@ -29,6 +29,4 @@ type ImageTable struct {
 	UpdatedAt       time.Time
 	DeletedAt       *time.Time
 	ExpiresAt       *time.Time
-	AlbumID         *uuid.UUID
-	Caption         *string
 }
