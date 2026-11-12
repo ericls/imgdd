@@ -213,33 +213,40 @@ func TestAPIAlbums(t *testing.T) {
 			require.Equal(t, caption, *got.Caption)
 			require.Equal(t, "http://example.com/albums/"+albumID, *got.AlbumURL)
 			require.Equal(t, "http://example.com/images/"+got.ID, got.PageURL)
-			stored, err := imageRepo.GetImageById(got.ID)
-			require.NoError(t, err)
-			require.Equal(t, album.Id, stored.AlbumId)
-			require.Equal(t, caption, stored.Caption)
 		}
 		images, err := imageRepo.ListAlbumImages(album.Id, 0)
 		require.NoError(t, err)
 		require.Len(t, images, 2)
+		for i, caption := range []string{"before fix", "after fix"} {
+			require.Equal(t, out.Results[i].Image.ID, images[i].Image.Id)
+			require.Equal(t, caption, images[i].Caption)
+		}
 	})
 
 	t.Run("one caption applies to every image", func(t *testing.T) {
+		albumID := newAlbum("same caption")
 		res := createImages(ownerSecret,
-			[][2]string{{"caption", "same"}},
+			[][2]string{{"album", albumID}, {"caption", "same"}},
 			apiTestFile{"image", "a.png", img},
 			apiTestFile{"image", "b.png", img},
 		)
 		require.Equal(t, http.StatusOK, res.Code, res.Body.String())
 		for _, result := range decodeCreateImages(t, res).Results {
 			require.Equal(t, "same", *result.Image.Caption)
-			require.Nil(t, result.Image.AlbumURL)
 		}
 	})
 
-	t.Run("anonymous uploads can have captions", func(t *testing.T) {
-		res := createImages("", [][2]string{{"caption", "guest"}}, apiTestFile{"image", "a.png", img})
+	t.Run("captions need an album", func(t *testing.T) {
+		for _, secret := range []string{"", ownerSecret} {
+			res := createImages(secret, [][2]string{{"caption", "no album"}}, apiTestFile{"image", "a.png", img})
+			require.Equal(t, http.StatusBadRequest, res.Code, res.Body.String())
+			require.Equal(t, "invalid_caption", decodeCreateImages(t, res).Error.Code)
+		}
+		res := createImages(ownerSecret, nil, apiTestFile{"image", "a.png", img})
 		require.Equal(t, http.StatusOK, res.Code, res.Body.String())
-		require.Equal(t, "guest", *decodeCreateImages(t, res).Results[0].Image.Caption)
+		got := decodeCreateImages(t, res).Results[0].Image
+		require.Nil(t, got.Caption)
+		require.Nil(t, got.AlbumURL)
 	})
 
 	t.Run("invalid captions reject the whole request", func(t *testing.T) {
@@ -249,7 +256,7 @@ func TestAPIAlbums(t *testing.T) {
 			"too many": {{"caption", "a"}, {"caption", "b"}, {"caption", "c"}, {"caption", "d"}},
 			"too long": {{"caption", strings.Repeat("a", 2001)}},
 		} {
-			res := createImages(ownerSecret, fields, files...)
+			res := createImages(ownerSecret, append([][2]string{{"album", newAlbum("bad captions")}}, fields...), files...)
 			require.Equal(t, http.StatusBadRequest, res.Code, name)
 			out := decodeCreateImages(t, res)
 			require.Equal(t, "invalid_caption", out.Error.Code, name)
@@ -285,6 +292,136 @@ func TestAPIAlbums(t *testing.T) {
 		res := createImages(ownerSecret, [][2]string{{"album", albumID}, {"album", albumID}}, apiTestFile{"image", "a.png", img})
 		require.Equal(t, http.StatusBadRequest, res.Code)
 		require.Equal(t, "invalid_album", decodeCreateImages(t, res).Error.Code)
+	})
+
+	type albumEditResponse struct {
+		Album struct {
+			ID  string `json:"id"`
+			URL string `json:"url"`
+		} `json:"album"`
+		Added   int `json:"added"`
+		Removed int `json:"removed"`
+		Error   struct {
+			Code string `json:"code"`
+		} `json:"error"`
+	}
+	albumEdit := func(handler func(*httpserver.HttpServerConfigDef, identity.IdentityRepo, imgddimage.ImageRepo, *ratelimit.RateLimiter) http.HandlerFunc, secret string, body string) (int, albumEditResponse) {
+		t.Helper()
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/albumEdit", bytes.NewBufferString(body))
+		req.Header.Set("Content-Type", "application/json")
+		if secret != "" {
+			req.Header.Set("Authorization", "Bearer "+secret)
+		}
+		res := httptest.NewRecorder()
+		handler(conf, identityRepo, imageRepo, ratelimit.NewRateLimiter(100, 100)).ServeHTTP(res, req)
+		var out albumEditResponse
+		require.NoError(t, json.Unmarshal(res.Body.Bytes(), &out), res.Body.String())
+		return res.Code, out
+	}
+	addImages := func(secret string, body string) (int, albumEditResponse) {
+		t.Helper()
+		return albumEdit(httpserver.MakeAPIAddImagesToAlbumHandler, secret, body)
+	}
+	removeImages := func(secret string, body string) (int, albumEditResponse) {
+		t.Helper()
+		return albumEdit(httpserver.MakeAPIRemoveImagesFromAlbumHandler, secret, body)
+	}
+	upload := func(secret string) string {
+		t.Helper()
+		res := createImages(secret, nil, apiTestFile{"image", "a.png", img})
+		require.Equal(t, http.StatusOK, res.Code, res.Body.String())
+		return decodeCreateImages(t, res).Results[0].Image.ID
+	}
+	albumContents := func(albumID string) map[string]string {
+		t.Helper()
+		images, err := imageRepo.ListAlbumImages(mustAlbum(t, imageRepo, albumID).Id, 0)
+		require.NoError(t, err)
+		out := map[string]string{}
+		for _, img := range images {
+			out[img.Image.Id] = img.Caption
+		}
+		return out
+	}
+
+	t.Run("owner adds existing images to several albums", func(t *testing.T) {
+		run := newAlbum("run")
+		showcase := newAlbum("showcase")
+		shot := upload(ownerSecret)
+		code, out := addImages(ownerSecret, `{"album":"`+run+`","images":[{"id":"`+shot+`","caption":" step 3 "}]}`)
+		require.Equal(t, http.StatusOK, code)
+		require.Equal(t, 1, out.Added)
+		require.Equal(t, run, out.Album.ID)
+		require.Equal(t, "http://example.com/albums/"+run, out.Album.URL)
+		code, out = addImages(ownerSecret, `{"album":"`+showcase+`","images":[{"id":"`+shot+`"}]}`)
+		require.Equal(t, http.StatusOK, code)
+		require.Equal(t, 1, out.Added)
+		require.Equal(t, map[string]string{shot: "step 3"}, albumContents(run))
+		require.Equal(t, map[string]string{shot: ""}, albumContents(showcase))
+
+		// Adding again is a no-op that keeps the first caption.
+		code, out = addImages(ownerSecret, `{"album":"`+run+`","images":[{"id":"`+shot+`","caption":"changed"}]}`)
+		require.Equal(t, http.StatusOK, code)
+		require.Equal(t, 0, out.Added)
+		require.Equal(t, map[string]string{shot: "step 3"}, albumContents(run))
+	})
+
+	t.Run("adding requires owning the album and every image", func(t *testing.T) {
+		albumID := newAlbum("guarded")
+		mine := upload(ownerSecret)
+		theirs := upload(siteOwnerSecret)
+		guest := upload("")
+		for name, tc := range map[string]struct {
+			secret string
+			body   string
+			status int
+			code   string
+		}{
+			"anonymous":            {"", `{"album":"` + albumID + `","images":[{"id":"` + mine + `"}]}`, http.StatusUnauthorized, "invalid_api_key"},
+			"not the album owner":  {siteOwnerSecret, `{"album":"` + albumID + `","images":[{"id":"` + theirs + `"}]}`, http.StatusNotFound, "album_not_found"},
+			"someone else's image": {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `"},{"id":"` + theirs + `"}]}`, http.StatusNotFound, "image_not_found"},
+			"guest image":          {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + guest + `"}]}`, http.StatusNotFound, "image_not_found"},
+			"unknown image":        {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"00000000-0000-0000-0000-000000000009"}]}`, http.StatusNotFound, "image_not_found"},
+			"no images":            {ownerSecret, `{"album":"` + albumID + `","images":[]}`, http.StatusBadRequest, "invalid_images"},
+			"duplicate images":     {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `"},{"id":"` + mine + `"}]}`, http.StatusBadRequest, "invalid_images"},
+			"malformed image id":   {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"nope"}]}`, http.StatusBadRequest, "invalid_images"},
+			"caption too long":     {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `","caption":"` + strings.Repeat("a", 2001) + `"}]}`, http.StatusBadRequest, "invalid_caption"},
+			"misspelled field":     {ownerSecret, `{"album":"` + albumID + `","image":[{"id":"` + mine + `"}]}`, http.StatusBadRequest, "invalid_request"},
+			"images as plain ids":  {ownerSecret, `{"album":"` + albumID + `","images":["` + mine + `"]}`, http.StatusBadRequest, "invalid_request"},
+		} {
+			code, out := addImages(tc.secret, tc.body)
+			require.Equal(t, tc.status, code, name)
+			require.Equal(t, tc.code, out.Error.Code, name)
+		}
+		// Nothing was added by the failed requests.
+		require.Empty(t, albumContents(albumID))
+	})
+
+	t.Run("owner removes images without deleting them", func(t *testing.T) {
+		albumID := newAlbum("remove")
+		keep := newAlbum("keep")
+		shot := upload(ownerSecret)
+		other := upload(ownerSecret)
+		for _, a := range []string{albumID, keep} {
+			code, _ := addImages(ownerSecret, `{"album":"`+a+`","images":[{"id":"`+shot+`"},{"id":"`+other+`"}]}`)
+			require.Equal(t, http.StatusOK, code)
+		}
+
+		code, out := removeImages(siteOwnerSecret, `{"album":"`+albumID+`","images":["`+shot+`"]}`)
+		require.Equal(t, http.StatusNotFound, code)
+		require.Equal(t, "album_not_found", out.Error.Code)
+
+		code, out = removeImages(ownerSecret, `{"album":"`+albumID+`","images":["`+shot+`","00000000-0000-0000-0000-000000000009"]}`)
+		require.Equal(t, http.StatusOK, code)
+		require.Equal(t, 1, out.Removed)
+		require.Equal(t, map[string]string{other: ""}, albumContents(albumID))
+		require.Len(t, albumContents(keep), 2)
+		stillThere, err := imageRepo.GetImageById(shot)
+		require.NoError(t, err)
+		require.NotNil(t, stillThere)
+
+		code, out = removeImages(ownerSecret, `{"album":"`+albumID+`","images":[]}`)
+		require.Equal(t, http.StatusBadRequest, code)
+		require.Equal(t, "invalid_images", out.Error.Code)
 	})
 }
 

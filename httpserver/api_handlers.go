@@ -77,6 +77,14 @@ type apiAlbum struct {
 	Title string `json:"title"`
 }
 
+func apiAlbumFor(r *http.Request, conf *HttpServerConfigDef, album *domainmodels.Album) apiAlbum {
+	return apiAlbum{
+		ID:    album.Identifier,
+		URL:   albumPageURL(r, conf.WebUIHost, album.Identifier),
+		Title: album.Title,
+	}
+}
+
 type apiCreateAlbumResponse struct {
 	Album apiAlbum `json:"album"`
 }
@@ -316,6 +324,15 @@ func makeAPICreateImagesHandler(
 			))
 			return
 		}
+		if album == nil {
+			for _, caption := range captions {
+				if caption != "" {
+					writeAPIError(w, http.StatusBadRequest, "invalid_caption",
+						"A caption describes an image in an album; give album too")
+					return
+				}
+			}
+		}
 		opts := uploadOptions{ExpiresAt: expiresAt}
 		var albumURL *string
 		if album != nil {
@@ -449,10 +466,6 @@ func makeAPICreateAlbumHandler(
 			writeAPIError(w, http.StatusInternalServerError, "internal_error", "Internal error")
 			return
 		}
-		writeAPIJSON(w, http.StatusOK, apiCreateAlbumResponse{Album: apiAlbum{
-			ID:    album.Identifier,
-			URL:   albumPageURL(r, conf.WebUIHost, album.Identifier),
-			Title: album.Title,
-		}})
+		writeAPIJSON(w, http.StatusOK, apiCreateAlbumResponse{Album: apiAlbumFor(r, conf, album)})
 	}
 }
