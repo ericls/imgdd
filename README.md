@@ -25,7 +25,7 @@ As of February 2025, the project handles over 1 TB of traffic and 4.2 million re
 - **Email backends**: SMTP or a dummy backend for development, with templated messages.
 - **HTTP API for uploads**: `POST /api/v1/createImages` works anonymously or with per-user API keys (`Authorization: Bearer …`), managed from the profile page. The API is intentionally intention based (`/api/v1/<intention>`, always `POST`) rather than resource based; full docs are served at `/docs/api`, and as plain markdown at `/docs/api.md` for agents.
 - **GraphQL API** (gqlgen) covering images, viewer, users, organizations, roles/permissions, and storage definitions, with `@isAuthenticated` / `@isSiteOwner` directives.
-- **Live albums**: group uploads into an album with per-image captions; the album page updates live, which suits AI agents sharing screenshots of their work (see below).
+- **Live albums**: group images into albums with a caption per image; an image can be in several albums, and the album page updates live, which suits AI agents sharing screenshots of their work (see below).
 - **Image editor**: in-browser editing with watermark support; edits are saved as new images with full lineage tracking (parent/child DAG), so the original is never modified.
 - **Web client**: React + Tailwind admin & user UI, including a site-admin area for managing users, roles, and storage definitions.
 - **Client plugin hooks**: a lightweight `window.registerPlugin` API lets custom JS inject content into named UI slots without rebuilding the frontend.
@@ -54,7 +54,7 @@ curl -s -H "Authorization: Bearer $IMGDD_API_KEY" \
   "$IMGDD_URL/api/v1/createImages"
 ```
 
-Anyone with an album's link can view it, but only the album's creator can add images to it.
+Anyone with an album's link can view it, but only the album's creator can add or remove images. Already-uploaded images can be added to more albums with `addImagesToAlbum`.
 
 ## Development
 
