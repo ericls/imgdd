@@ -51,9 +51,10 @@ type uploadedImage struct {
 type uploadOptions struct {
 	// ExpiresAt is nil for images that never expire.
 	ExpiresAt *time.Time
-	// AlbumId is the internal id of an album the uploader owns, or "".
+	// AlbumId is the internal id of an album the uploader owns, or "". The
+	// image is added to it in the same transaction that stores it.
 	AlbumId string
-	// Caption is a description of the image, or "".
+	// Caption describes the image in the album; only used with AlbumId.
 	Caption string
 }
 
@@ -184,10 +185,13 @@ func createUploadedImage(
 		NominalWidth:    width,
 		NominalHeight:   height,
 		ExpiresAt:       opts.ExpiresAt,
-		AlbumId:         opts.AlbumId,
-		Caption:         opts.Caption,
 	}
-	storedImage, err := imageRepo.CreateAndSaveUploadedImage(&img, detectedMimeType, exifRemovedBytes, storageDef.Id, storageInstance.Save)
+	var storedImage *domainmodels.StoredImage
+	if opts.AlbumId != "" {
+		storedImage, err = imageRepo.CreateAndSaveUploadedImageInAlbum(&img, detectedMimeType, exifRemovedBytes, storageDef.Id, storageInstance.Save, opts.AlbumId, opts.Caption)
+	} else {
+		storedImage, err = imageRepo.CreateAndSaveUploadedImage(&img, detectedMimeType, exifRemovedBytes, storageDef.Id, storageInstance.Save)
+	}
 	if err != nil {
 		httpLogger.Error().Stack().Err(err).Msg("Unable to save image")
 		return nil, internalUploadError()
@@ -208,6 +212,6 @@ func createUploadedImage(
 		Height:     height,
 		ByteSize:   int32(len(exifRemovedBytes)),
 		ExpiresAt:  storedImage.Image.ExpiresAt,
-		Caption:    storedImage.Image.Caption,
+		Caption:    opts.Caption,
 	}, nil
 }
