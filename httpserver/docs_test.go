@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -86,7 +87,13 @@ func TestLlmsTxt(t *testing.T) {
 func TestAPIDocsListEveryErrorCode(t *testing.T) {
 	codePattern := regexp.MustCompile(`(?:writeAPIError\(w, [^,]+, |newUploadError\([^,]+, |Code: )"([a-z_]+)"`)
 	codes := map[string]bool{}
-	for _, file := range []string{"api_handlers.go", "upload.go"} {
+	// Every non-test source file, so a new handler file can't be missed.
+	files, err := filepath.Glob("*.go")
+	require.NoError(t, err)
+	for _, file := range files {
+		if strings.HasSuffix(file, "_test.go") {
+			continue
+		}
 		src, err := os.ReadFile(file)
 		require.NoError(t, err)
 		for _, m := range codePattern.FindAllSubmatch(src, -1) {
@@ -101,6 +108,7 @@ func TestAPIDocsListEveryErrorCode(t *testing.T) {
 	// Guard against the pattern silently matching nothing.
 	require.Contains(t, sorted, "album_not_found")
 	require.Contains(t, sorted, "rate_limited")
+	require.Contains(t, sorted, "image_not_found")
 	require.GreaterOrEqual(t, len(sorted), 15)
 
 	markdown, err := os.ReadFile("docs/api.md")
