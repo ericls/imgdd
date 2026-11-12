@@ -11,7 +11,9 @@ type PublicAlbum struct {
 	Truncated bool                `json:"truncated"`
 }
 
+// PublicAlbumImage is an image's place in an album.
 type PublicAlbumImage struct {
 	Image   *PublicImage `json:"image"`
 	Caption *string      `json:"caption"`
+	AddedAt time.Time    `json:"addedAt"`
 }

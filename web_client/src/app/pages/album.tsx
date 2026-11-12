@@ -25,6 +25,7 @@ const FOLLOW_THRESHOLD_PX = 200;
 const _PublicAlbumImageFields = gql(`
   fragment PublicAlbumImageFields on PublicAlbumImage {
     caption
+    addedAt
     image {
       id
       url
@@ -79,9 +80,9 @@ export function AlbumPage() {
   // Follow new images like a log: keep the latest in view while the reader
   // is at the bottom, otherwise offer a button instead of jumping.
   const following = React.useRef(true);
-  // createdAt of the newest image already shown; undefined before the first
-  // load. Counting by time rather than list length keeps working once the
-  // album is truncated, when new images push old ones out of the list.
+  // addedAt of the most recently added image already shown; undefined before
+  // the first load. Counting by time rather than list length keeps working
+  // once the album is truncated, when new images push old ones out.
   const newestSeen = React.useRef<string | null | undefined>(undefined);
   const [unseenCount, setUnseenCount] = React.useState(0);
   React.useEffect(() => {
@@ -95,7 +96,7 @@ export function AlbumPage() {
   React.useEffect(() => {
     if (images === undefined) return;
     const previous = newestSeen.current;
-    const newest = images.at(-1)?.image.createdAt ?? null;
+    const newest = images.at(-1)?.addedAt ?? null;
     newestSeen.current = newest;
     if (previous === undefined) {
       // First load: start at the latest image.
@@ -106,7 +107,7 @@ export function AlbumPage() {
       previous === null
         ? images.length
         : images.filter(
-            (item) => Date.parse(item.image.createdAt) > Date.parse(previous),
+            (item) => Date.parse(item.addedAt) > Date.parse(previous),
           ).length;
     if (added <= 0) return;
     if (following.current) {

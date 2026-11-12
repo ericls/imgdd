@@ -19,6 +19,7 @@ type publicAlbumResp struct {
 		Truncated bool
 		Images    []struct {
 			Caption *string
+			AddedAt string
 			Image   struct {
 				ID            string
 				URL           string
@@ -38,6 +39,7 @@ func queryPublicAlbum(tc *TestContext, id string) (*publicAlbumResp, error) {
 			truncated
 			images {
 				caption
+				addedAt
 				image { id url viewerIsOwner }
 			}
 		}
@@ -56,12 +58,16 @@ func createAlbumImage(t *testing.T, tc *TestContext, ownerId string, storageDefI
 		NominalByteSize: 100,
 		NominalWidth:    100,
 		NominalHeight:   100,
-		AlbumId:         albumId,
-		Caption:         caption,
 	}
-	si, err := tc.imageRepo.CreateAndSaveUploadedImage(&img, "image/png", []byte(""), storageDefId, mockSaveFunc)
+	var si *domainmodels.StoredImage
+	var err error
+	if albumId != "" {
+		si, err = tc.imageRepo.CreateAndSaveUploadedImageInAlbum(&img, "image/png", []byte(""), storageDefId, mockSaveFunc, albumId, caption)
+	} else {
+		si, err = tc.imageRepo.CreateAndSaveUploadedImage(&img, "image/png", []byte(""), storageDefId, mockSaveFunc)
+	}
 	require.NoError(t, err)
-	// created_at has microsecond resolution; keep insertion order unambiguous.
+	// added_at has microsecond resolution; keep insertion order unambiguous.
 	time.Sleep(2 * time.Millisecond)
 	return si.Image
 }
@@ -159,6 +165,41 @@ func tPublicAlbumKeepsNewestImagesWhenTruncated(t *testing.T, tc *TestContext) {
 	require.Equal(t, newest.Id, got.Images[1].Image.ID)
 }
 
+func tPublicAlbumShowsEachAlbumsOwnCaption(t *testing.T, tc *TestContext) {
+	sd := createStorageDefinition(t, tc)
+	owner := tc.forceAuthenticate()
+	run, err := tc.imageRepo.CreateAlbum("run", owner.Id)
+	require.NoError(t, err)
+	showcase, err := tc.imageRepo.CreateAlbum("showcase", owner.Id)
+	require.NoError(t, err)
+	earlier := createAlbumImage(t, tc, owner.Id, sd.Id, showcase.Id, "already here")
+	shot := createAlbumImage(t, tc, owner.Id, sd.Id, run.Id, "step 3: button still wraps")
+	time.Sleep(2 * time.Millisecond)
+	_, err = tc.imageRepo.AddImagesToAlbum(showcase.Id, []domainmodels.AlbumImageEntry{{ImageId: shot.Id, Caption: "wrapping bug"}}, owner.Id)
+	require.NoError(t, err)
+
+	tc.clearAuthenticationInfo()
+	resp, err := queryPublicAlbum(tc, showcase.Identifier)
+	require.NoError(t, err)
+	got := resp.PublicAlbum
+	require.NotNil(t, got)
+	require.Len(t, got.Images, 2)
+	require.Equal(t, earlier.Id, got.Images[0].Image.ID)
+	// Ordered by when the image joined this album, with this album's caption.
+	require.Equal(t, shot.Id, got.Images[1].Image.ID)
+	require.Equal(t, "wrapping bug", *got.Images[1].Caption)
+	first, err := time.Parse(time.RFC3339Nano, got.Images[0].AddedAt)
+	require.NoError(t, err)
+	second, err := time.Parse(time.RFC3339Nano, got.Images[1].AddedAt)
+	require.NoError(t, err)
+	require.True(t, second.After(first))
+
+	resp, err = queryPublicAlbum(tc, run.Identifier)
+	require.NoError(t, err)
+	require.Len(t, resp.PublicAlbum.Images, 1)
+	require.Equal(t, "step 3: button still wraps", *resp.PublicAlbum.Images[0].Caption)
+}
+
 func TestAlbumResolvers(t *testing.T) {
 	tc := newTestContext(t)
 	tc.runTestCases(
@@ -166,5 +207,6 @@ func TestAlbumResolvers(t *testing.T) {
 		tPublicAlbumDoesNotExposeOwner,
 		tPublicAlbumNotFound,
 		tPublicAlbumKeepsNewestImagesWhenTruncated,
+		tPublicAlbumShowsEachAlbumsOwnCaption,
 	)
 }

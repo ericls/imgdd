@@ -1,6 +1,7 @@
 """
 An album as shown to anyone holding its link, including anonymous visitors. Like PublicImage, it
-must not expose the owner. Images are listed oldest first; deleted and expired images are left out.
+must not expose the owner, or which other albums its images are in. Images are listed in the order they
+were added, oldest first; deleted and expired images are left out.
 """
 type PublicAlbum {
   "The album's public identifier, as used in its link and the HTTP API."
@@ -8,13 +9,17 @@ type PublicAlbum {
   title: String!
   createdAt: Time!
   images: [PublicAlbumImage!]!
-  "Whether the album has more images than are listed. Only the newest images are listed then."
+  "Whether the album has more images than are listed. Only the most recently added are listed then."
   truncated: Boolean!
 }
 
+"An image's place in an album. The same image can be in several albums, with a different caption in each."
 type PublicAlbumImage {
   image: PublicImage!
+  "Describes the image in this album."
   caption: String
+  "When the image was added to this album, which sets its place in the album's order."
+  addedAt: Time!
 }
 
 extend type Query {
