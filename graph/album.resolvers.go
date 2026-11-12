@@ -21,7 +21,7 @@ func (r *queryResolver) PublicAlbum(ctx context.Context, id string) (*model.Publ
 		return nil, nil
 	}
 	// Fetch one extra image to tell whether the list is truncated. The repo
-	// keeps the newest images, oldest first, so the extra one is the first.
+	// keeps the most recently added images, oldest first, so the extra one is the first.
 	images, err := r.ImageRepo.ListAlbumImages(album.Id, PublicAlbumMaxImages+1)
 	if err != nil {
 		return nil, err
@@ -37,10 +37,13 @@ func (r *queryResolver) PublicAlbum(ctx context.Context, id string) (*model.Publ
 		Images:    make([]*model.PublicAlbumImage, len(images)),
 		Truncated: truncated,
 	}
-	for i, img := range images {
-		item := &model.PublicAlbumImage{Image: model.FromPublicImage(img.ToPublic())}
-		if img.Caption != "" {
-			caption := img.Caption
+	for i, entry := range images {
+		item := &model.PublicAlbumImage{
+			Image:   model.FromPublicImage(entry.Image.ToPublic()),
+			AddedAt: entry.AddedAt,
+		}
+		if entry.Caption != "" {
+			caption := entry.Caption
 			item.Caption = &caption
 		}
 		result.Images[i] = item

@@ -14,7 +14,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n  fragment PublicAlbumImageFields on PublicAlbumImage {\n    caption\n    image {\n      id\n      url\n      name\n      nominalWidth\n      nominalHeight\n      createdAt\n    }\n  }\n": typeof types.PublicAlbumImageFieldsFragmentDoc,
+    "\n  fragment PublicAlbumImageFields on PublicAlbumImage {\n    caption\n    addedAt\n    image {\n      id\n      url\n      name\n      nominalWidth\n      nominalHeight\n      createdAt\n    }\n  }\n": typeof types.PublicAlbumImageFieldsFragmentDoc,
     "\n  query PublicAlbum($id: ID!) {\n    publicAlbum(id: $id) {\n      id\n      title\n      createdAt\n      truncated\n      images {\n        ...PublicAlbumImageFields\n      }\n    }\n  }\n": typeof types.PublicAlbumDocument,
     "\nmutation createUserWithOrganization($input: CreateUserWithOrganizationInput!) {\n  createUserWithOrganization(\n    input: $input\n  ) {\n    viewer {\n      id\n      organizationUser {\n        id\n        user {\n          id\n          email\n          name\n        }\n      }\n    }\n  }\n}\n": typeof types.CreateUserWithOrganizationDocument,
     "\nmutation authenticate($email: String!, $password: String!) {\n  authenticate(email: $email, password: $password) {\n    viewer {\n      id\n      organizationUser {\n        id\n        user {\n          id\n          email\n          name\n        }\n      }\n    }\n  }\n}\n": typeof types.AuthenticateDocument,
@@ -44,7 +44,7 @@ type Documents = {
     "\n  mutation UpdateStorageDef($input: updateStorageDefinitionInput!) {\n    updateStorageDefinition(input: $input) {\n      ...StorageDefinitionFragment\n    }\n  }\n": typeof types.UpdateStorageDefDocument,
 };
 const documents: Documents = {
-    "\n  fragment PublicAlbumImageFields on PublicAlbumImage {\n    caption\n    image {\n      id\n      url\n      name\n      nominalWidth\n      nominalHeight\n      createdAt\n    }\n  }\n": types.PublicAlbumImageFieldsFragmentDoc,
+    "\n  fragment PublicAlbumImageFields on PublicAlbumImage {\n    caption\n    addedAt\n    image {\n      id\n      url\n      name\n      nominalWidth\n      nominalHeight\n      createdAt\n    }\n  }\n": types.PublicAlbumImageFieldsFragmentDoc,
     "\n  query PublicAlbum($id: ID!) {\n    publicAlbum(id: $id) {\n      id\n      title\n      createdAt\n      truncated\n      images {\n        ...PublicAlbumImageFields\n      }\n    }\n  }\n": types.PublicAlbumDocument,
     "\nmutation createUserWithOrganization($input: CreateUserWithOrganizationInput!) {\n  createUserWithOrganization(\n    input: $input\n  ) {\n    viewer {\n      id\n      organizationUser {\n        id\n        user {\n          id\n          email\n          name\n        }\n      }\n    }\n  }\n}\n": types.CreateUserWithOrganizationDocument,
     "\nmutation authenticate($email: String!, $password: String!) {\n  authenticate(email: $email, password: $password) {\n    viewer {\n      id\n      organizationUser {\n        id\n        user {\n          id\n          email\n          name\n        }\n      }\n    }\n  }\n}\n": types.AuthenticateDocument,
@@ -91,7 +91,7 @@ export function gql(source: string): unknown;
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  fragment PublicAlbumImageFields on PublicAlbumImage {\n    caption\n    image {\n      id\n      url\n      name\n      nominalWidth\n      nominalHeight\n      createdAt\n    }\n  }\n"): (typeof documents)["\n  fragment PublicAlbumImageFields on PublicAlbumImage {\n    caption\n    image {\n      id\n      url\n      name\n      nominalWidth\n      nominalHeight\n      createdAt\n    }\n  }\n"];
+export function gql(source: "\n  fragment PublicAlbumImageFields on PublicAlbumImage {\n    caption\n    addedAt\n    image {\n      id\n      url\n      name\n      nominalWidth\n      nominalHeight\n      createdAt\n    }\n  }\n"): (typeof documents)["\n  fragment PublicAlbumImageFields on PublicAlbumImage {\n    caption\n    addedAt\n    image {\n      id\n      url\n      name\n      nominalWidth\n      nominalHeight\n      createdAt\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

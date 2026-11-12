@@ -172,6 +172,7 @@ type ComplexityRoot struct {
 	}
 
 	PublicAlbumImage struct {
+		AddedAt func(childComplexity int) int
 		Caption func(childComplexity int) int
 		Image   func(childComplexity int) int
 	}
@@ -855,6 +856,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.PublicAlbum.Truncated(childComplexity), true
 
+	case "PublicAlbumImage.addedAt":
+		if e.ComplexityRoot.PublicAlbumImage.AddedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicAlbumImage.AddedAt(childComplexity), true
 	case "PublicAlbumImage.caption":
 		if e.ComplexityRoot.PublicAlbumImage.Caption == nil {
 			break
@@ -1590,6 +1597,8 @@ func (ec *executionContext) childFields_PublicAlbumImage(ctx context.Context, fi
 		return ec.fieldContext_PublicAlbumImage_image(ctx, field)
 	case "caption":
 		return ec.fieldContext_PublicAlbumImage_caption(ctx, field)
+	case "addedAt":
+		return ec.fieldContext_PublicAlbumImage_addedAt(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type PublicAlbumImage", field.Name)
 }
@@ -4579,6 +4588,29 @@ func (ec *executionContext) _PublicAlbumImage_caption(ctx context.Context, field
 }
 func (ec *executionContext) fieldContext_PublicAlbumImage_caption(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("PublicAlbumImage", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _PublicAlbumImage_addedAt(ctx context.Context, field graphql.CollectedField, obj *model.PublicAlbumImage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicAlbumImage_addedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.AddedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicAlbumImage_addedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicAlbumImage", field, false, false, errors.New("field of type Time does not have child fields"))
 }
 
 func (ec *executionContext) _PublicImage_id(ctx context.Context, field graphql.CollectedField, obj *model.PublicImage) (ret graphql.Marshaler) {
@@ -9254,6 +9286,11 @@ func (ec *executionContext) _PublicAlbumImage(ctx context.Context, sel ast.Selec
 			}
 		case "caption":
 			out.Values[i] = ec._PublicAlbumImage_caption(ctx, field, obj)
+		case "addedAt":
+			out.Values[i] = ec._PublicAlbumImage_addedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
