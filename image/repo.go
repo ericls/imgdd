@@ -22,6 +22,35 @@ var logger = logging.GetLogger("image-repo")
 
 var ZeroUUID = uuid.UUID{}
 
+// imageFromRow converts an image_table row into a domain image. Unset
+// optional ids become "".
+func imageFromRow(row *model.ImageTable) *dm.Image {
+	return &dm.Image{
+		Id:              row.ID.String(),
+		Identifier:      row.Identifier,
+		CreatedAt:       row.CreatedAt,
+		Name:            row.Name,
+		ParentId:        optionalUUIDString(row.ParentID),
+		RootId:          optionalUUIDString(row.RootID),
+		Changes:         row.Changes,
+		UploaderIP:      utils.SafeDeref(row.UploaderIP),
+		MIMEType:        row.MimeType,
+		NominalWidth:    row.NominalWidth,
+		NominalHeight:   row.NominalHeight,
+		NominalByteSize: row.NominalByteSize,
+		CreatedById:     utils.SafeDerefWithDefault(row.CreatedByID, ZeroUUID).String(),
+		ExpiresAt:       row.ExpiresAt,
+	}
+}
+
+// optionalUUIDString returns the string form of id, or "" when it is nil.
+func optionalUUIDString(id *uuid.UUID) string {
+	if id == nil {
+		return ""
+	}
+	return id.String()
+}
+
 type DBImageRepo struct {
 	db.RepoConn
 }
@@ -56,31 +85,7 @@ func (repo *DBImageRepo) GetImageById(id string) (*dm.Image, error) {
 		return nil, err
 	}
 
-	var parentId string
-	if dest.ParentID != nil {
-		parentId = dest.ParentID.String()
-	}
-	var rootId string
-	if dest.RootID != nil {
-		rootId = dest.RootID.String()
-	}
-
-	return &dm.Image{
-		Id:              dest.ID.String(),
-		Identifier:      dest.Identifier,
-		CreatedAt:       dest.CreatedAt,
-		Name:            dest.Name,
-		ParentId:        parentId,
-		RootId:          rootId,
-		Changes:         dest.Changes,
-		UploaderIP:      utils.SafeDeref(dest.UploaderIP),
-		MIMEType:        dest.MimeType,
-		NominalWidth:    dest.NominalWidth,
-		NominalHeight:   dest.NominalHeight,
-		NominalByteSize: dest.NominalByteSize,
-		CreatedById:     utils.SafeDerefWithDefault(dest.CreatedByID, ZeroUUID).String(),
-		ExpiresAt:       dest.ExpiresAt,
-	}, nil
+	return imageFromRow(&dest), nil
 }
 
 func (repo *DBImageRepo) GetImagesByIds(ids []string) ([]*dm.Image, error) {
@@ -109,31 +114,8 @@ func (repo *DBImageRepo) GetImagesByIds(ids []string) ([]*dm.Image, error) {
 	}
 
 	idToImage := make(map[string]*dm.Image, len(dest))
-	for _, d := range dest {
-		var parentId string
-		if d.ParentID != nil {
-			parentId = d.ParentID.String()
-		}
-		var rootId string
-		if d.RootID != nil {
-			rootId = d.RootID.String()
-		}
-		img := &dm.Image{
-			Id:              d.ID.String(),
-			Identifier:      d.Identifier,
-			CreatedAt:       d.CreatedAt,
-			Name:            d.Name,
-			ParentId:        parentId,
-			RootId:          rootId,
-			Changes:         d.Changes,
-			UploaderIP:      utils.SafeDeref(d.UploaderIP),
-			MIMEType:        d.MimeType,
-			NominalWidth:    d.NominalWidth,
-			NominalHeight:   d.NominalHeight,
-			NominalByteSize: d.NominalByteSize,
-			CreatedById:     utils.SafeDerefWithDefault(d.CreatedByID, ZeroUUID).String(),
-			ExpiresAt:       d.ExpiresAt,
-		}
+	for i := range dest {
+		img := imageFromRow(&dest[i])
 		idToImage[img.Id] = img
 	}
 
@@ -441,23 +423,12 @@ func (repo *DBImageRepo) ListImages(
 		return dm.ListImageResult{}, err
 	}
 	images := make([]*dm.Image, len(dest))
-	for i, image := range dest {
-		images[i] = &dm.Image{
-			Id:              image.ID.String(),
-			Identifier:      image.Identifier,
-			CreatedAt:       image.CreatedAt,
-			Name:            image.Name,
-			ParentId:        utils.SafeDeref(image.ParentID).String(),
-			RootId:          utils.SafeDeref(image.RootID).String(),
-			Changes:         image.Changes,
-			UploaderIP:      utils.SafeDeref(image.UploaderIP),
-			MIMEType:        image.MimeType,
-			NominalWidth:    image.NominalWidth,
-			NominalHeight:   image.NominalHeight,
-			NominalByteSize: image.NominalByteSize,
-			CreatedById:     utils.SafeDerefWithDefault(image.CreatedByID, ZeroUUID).String(),
-			ExpiresAt:       image.ExpiresAt,
-		}
+	for i := range dest {
+		// ListImages has always reported a missing parent/root as the zero
+		// UUID rather than "", and its callers depend on that.
+		images[i] = imageFromRow(&dest[i])
+		images[i].ParentId = utils.SafeDeref(dest[i].ParentID).String()
+		images[i].RootId = utils.SafeDeref(dest[i].RootID).String()
 	}
 	hasNext := false
 	hasPrev := false
