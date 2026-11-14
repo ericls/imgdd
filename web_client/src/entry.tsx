@@ -166,6 +166,15 @@ const router = createBrowserRouter([
         },
       },
       {
+        path: `${routeSegments.albums}/:albumId`,
+        lazy: async () => {
+          const { AlbumPage } = await import("./app/pages/album");
+          return {
+            element: <AlbumPage />,
+          };
+        },
+      },
+      {
         path: routes.apiDocs,
         lazy: async () => {
           const { APIDocsPage } = await import("./app/pages/apiDocs");

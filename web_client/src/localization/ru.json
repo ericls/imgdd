@@ -160,6 +160,25 @@
       "copyReferences": "Копировать ссылки",
       "copy": "Копировать"
     },
+    "album": {
+      "untitled": "Альбом без названия",
+      "notFound": "Альбом не найден",
+      "errorLoading": "Ошибка загрузки альбома",
+      "imageCount_one": "{{count}} изображение",
+      "imageCount_few": "{{count}} изображения",
+      "imageCount_many": "{{count}} изображений",
+      "imageCount_other": "{{count}} изображения",
+      "live": "Обновляется в реальном времени",
+      "empty": "Изображений пока нет. Новые загрузки появятся здесь автоматически.",
+      "truncated": "Показаны только последние {{count}} изображений.",
+      "jumpToLatest": "К последним",
+      "newImages_one": "{{count}} новое изображение",
+      "newImages_few": "{{count}} новых изображения",
+      "newImages_many": "{{count}} новых изображений",
+      "newImages_other": "{{count}} новых изображения",
+      "openFullSize": "Открыть в полном размере",
+      "details": "Подробнее"
+    },
     "imageEditor": {
       "title": "Редактирование: {{name}}",
       "errorLoading": "Ошибка загрузки изображения",

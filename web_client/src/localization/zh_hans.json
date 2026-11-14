@@ -160,6 +160,19 @@
       "copyReferences": "复制引用",
       "copy": "复制"
     },
+    "album": {
+      "untitled": "未命名相册",
+      "notFound": "未找到相册",
+      "errorLoading": "加载相册出错",
+      "imageCount_other": "{{count}} 张图片",
+      "live": "实时更新",
+      "empty": "还没有图片。新上传的图片会自动显示在这里。",
+      "truncated": "仅显示最新的 {{count}} 张图片。",
+      "jumpToLatest": "跳到最新",
+      "newImages_other": "{{count}} 张新图片",
+      "openFullSize": "查看原图",
+      "details": "详情"
+    },
     "imageEditor": {
       "title": "编辑: {{name}}",
       "errorLoading": "加载图片出错",

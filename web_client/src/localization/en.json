@@ -160,6 +160,21 @@
       "copyReferences": "Copy References",
       "copy": "Copy"
     },
+    "album": {
+      "untitled": "Untitled album",
+      "notFound": "Album not found",
+      "errorLoading": "Error loading album",
+      "imageCount_one": "{{count}} image",
+      "imageCount_other": "{{count}} images",
+      "live": "Updates live",
+      "empty": "No images yet. New uploads appear here automatically.",
+      "truncated": "Only the latest {{count}} images are shown.",
+      "jumpToLatest": "Jump to latest",
+      "newImages_one": "{{count}} new image",
+      "newImages_other": "{{count}} new images",
+      "openFullSize": "Open full size",
+      "details": "Details"
+    },
     "imageEditor": {
       "title": "Edit: {{name}}",
       "errorLoading": "Error loading image",

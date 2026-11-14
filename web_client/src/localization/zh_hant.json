@@ -160,6 +160,19 @@
       "copyReferences": "複製參照",
       "copy": "複製"
     },
+    "album": {
+      "untitled": "未命名相簿",
+      "notFound": "找不到相簿",
+      "errorLoading": "載入相簿時發生錯誤",
+      "imageCount_other": "{{count}} 張圖片",
+      "live": "即時更新",
+      "empty": "還沒有圖片。新上傳的圖片會自動顯示在這裡。",
+      "truncated": "僅顯示最新的 {{count}} 張圖片。",
+      "jumpToLatest": "跳到最新",
+      "newImages_other": "{{count}} 張新圖片",
+      "openFullSize": "檢視原圖",
+      "details": "詳細資料"
+    },
     "imageEditor": {
       "title": "編輯: {{name}}",
       "errorLoading": "載入圖片時出錯",

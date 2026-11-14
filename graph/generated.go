@@ -163,6 +163,20 @@ type ComplexityRoot struct {
 		PageInfo func(childComplexity int) int
 	}
 
+	PublicAlbum struct {
+		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Images    func(childComplexity int) int
+		Title     func(childComplexity int) int
+		Truncated func(childComplexity int) int
+	}
+
+	PublicAlbumImage struct {
+		AddedAt func(childComplexity int) int
+		Caption func(childComplexity int) int
+		Image   func(childComplexity int) int
+	}
+
 	PublicImage struct {
 		CreatedAt       func(childComplexity int) int
 		ID              func(childComplexity int) int
@@ -176,6 +190,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		PublicAlbum func(childComplexity int, id string) int
 		PublicImage func(childComplexity int, id string) int
 		Viewer      func(childComplexity int) int
 	}
@@ -300,6 +315,7 @@ type PublicImageResolver interface {
 type QueryResolver interface {
 	Viewer(ctx context.Context) (*model.Viewer, error)
 	PublicImage(ctx context.Context, id string) (*model.PublicImage, error)
+	PublicAlbum(ctx context.Context, id string) (*model.PublicAlbum, error)
 }
 type StorageDefinitionResolver interface {
 	Connectivity(ctx context.Context, obj *model.StorageDefinition) (bool, error)
@@ -809,6 +825,56 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.PaginatedUsers.PageInfo(childComplexity), true
 
+	case "PublicAlbum.createdAt":
+		if e.ComplexityRoot.PublicAlbum.CreatedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicAlbum.CreatedAt(childComplexity), true
+	case "PublicAlbum.id":
+		if e.ComplexityRoot.PublicAlbum.ID == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicAlbum.ID(childComplexity), true
+	case "PublicAlbum.images":
+		if e.ComplexityRoot.PublicAlbum.Images == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicAlbum.Images(childComplexity), true
+	case "PublicAlbum.title":
+		if e.ComplexityRoot.PublicAlbum.Title == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicAlbum.Title(childComplexity), true
+	case "PublicAlbum.truncated":
+		if e.ComplexityRoot.PublicAlbum.Truncated == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicAlbum.Truncated(childComplexity), true
+
+	case "PublicAlbumImage.addedAt":
+		if e.ComplexityRoot.PublicAlbumImage.AddedAt == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicAlbumImage.AddedAt(childComplexity), true
+	case "PublicAlbumImage.caption":
+		if e.ComplexityRoot.PublicAlbumImage.Caption == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicAlbumImage.Caption(childComplexity), true
+	case "PublicAlbumImage.image":
+		if e.ComplexityRoot.PublicAlbumImage.Image == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicAlbumImage.Image(childComplexity), true
+
 	case "PublicImage.createdAt":
 		if e.ComplexityRoot.PublicImage.CreatedAt == nil {
 			break
@@ -864,6 +930,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.ComplexityRoot.PublicImage.ViewerIsOwner(childComplexity), true
 
+	case "Query.publicAlbum":
+		if e.ComplexityRoot.Query.PublicAlbum == nil {
+			break
+		}
+
+		args, err := ec.field_Query_publicAlbum_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.ComplexityRoot.Query.PublicAlbum(childComplexity, args["id"].(string)), true
 	case "Query.publicImage":
 		if e.ComplexityRoot.Query.PublicImage == nil {
 			break
@@ -1291,7 +1368,7 @@ func newExecutionContext(
 	}
 }
 
-//go:embed "schema/apiKey.graphqls" "schema/identity.mutations.graphqls" "schema/images.graphqls" "schema/main.graphqls" "schema/organization.graphqls" "schema/organizationUser.graphqls" "schema/permission.graphqls" "schema/role.graphqls" "schema/schema.graphqls" "schema/storageDefinition.graphqls" "schema/user-management.graphqls" "schema/user.graphqls" "schema/viewer.graphqls"
+//go:embed "schema/album.graphqls" "schema/apiKey.graphqls" "schema/identity.mutations.graphqls" "schema/images.graphqls" "schema/main.graphqls" "schema/organization.graphqls" "schema/organizationUser.graphqls" "schema/permission.graphqls" "schema/role.graphqls" "schema/schema.graphqls" "schema/storageDefinition.graphqls" "schema/user-management.graphqls" "schema/user.graphqls" "schema/viewer.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -1303,6 +1380,7 @@ func sourceData(filename string) string {
 }
 
 var sources = []*ast.Source{
+	{Name: "schema/album.graphqls", Input: sourceData("schema/album.graphqls"), BuiltIn: false},
 	{Name: "schema/apiKey.graphqls", Input: sourceData("schema/apiKey.graphqls"), BuiltIn: false},
 	{Name: "schema/identity.mutations.graphqls", Input: sourceData("schema/identity.mutations.graphqls"), BuiltIn: false},
 	{Name: "schema/images.graphqls", Input: sourceData("schema/images.graphqls"), BuiltIn: false},
@@ -1495,6 +1573,34 @@ func (ec *executionContext) childFields_PaginatedUsers(ctx context.Context, fiel
 		return ec.fieldContext_PaginatedUsers_pageInfo(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type PaginatedUsers", field.Name)
+}
+
+func (ec *executionContext) childFields_PublicAlbum(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "id":
+		return ec.fieldContext_PublicAlbum_id(ctx, field)
+	case "title":
+		return ec.fieldContext_PublicAlbum_title(ctx, field)
+	case "createdAt":
+		return ec.fieldContext_PublicAlbum_createdAt(ctx, field)
+	case "images":
+		return ec.fieldContext_PublicAlbum_images(ctx, field)
+	case "truncated":
+		return ec.fieldContext_PublicAlbum_truncated(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type PublicAlbum", field.Name)
+}
+
+func (ec *executionContext) childFields_PublicAlbumImage(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+	switch field.Name {
+	case "image":
+		return ec.fieldContext_PublicAlbumImage_image(ctx, field)
+	case "caption":
+		return ec.fieldContext_PublicAlbumImage_caption(ctx, field)
+	case "addedAt":
+		return ec.fieldContext_PublicAlbumImage_addedAt(ctx, field)
+	}
+	return nil, fmt.Errorf("no field named %q was found under type PublicAlbumImage", field.Name)
 }
 
 func (ec *executionContext) childFields_PublicImage(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
@@ -1984,6 +2090,20 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_publicAlbum_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id",
+		func(ctx context.Context, v any) (string, error) {
+			return ec.unmarshalNID2string(ctx, v)
+		})
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -4291,6 +4411,208 @@ func (ec *executionContext) fieldContext_PaginatedUsers_pageInfo(_ context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _PublicAlbum_id(ctx context.Context, field graphql.CollectedField, obj *model.PublicAlbum) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicAlbum_id(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNID2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicAlbum_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicAlbum", field, false, false, errors.New("field of type ID does not have child fields"))
+}
+
+func (ec *executionContext) _PublicAlbum_title(ctx context.Context, field graphql.CollectedField, obj *model.PublicAlbum) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicAlbum_title(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Title, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v string) graphql.Marshaler {
+			return ec.marshalNString2string(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicAlbum_title(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicAlbum", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _PublicAlbum_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.PublicAlbum) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicAlbum_createdAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicAlbum_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicAlbum", field, false, false, errors.New("field of type Time does not have child fields"))
+}
+
+func (ec *executionContext) _PublicAlbum_images(ctx context.Context, field graphql.CollectedField, obj *model.PublicAlbum) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicAlbum_images(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Images, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v []*model.PublicAlbumImage) graphql.Marshaler {
+			return ec.marshalNPublicAlbumImage2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPublicAlbumImageᚄ(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicAlbum_images(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PublicAlbum",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_PublicAlbumImage(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PublicAlbum_truncated(ctx context.Context, field graphql.CollectedField, obj *model.PublicAlbum) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicAlbum_truncated(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Truncated, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v bool) graphql.Marshaler {
+			return ec.marshalNBoolean2bool(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicAlbum_truncated(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicAlbum", field, false, false, errors.New("field of type Boolean does not have child fields"))
+}
+
+func (ec *executionContext) _PublicAlbumImage_image(ctx context.Context, field graphql.CollectedField, obj *model.PublicAlbumImage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicAlbumImage_image(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Image, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.PublicImage) graphql.Marshaler {
+			return ec.marshalNPublicImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPublicImage(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicAlbumImage_image(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PublicAlbumImage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_PublicImage(ctx, field)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PublicAlbumImage_caption(ctx context.Context, field graphql.CollectedField, obj *model.PublicAlbumImage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicAlbumImage_caption(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Caption, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_PublicAlbumImage_caption(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicAlbumImage", field, false, false, errors.New("field of type String does not have child fields"))
+}
+
+func (ec *executionContext) _PublicAlbumImage_addedAt(ctx context.Context, field graphql.CollectedField, obj *model.PublicAlbumImage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicAlbumImage_addedAt(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.AddedAt, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v time.Time) graphql.Marshaler {
+			return ec.marshalNTime2timeᚐTime(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicAlbumImage_addedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicAlbumImage", field, false, false, errors.New("field of type Time does not have child fields"))
+}
+
 func (ec *executionContext) _PublicImage_id(ctx context.Context, field graphql.CollectedField, obj *model.PublicImage) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -4568,6 +4890,50 @@ func (ec *executionContext) fieldContext_Query_publicImage(ctx context.Context, 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_publicImage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_publicAlbum(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_Query_publicAlbum(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.Resolvers.Query().PublicAlbum(ctx, fc.Args["id"].(string))
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *model.PublicAlbum) graphql.Marshaler {
+			return ec.marshalOPublicAlbum2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPublicAlbum(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_Query_publicAlbum(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.childFields_PublicAlbum(ctx, field)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_publicAlbum_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -8843,6 +9209,111 @@ func (ec *executionContext) _PaginatedUsers(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var publicAlbumImplementors = []string{"PublicAlbum"}
+
+func (ec *executionContext) _PublicAlbum(ctx context.Context, sel ast.SelectionSet, obj *model.PublicAlbum) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, publicAlbumImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PublicAlbum")
+		case "id":
+			out.Values[i] = ec._PublicAlbum_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "title":
+			out.Values[i] = ec._PublicAlbum_title(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._PublicAlbum_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "images":
+			out.Values[i] = ec._PublicAlbum_images(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "truncated":
+			out.Values[i] = ec._PublicAlbum_truncated(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var publicAlbumImageImplementors = []string{"PublicAlbumImage"}
+
+func (ec *executionContext) _PublicAlbumImage(ctx context.Context, sel ast.SelectionSet, obj *model.PublicAlbumImage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, publicAlbumImageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PublicAlbumImage")
+		case "image":
+			out.Values[i] = ec._PublicAlbumImage_image(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "caption":
+			out.Values[i] = ec._PublicAlbumImage_caption(ctx, field, obj)
+		case "addedAt":
+			out.Values[i] = ec._PublicAlbumImage_addedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.Deferred, int32(min(len(deferred), math.MaxInt32)))
+
+	for label, dfs := range deferred {
+		ec.ProcessDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var publicImageImplementors = []string{"PublicImage"}
 
 func (ec *executionContext) _PublicImage(ctx context.Context, sel ast.SelectionSet, obj *model.PublicImage) graphql.Marshaler {
@@ -9035,6 +9506,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_publicImage(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "publicAlbum":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_publicAlbum(ctx, field)
 				return res
 			}
 
@@ -10841,6 +11331,42 @@ var (
 	}
 )
 
+func (ec *executionContext) marshalNPublicAlbumImage2ᚕᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPublicAlbumImageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PublicAlbumImage) graphql.Marshaler {
+	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
+		fc := graphql.GetFieldContext(ctx)
+		fc.Result = &v[i]
+		return ec.marshalNPublicAlbumImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPublicAlbumImage(ctx, sel, v[i])
+	})
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPublicAlbumImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPublicAlbumImage(ctx context.Context, sel ast.SelectionSet, v *model.PublicAlbumImage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PublicAlbumImage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPublicImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPublicImage(ctx context.Context, sel ast.SelectionSet, v *model.PublicImage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PublicImage(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNResetPasswordInput2githubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐResetPasswordInput(ctx context.Context, v any) (model.ResetPasswordInput, error) {
 	res, err := ec.unmarshalInputResetPasswordInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -11403,6 +11929,13 @@ func (ec *executionContext) marshalOPaginationDirection2ᚖgithubᚗcomᚋericls
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalOPublicAlbum2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPublicAlbum(ctx context.Context, sel ast.SelectionSet, v *model.PublicAlbum) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PublicAlbum(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPublicImage2ᚖgithubᚗcomᚋericlsᚋimgddᚋgraphᚋmodelᚐPublicImage(ctx context.Context, sel ast.SelectionSet, v *model.PublicImage) graphql.Marshaler {
