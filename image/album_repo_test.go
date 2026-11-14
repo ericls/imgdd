@@ -272,5 +272,18 @@ func TestAlbumRepo(t *testing.T) {
 		// A limit keeps the most recently added images, oldest first.
 		ids, _ = listIds(album, 2)
 		require.Equal(t, []string{expiresLater.Id, last.Id}, ids)
+
+		// Numbers count the live images, the same with or without a limit.
+		numbers := func(limit int) []int {
+			images, err := imageRepo.ListAlbumImages(album.Id, limit)
+			require.NoError(t, err)
+			out := make([]int, len(images))
+			for i, img := range images {
+				out[i] = img.Number
+			}
+			return out
+		}
+		require.Equal(t, []int{1, 2, 3}, numbers(0))
+		require.Equal(t, []int{2, 3}, numbers(2))
 	})
 }

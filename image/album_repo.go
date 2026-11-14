@@ -187,7 +187,8 @@ func (repo *DBImageRepo) CreateAndSaveUploadedImageInAlbum(image *dm.Image, mime
 
 type albumImageRow struct {
 	model.AlbumImageTable
-	Image model.ImageTable
+	Image  model.ImageTable
+	Number int64
 }
 
 // ListAlbumImages returns the album's live images in the order they were
@@ -200,7 +201,10 @@ func (repo *DBImageRepo) ListAlbumImages(albumId string, limit int) ([]*dm.Album
 	if err != nil {
 		return nil, err
 	}
-	stmt := SELECT(AlbumImageTable.AllColumns, ImageTable.AllColumns).
+	// The window runs after WHERE and before LIMIT, so Number counts every
+	// live image in the album even when only the newest are returned.
+	number := ROW_NUMBER().OVER(ORDER_BY(AlbumImageTable.Position.ASC())).AS("albumImageRow.Number")
+	stmt := SELECT(AlbumImageTable.AllColumns, ImageTable.AllColumns, number).
 		FROM(AlbumImageTable.INNER_JOIN(ImageTable, ImageTable.ID.EQ(AlbumImageTable.ImageID))).
 		WHERE(
 			AlbumImageTable.AlbumID.EQ(UUID(parsed)).
@@ -222,6 +226,7 @@ func (repo *DBImageRepo) ListAlbumImages(albumId string, limit int) ([]*dm.Album
 			Image:   imageFromRow(&dest[i].Image),
 			Caption: utils.SafeDeref(dest[i].Caption),
 			AddedAt: dest[i].AddedAt,
+			Number:  int(dest[i].Number),
 		}
 	}
 	if limit > 0 {

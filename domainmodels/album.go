@@ -45,7 +45,10 @@ type AlbumImage struct {
 	Image *Image
 	// Caption describes the image in this album, or "" for none.
 	Caption string
-	// AddedAt is when the image was added to this album, which sets its
-	// place in the album's order.
+	// AddedAt is when the image was added to this album.
 	AddedAt time.Time
+	// Number is the image's place in the album's live images, from 1 for
+	// the first one added. It does not change as images are added, so the
+	// newest image's Number is how many images the album has.
+	Number int
 }
