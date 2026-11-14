@@ -152,6 +152,11 @@ func resolveUploadAlbum(values []string, orgUser *domainmodels.OrganizationUser,
 	if len(values) > 1 {
 		return nil, newUploadError(http.StatusBadRequest, "invalid_album", "Give at most one album")
 	}
+	if strings.TrimSpace(values[0]) == "" {
+		// Most likely an unset variable in the caller's script, not someone
+		// else's album; say so, as the album calls do.
+		return nil, newUploadError(http.StatusBadRequest, "invalid_album", "album is empty; give the id returned by createAlbum")
+	}
 	album, err := getOwnedAlbum(values[0], orgUser, imageRepo)
 	if err != nil {
 		httpLogger.Error().Err(err).Msg("Unable to get album")
@@ -391,8 +396,9 @@ var errInvalidCreateAlbumBody = errors.New("invalid createAlbum body")
 // album.
 func readCreateAlbumTitle(r *http.Request) (string, error) {
 	// The title belongs in the body; one in the query string would otherwise
-	// be dropped without a word.
-	if r.URL.RawQuery != "" {
+	// be dropped without a word. Other query parameters, such as a cache
+	// buster, are ignored.
+	if r.URL.Query().Has("title") {
 		return "", errInvalidCreateAlbumBody
 	}
 	switch requestMediaType(r) {
@@ -420,7 +426,9 @@ func readCreateAlbumTitle(r *http.Request) (string, error) {
 		// No Content-Type is only accepted for an empty body: any content is
 		// ambiguous (Python's requests sends a JSON string like this) and
 		// would otherwise be ignored.
-		n, err := r.Body.Read(make([]byte, 1))
+		// ReadFull, not Read: a single Read may return no bytes and no error
+		// even though the body has content.
+		n, err := io.ReadFull(r.Body, make([]byte, 1))
 		if n > 0 {
 			return "", errInvalidCreateAlbumBody
 		}

@@ -91,10 +91,16 @@ func decodeStrictJSON(body io.Reader, dest any) error {
 	if err := decoder.Decode(dest); err != nil {
 		return err
 	}
-	if _, err := decoder.Token(); !errors.Is(err, io.EOF) {
-		return errors.New("unexpected data after the JSON value")
+	_, err := decoder.Token()
+	if errors.Is(err, io.EOF) {
+		return nil
 	}
-	return nil
+	if err != nil {
+		// Keep read errors such as *http.MaxBytesError, so an oversized body
+		// is still reported as too large.
+		return err
+	}
+	return errors.New("unexpected data after the JSON value")
 }
 
 // apiKeyRequest runs the checks shared by the calls that need an API key:
@@ -208,6 +214,12 @@ func parseAlbumImageIds(ids []string) ([]string, bool) {
 	return parsed, true
 }
 
+func writeInvalidCaption(w http.ResponseWriter) {
+	writeAPIError(w, http.StatusBadRequest, "invalid_caption", fmt.Sprintf(
+		"Each caption must be at most %d characters", domainmodels.ImageMaxCaptionLength,
+	))
+}
+
 func writeInvalidAlbumImages(w http.ResponseWriter) {
 	writeAPIError(w, http.StatusBadRequest, "invalid_images", fmt.Sprintf(
 		"Give 1 to %d distinct image ids, as returned by createImages", apiMaxAlbumImagesPerRequest,
@@ -262,9 +274,7 @@ func makeAPIAddImagesToAlbumHandler(
 			entries[i] = domainmodels.AlbumImageEntry{ImageId: id, Caption: caption}
 		}
 		if captionTooLong {
-			writeAPIError(w, http.StatusBadRequest, "invalid_caption", fmt.Sprintf(
-				"Each caption must be at most %d characters", domainmodels.ImageMaxCaptionLength,
-			))
+			writeInvalidCaption(w)
 			return
 		}
 
@@ -291,6 +301,16 @@ func makeAPIAddImagesToAlbumHandler(
 		}
 
 		added, err := imageRepo.AddImagesToAlbum(album.Id, entries, orgUser.Id)
+		if errors.Is(err, image.ErrCaptionTooLong) {
+			// The handler checks captions first; this only guards against the
+			// two checks drifting apart.
+			writeInvalidCaption(w)
+			return
+		}
+		if errors.Is(err, image.ErrAlbumNotFound) {
+			writeAPIError(w, http.StatusNotFound, "album_not_found", "Album not found")
+			return
+		}
 		if err != nil {
 			httpLogger.Error().Err(err).Msg("Unable to add images to album")
 			writeAPIError(w, http.StatusInternalServerError, "internal_error", "Internal error")

@@ -3,6 +3,7 @@ package httpserver_test
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -200,6 +201,22 @@ func TestAPIAlbums(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, res.Code)
 		require.Equal(t, "invalid_request", decodeCreateAlbum(t, res).Error.Code)
 
+		// Other query parameters, such as a cache buster, are ignored.
+		req = httptest.NewRequest(http.MethodPost, "/api/v1/createAlbum?_=1699999999", nil)
+		req.Header.Set("Authorization", "Bearer "+ownerSecret)
+		res = httptest.NewRecorder()
+		httpserver.MakeAPICreateAlbumHandler(conf, identityRepo, imageRepo, ratelimit.NewRateLimiter(100, 100)).ServeHTTP(res, req)
+		require.Equal(t, http.StatusOK, res.Code, res.Body.String())
+
+		// A body without a Content-Type is read fully, even when the first
+		// read returns nothing.
+		req = httptest.NewRequest(http.MethodPost, "/api/v1/createAlbum", &slowReader{data: []byte(`{"title":"x"}`)})
+		req.Header.Set("Authorization", "Bearer "+ownerSecret)
+		res = httptest.NewRecorder()
+		httpserver.MakeAPICreateAlbumHandler(conf, identityRepo, imageRepo, ratelimit.NewRateLimiter(100, 100)).ServeHTTP(res, req)
+		require.Equal(t, http.StatusBadRequest, res.Code)
+		require.Equal(t, "invalid_request", decodeCreateAlbum(t, res).Error.Code)
+
 		req = httptest.NewRequest(http.MethodGet, "/api/v1/createAlbum", nil)
 		res = httptest.NewRecorder()
 		httpserver.MakeAPICreateAlbumHandler(conf, identityRepo, imageRepo, ratelimit.NewRateLimiter(100, 100)).ServeHTTP(res, req)
@@ -294,7 +311,6 @@ func TestAPIAlbums(t *testing.T) {
 			"anonymous":        {"", albumID},
 			"site owner":       {siteOwnerSecret, albumID},
 			"unknown album":    {ownerSecret, "does-not-exist"},
-			"empty album":      {ownerSecret, ""},
 			"internal uuid id": {ownerSecret, mustAlbum(t, imageRepo, albumID).Id},
 		} {
 			res := createImages(tc.secret, [][2]string{{"album", tc.album}}, apiTestFile{"image", "a.png", img})
@@ -313,6 +329,14 @@ func TestAPIAlbums(t *testing.T) {
 		res := createImages(ownerSecret, [][2]string{{"album", albumID}, {"album", albumID}}, apiTestFile{"image", "a.png", img})
 		require.Equal(t, http.StatusBadRequest, res.Code)
 		require.Equal(t, "invalid_album", decodeCreateImages(t, res).Error.Code)
+	})
+
+	t.Run("an empty album is invalid, not missing", func(t *testing.T) {
+		for _, value := range []string{"", "  "} {
+			res := createImages(ownerSecret, [][2]string{{"album", value}}, apiTestFile{"image", "a.png", img})
+			require.Equal(t, http.StatusBadRequest, res.Code, value)
+			require.Equal(t, "invalid_album", decodeCreateImages(t, res).Error.Code, value)
+		}
 	})
 
 	type albumEditResponse struct {
@@ -408,20 +432,21 @@ func TestAPIAlbums(t *testing.T) {
 			status int
 			code   string
 		}{
-			"anonymous":            {"", `{"album":"` + albumID + `","images":[{"id":"` + mine + `"}]}`, http.StatusUnauthorized, "invalid_api_key"},
-			"not the album owner":  {siteOwnerSecret, `{"album":"` + albumID + `","images":[{"id":"` + theirs + `"}]}`, http.StatusNotFound, "album_not_found"},
-			"someone else's image": {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `"},{"id":"` + theirs + `"}]}`, http.StatusNotFound, "image_not_found"},
-			"guest image":          {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + guest + `"}]}`, http.StatusNotFound, "image_not_found"},
-			"expired image":        {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + expired + `"}]}`, http.StatusNotFound, "image_not_found"},
-			"unknown image":        {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"00000000-0000-0000-0000-000000000009"}]}`, http.StatusNotFound, "image_not_found"},
-			"no images":            {ownerSecret, `{"album":"` + albumID + `","images":[]}`, http.StatusBadRequest, "invalid_images"},
-			"duplicate images":     {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `"},{"id":"` + mine + `"}]}`, http.StatusBadRequest, "invalid_images"},
-			"malformed image id":   {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"nope"}]}`, http.StatusBadRequest, "invalid_images"},
-			"caption too long":     {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `","caption":"` + strings.Repeat("a", 2001) + `"}]}`, http.StatusBadRequest, "invalid_caption"},
-			"misspelled field":     {ownerSecret, `{"album":"` + albumID + `","image":[{"id":"` + mine + `"}]}`, http.StatusBadRequest, "invalid_request"},
-			"no album":             {ownerSecret, `{"images":[{"id":"` + mine + `"}]}`, http.StatusBadRequest, "invalid_album"},
-			"body too large":       {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `","caption":"` + strings.Repeat("a", 2<<20) + `"}]}`, http.StatusRequestEntityTooLarge, "request_too_large"},
-			"images as plain ids":  {ownerSecret, `{"album":"` + albumID + `","images":["` + mine + `"]}`, http.StatusBadRequest, "invalid_request"},
+			"anonymous":                    {"", `{"album":"` + albumID + `","images":[{"id":"` + mine + `"}]}`, http.StatusUnauthorized, "invalid_api_key"},
+			"not the album owner":          {siteOwnerSecret, `{"album":"` + albumID + `","images":[{"id":"` + theirs + `"}]}`, http.StatusNotFound, "album_not_found"},
+			"someone else's image":         {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `"},{"id":"` + theirs + `"}]}`, http.StatusNotFound, "image_not_found"},
+			"guest image":                  {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + guest + `"}]}`, http.StatusNotFound, "image_not_found"},
+			"expired image":                {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + expired + `"}]}`, http.StatusNotFound, "image_not_found"},
+			"unknown image":                {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"00000000-0000-0000-0000-000000000009"}]}`, http.StatusNotFound, "image_not_found"},
+			"no images":                    {ownerSecret, `{"album":"` + albumID + `","images":[]}`, http.StatusBadRequest, "invalid_images"},
+			"duplicate images":             {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `"},{"id":"` + mine + `"}]}`, http.StatusBadRequest, "invalid_images"},
+			"malformed image id":           {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"nope"}]}`, http.StatusBadRequest, "invalid_images"},
+			"caption too long":             {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `","caption":"` + strings.Repeat("a", 2001) + `"}]}`, http.StatusBadRequest, "invalid_caption"},
+			"misspelled field":             {ownerSecret, `{"album":"` + albumID + `","image":[{"id":"` + mine + `"}]}`, http.StatusBadRequest, "invalid_request"},
+			"no album":                     {ownerSecret, `{"images":[{"id":"` + mine + `"}]}`, http.StatusBadRequest, "invalid_album"},
+			"trailing data past the limit": {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `"}]}` + strings.Repeat(" ", 2<<20) + "x", http.StatusRequestEntityTooLarge, "request_too_large"},
+			"body too large":               {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `","caption":"` + strings.Repeat("a", 2<<20) + `"}]}`, http.StatusRequestEntityTooLarge, "request_too_large"},
+			"images as plain ids":          {ownerSecret, `{"album":"` + albumID + `","images":["` + mine + `"]}`, http.StatusBadRequest, "invalid_request"},
 		} {
 			code, out := addImages(tc.secret, tc.body)
 			require.Equal(t, tc.status, code, name)
@@ -466,4 +491,24 @@ func mustAlbum(t *testing.T, imageRepo *imgddimage.DBImageRepo, identifier strin
 	require.NoError(t, err)
 	require.NotNil(t, album)
 	return album
+}
+
+// slowReader returns no bytes and no error on its first Read, which the
+// io.Reader contract allows, then its data.
+type slowReader struct {
+	data    []byte
+	started bool
+}
+
+func (r *slowReader) Read(p []byte) (int, error) {
+	if !r.started {
+		r.started = true
+		return 0, nil
+	}
+	if len(r.data) == 0 {
+		return 0, io.EOF
+	}
+	n := copy(p, r.data)
+	r.data = r.data[n:]
+	return n, nil
 }
