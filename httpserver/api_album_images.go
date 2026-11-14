@@ -1,0 +1,365 @@
+package httpserver
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"mime"
+	"net/http"
+	"strings"
+	"time"
+	"unicode/utf8"
+
+	"github.com/ericls/imgdd/domainmodels"
+	"github.com/ericls/imgdd/identity"
+	"github.com/ericls/imgdd/image"
+	"github.com/ericls/imgdd/ratelimit"
+	"github.com/google/uuid"
+)
+
+const apiAddImagesToAlbumPath = "/api/v1/addImagesToAlbum"
+const apiRemoveImagesFromAlbumPath = "/api/v1/removeImagesFromAlbum"
+
+// apiMaxAlbumImagesPerRequest caps how many images one add or remove call
+// accepts.
+const apiMaxAlbumImagesPerRequest = 100
+
+// apiMaxAlbumImagesBodyBytes caps the add/remove request body. It is a
+// limit on bytes, while captions are limited in characters: a full call of
+// maximum-length ASCII captions fits, but long non-ASCII or \u-escaped
+// captions can need fewer images per call. The docs say so.
+const apiMaxAlbumImagesBodyBytes = 1 << 20
+
+type apiAddImagesToAlbumRequest struct {
+	Album  string `json:"album"`
+	Images []struct {
+		ID      string `json:"id"`
+		Caption string `json:"caption"`
+	} `json:"images"`
+}
+
+type apiRemoveImagesFromAlbumRequest struct {
+	Album  string   `json:"album"`
+	Images []string `json:"images"`
+}
+
+type apiAddImagesToAlbumResponse struct {
+	Album apiAlbum `json:"album"`
+	// Added counts images newly added; images already in the album are left
+	// as they were, caption included.
+	Added int `json:"added"`
+}
+
+type apiRemoveImagesFromAlbumResponse struct {
+	Album   apiAlbum `json:"album"`
+	Removed int      `json:"removed"`
+}
+
+// requestMediaType is the request's Content-Type without parameters,
+// lowercased, "" when there is none, or "invalid" when it can't be parsed.
+func requestMediaType(r *http.Request) string {
+	header := r.Header.Get("Content-Type")
+	if header == "" {
+		return ""
+	}
+	mediaType, _, err := mime.ParseMediaType(header)
+	if err != nil {
+		return "invalid"
+	}
+	return mediaType
+}
+
+// writeBodyError answers a request whose body could not be read: 413 when it
+// is over the size limit, otherwise 400 invalid_request with the expected
+// shape.
+func writeBodyError(w http.ResponseWriter, err error, expected string) {
+	var maxBytesErr *http.MaxBytesError
+	if errors.As(err, &maxBytesErr) {
+		writeAPIError(w, http.StatusRequestEntityTooLarge, "request_too_large", "Request body is too large")
+		return
+	}
+	writeAPIError(w, http.StatusBadRequest, "invalid_request", expected)
+}
+
+// decodeStrictJSON decodes exactly one JSON value from body into dest,
+// rejecting unknown fields so a misspelled field is an error rather than
+// ignored. An empty body gives io.EOF.
+func decodeStrictJSON(body io.Reader, dest any) error {
+	decoder := json.NewDecoder(body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(dest); err != nil {
+		return err
+	}
+	_, err := decoder.Token()
+	if errors.Is(err, io.EOF) {
+		return nil
+	}
+	if err != nil {
+		// Keep read errors such as *http.MaxBytesError, so an oversized body
+		// is still reported as too large.
+		return err
+	}
+	return errors.New("unexpected data after the JSON value")
+}
+
+// apiKeyRequest runs the checks shared by the calls that need an API key:
+// POST, the key itself, and the per-user rate limit. It returns the caller,
+// or nil after writing an error response; unauthorized ends the 401 message.
+func apiKeyRequest(
+	w http.ResponseWriter,
+	r *http.Request,
+	identityRepo identity.IdentityRepo,
+	limiter *ratelimit.RateLimiter,
+	unauthorized string,
+) *domainmodels.OrganizationUser {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+		writeAPIError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Use POST")
+		return nil
+	}
+	orgUser, err := authenticateAPIRequest(r, identityRepo)
+	if err != nil || orgUser == nil {
+		w.Header().Set("WWW-Authenticate", `Bearer realm="imgdd"`)
+		writeAPIError(w, http.StatusUnauthorized, "invalid_api_key", "An API key is required "+unauthorized)
+		return nil
+	}
+	if limiter.IsRateLimited(orgUser.Id) {
+		writeAPIError(w, http.StatusTooManyRequests, "rate_limited", "Rate limited")
+		return nil
+	}
+	return orgUser
+}
+
+// albumEditRequest runs the checks shared by the calls that change an
+// album's images: those of apiKeyRequest, and a JSON body. It returns the
+// caller, or nil after writing an error response.
+func albumEditRequest(
+	w http.ResponseWriter,
+	r *http.Request,
+	identityRepo identity.IdentityRepo,
+	limiter *ratelimit.RateLimiter,
+	dest any,
+	shape string,
+) *domainmodels.OrganizationUser {
+	orgUser := apiKeyRequest(w, r, identityRepo, limiter, "to change albums")
+	if orgUser == nil {
+		return nil
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, apiMaxAlbumImagesBodyBytes)
+	expected := "Expected a JSON body (Content-Type: application/json) like " + shape
+	if requestMediaType(r) != "application/json" {
+		writeAPIError(w, http.StatusBadRequest, "invalid_request", expected)
+		return nil
+	}
+	if err := decodeStrictJSON(r.Body, dest); err != nil {
+		writeBodyError(w, err, expected)
+		return nil
+	}
+	return orgUser
+}
+
+// resolveOwnedAlbum returns the album with the given identifier if orgUser
+// owns it, or nil after writing an error: invalid_album when no album was
+// given, album_not_found when the caller does not own it.
+func resolveOwnedAlbum(w http.ResponseWriter, identifier string, orgUser *domainmodels.OrganizationUser, imageRepo image.ImageRepo) *domainmodels.Album {
+	if strings.TrimSpace(identifier) == "" {
+		writeAPIError(w, http.StatusBadRequest, "invalid_album", `Give the album's id as "album"`)
+		return nil
+	}
+	album, err := getOwnedAlbum(identifier, orgUser, imageRepo)
+	if err != nil {
+		httpLogger.Error().Err(err).Msg("Unable to get album")
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Internal error")
+		return nil
+	}
+	if album == nil {
+		writeAPIError(w, http.StatusNotFound, "album_not_found", "Album not found")
+		return nil
+	}
+	return album
+}
+
+// albumImageIdParser validates the image ids of one add or remove call, one
+// at a time: each must be an image id, and none may repeat.
+type albumImageIdParser map[string]bool
+
+func (seen albumImageIdParser) parse(id string) (string, bool) {
+	u, err := uuid.Parse(strings.TrimSpace(id))
+	if err != nil || seen[u.String()] {
+		return "", false
+	}
+	seen[u.String()] = true
+	return u.String(), true
+}
+
+// validAlbumImageCount reports whether n images are allowed in one call.
+func validAlbumImageCount(n int) bool {
+	return n > 0 && n <= apiMaxAlbumImagesPerRequest
+}
+
+// parseAlbumImageIds validates the image ids of a remove call.
+func parseAlbumImageIds(ids []string) ([]string, bool) {
+	if !validAlbumImageCount(len(ids)) {
+		return nil, false
+	}
+	parser := albumImageIdParser{}
+	parsed := make([]string, len(ids))
+	for i, id := range ids {
+		var ok bool
+		if parsed[i], ok = parser.parse(id); !ok {
+			return nil, false
+		}
+	}
+	return parsed, true
+}
+
+func writeInvalidCaption(w http.ResponseWriter) {
+	writeAPIError(w, http.StatusBadRequest, "invalid_caption", fmt.Sprintf(
+		"Each caption must be at most %d characters", domainmodels.ImageMaxCaptionLength,
+	))
+}
+
+func writeInvalidAlbumImages(w http.ResponseWriter) {
+	writeAPIError(w, http.StatusBadRequest, "invalid_images", fmt.Sprintf(
+		"Give 1 to %d distinct image ids, as returned by createImages", apiMaxAlbumImagesPerRequest,
+	))
+}
+
+// makeAPIAddImagesToAlbumHandler serves POST /api/v1/addImagesToAlbum.
+//
+// Request (JSON): {"album": id, "images": [{"id": imageId, "caption": text}]}.
+// The caller must own the album and every image, and the images must not
+// have expired. Owning the images means nobody can put someone
+// else's image on their album page. Images already in the album are skipped.
+//
+// Response: {"album": {"id", "url", "title"}, "added": n}.
+func makeAPIAddImagesToAlbumHandler(
+	conf *HttpServerConfigDef,
+	identityRepo identity.IdentityRepo,
+	imageRepo image.ImageRepo,
+	limiter *ratelimit.RateLimiter,
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req apiAddImagesToAlbumRequest
+		orgUser := albumEditRequest(w, r, identityRepo, limiter, &req, `{"album": "...", "images": [{"id": "...", "caption": "..."}]}`)
+		if orgUser == nil {
+			return
+		}
+		album := resolveOwnedAlbum(w, req.Album, orgUser, imageRepo)
+		if album == nil {
+			return
+		}
+		if !validAlbumImageCount(len(req.Images)) {
+			writeInvalidAlbumImages(w)
+			return
+		}
+		// Each image's id and caption are read together, so a caption can
+		// only ever describe the image it was sent with.
+		parser := albumImageIdParser{}
+		ids := make([]string, len(req.Images))
+		entries := make([]domainmodels.AlbumImageEntry, len(req.Images))
+		captionTooLong := false
+		for i, img := range req.Images {
+			id, ok := parser.parse(img.ID)
+			if !ok {
+				writeInvalidAlbumImages(w)
+				return
+			}
+			caption := strings.TrimSpace(img.Caption)
+			if utf8.RuneCountInString(caption) > domainmodels.ImageMaxCaptionLength {
+				captionTooLong = true
+			}
+			ids[i] = id
+			entries[i] = domainmodels.AlbumImageEntry{ImageId: id, Caption: caption}
+		}
+		if captionTooLong {
+			writeInvalidCaption(w)
+			return
+		}
+
+		images, err := imageRepo.GetImagesByIds(ids)
+		if err != nil {
+			httpLogger.Error().Err(err).Msg("Unable to get images")
+			writeAPIError(w, http.StatusInternalServerError, "internal_error", "Internal error")
+			return
+		}
+		// Live images only: an expired image would never show in the album.
+		now := time.Now()
+		owned := make(map[string]bool, len(images))
+		for _, img := range images {
+			if img != nil && img.CreatedById == orgUser.Id && !img.IsExpiredAt(now) {
+				owned[img.Id] = true
+			}
+		}
+		for _, id := range ids {
+			// Someone else's image is reported the same as a missing one.
+			if !owned[id] {
+				writeAPIError(w, http.StatusNotFound, "image_not_found", "Image "+id+" not found")
+				return
+			}
+		}
+
+		added, err := imageRepo.AddImagesToAlbum(album.Id, entries, orgUser.Id)
+		if errors.Is(err, image.ErrCaptionTooLong) {
+			// The handler checks captions first; this only guards against the
+			// two checks drifting apart.
+			writeInvalidCaption(w)
+			return
+		}
+		if errors.Is(err, image.ErrAlbumNotFound) {
+			writeAPIError(w, http.StatusNotFound, "album_not_found", "Album not found")
+			return
+		}
+		if err != nil {
+			httpLogger.Error().Err(err).Msg("Unable to add images to album")
+			writeAPIError(w, http.StatusInternalServerError, "internal_error", "Internal error")
+			return
+		}
+		writeAPIJSON(w, http.StatusOK, apiAddImagesToAlbumResponse{
+			Album: apiAlbumFor(r, conf, album),
+			Added: added,
+		})
+	}
+}
+
+// makeAPIRemoveImagesFromAlbumHandler serves POST /api/v1/removeImagesFromAlbum.
+//
+// Request (JSON): {"album": id, "images": [imageId, ...]}. The caller must own
+// the album. The images themselves are not deleted, and ids that are not in
+// the album are ignored.
+//
+// Response: {"album": {"id", "url", "title"}, "removed": n}.
+func makeAPIRemoveImagesFromAlbumHandler(
+	conf *HttpServerConfigDef,
+	identityRepo identity.IdentityRepo,
+	imageRepo image.ImageRepo,
+	limiter *ratelimit.RateLimiter,
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req apiRemoveImagesFromAlbumRequest
+		orgUser := albumEditRequest(w, r, identityRepo, limiter, &req, `{"album": "...", "images": ["..."]}`)
+		if orgUser == nil {
+			return
+		}
+		album := resolveOwnedAlbum(w, req.Album, orgUser, imageRepo)
+		if album == nil {
+			return
+		}
+		ids, ok := parseAlbumImageIds(req.Images)
+		if !ok {
+			writeInvalidAlbumImages(w)
+			return
+		}
+		removed, err := imageRepo.RemoveImagesFromAlbum(album.Id, ids)
+		if err != nil {
+			httpLogger.Error().Err(err).Msg("Unable to remove images from album")
+			writeAPIError(w, http.StatusInternalServerError, "internal_error", "Internal error")
+			return
+		}
+		writeAPIJSON(w, http.StatusOK, apiRemoveImagesFromAlbumResponse{
+			Album:   apiAlbumFor(r, conf, album),
+			Removed: removed,
+		})
+	}
+}

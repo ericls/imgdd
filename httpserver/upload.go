@@ -43,6 +43,19 @@ type uploadedImage struct {
 	Height     int32
 	ByteSize   int32
 	ExpiresAt  *time.Time
+	Caption    string
+}
+
+// uploadOptions are the optional properties given to every image created by
+// one upload request. The zero value means none.
+type uploadOptions struct {
+	// ExpiresAt is nil for images that never expire.
+	ExpiresAt *time.Time
+	// AlbumId is the internal id of an album the uploader owns, or "". The
+	// image is added to it in the same transaction that stores it.
+	AlbumId string
+	// Caption describes the image in the album; only used with AlbumId.
+	Caption string
 }
 
 // effectiveUploadLimit returns the maximum image size for orgUser (nil for
@@ -64,7 +77,8 @@ func effectiveUploadLimit(conf *HttpServerConfigDef, orgUser *domainmodels.Organ
 
 // createUploadedImage validates and stores one uploaded file on behalf of
 // orgUser (nil for guests). It is shared by every upload entry point so they
-// apply the same checks. expiresAt is nil for images that never expire.
+// apply the same checks. Callers must have checked that orgUser owns
+// opts.AlbumId.
 func createUploadedImage(
 	r *http.Request,
 	conf *HttpServerConfigDef,
@@ -73,7 +87,7 @@ func createUploadedImage(
 	storageDefRepo storage.StorageDefRepo,
 	imageRepo image.ImageRepo,
 	limiter *ratelimit.RateLimiter,
-	expiresAt *time.Time,
+	opts uploadOptions,
 ) (*uploadedImage, *uploadError) {
 	src, err := fileHeader.Open()
 	if err != nil {
@@ -170,9 +184,14 @@ func createUploadedImage(
 		NominalByteSize: int32(len(exifRemovedBytes)),
 		NominalWidth:    width,
 		NominalHeight:   height,
-		ExpiresAt:       expiresAt,
+		ExpiresAt:       opts.ExpiresAt,
 	}
-	storedImage, err := imageRepo.CreateAndSaveUploadedImage(&img, detectedMimeType, exifRemovedBytes, storageDef.Id, storageInstance.Save)
+	var storedImage *domainmodels.StoredImage
+	if opts.AlbumId != "" {
+		storedImage, err = imageRepo.CreateAndSaveUploadedImageInAlbum(&img, detectedMimeType, exifRemovedBytes, storageDef.Id, storageInstance.Save, opts.AlbumId, opts.Caption)
+	} else {
+		storedImage, err = imageRepo.CreateAndSaveUploadedImage(&img, detectedMimeType, exifRemovedBytes, storageDef.Id, storageInstance.Save)
+	}
 	if err != nil {
 		httpLogger.Error().Stack().Err(err).Msg("Unable to save image")
 		return nil, internalUploadError()
@@ -193,5 +212,6 @@ func createUploadedImage(
 		Height:     height,
 		ByteSize:   int32(len(exifRemovedBytes)),
 		ExpiresAt:  storedImage.Image.ExpiresAt,
+		Caption:    opts.Caption,
 	}, nil
 }
