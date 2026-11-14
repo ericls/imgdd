@@ -173,10 +173,20 @@ func TestAPIAlbums(t *testing.T) {
 			{"application/json", `{"title":"a"}{"title":"b"}`},
 			{"text/plain", "title"},
 			{"application/x-www-form-urlencoded", "title=a&title=b"},
+			// JSON sent with curl -d's default Content-Type.
+			{"application/x-www-form-urlencoded", `{"title":"Fix login"}`},
+			{"application/x-www-form-urlencoded", "name=misspelled"},
+			{"application/json; charset", `{"title":"bad header"}`},
 		} {
 			res := createAlbum(nil, ownerSecret, tc[0], tc[1])
 			require.Equal(t, http.StatusBadRequest, res.Code, tc)
 			require.Equal(t, "invalid_request", decodeCreateAlbum(t, res).Error.Code, tc)
+		}
+
+		for _, contentType := range []string{"application/json", "application/x-www-form-urlencoded"} {
+			res := createAlbum(nil, ownerSecret, contentType, `{"title":"`+strings.Repeat("a", 1<<20)+`"}`)
+			require.Equal(t, http.StatusRequestEntityTooLarge, res.Code, contentType)
+			require.Equal(t, "request_too_large", decodeCreateAlbum(t, res).Error.Code, contentType)
 		}
 
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/createAlbum", nil)
@@ -390,6 +400,8 @@ func TestAPIAlbums(t *testing.T) {
 			"malformed image id":   {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"nope"}]}`, http.StatusBadRequest, "invalid_images"},
 			"caption too long":     {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `","caption":"` + strings.Repeat("a", 2001) + `"}]}`, http.StatusBadRequest, "invalid_caption"},
 			"misspelled field":     {ownerSecret, `{"album":"` + albumID + `","image":[{"id":"` + mine + `"}]}`, http.StatusBadRequest, "invalid_request"},
+			"no album":             {ownerSecret, `{"images":[{"id":"` + mine + `"}]}`, http.StatusBadRequest, "invalid_album"},
+			"body too large":       {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `","caption":"` + strings.Repeat("a", 2<<20) + `"}]}`, http.StatusRequestEntityTooLarge, "request_too_large"},
 			"images as plain ids":  {ownerSecret, `{"album":"` + albumID + `","images":["` + mine + `"]}`, http.StatusBadRequest, "invalid_request"},
 		} {
 			code, out := addImages(tc.secret, tc.body)

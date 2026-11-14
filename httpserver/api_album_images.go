@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"strings"
 	"time"
@@ -54,9 +55,29 @@ type apiRemoveImagesFromAlbumResponse struct {
 }
 
 // requestMediaType is the request's Content-Type without parameters,
-// lowercased.
+// lowercased, "" when there is none, or "invalid" when it can't be parsed.
 func requestMediaType(r *http.Request) string {
-	return strings.TrimSpace(strings.ToLower(strings.Split(r.Header.Get("Content-Type"), ";")[0]))
+	header := r.Header.Get("Content-Type")
+	if header == "" {
+		return ""
+	}
+	mediaType, _, err := mime.ParseMediaType(header)
+	if err != nil {
+		return "invalid"
+	}
+	return mediaType
+}
+
+// writeBodyError answers a request whose body could not be read: 413 when it
+// is over the size limit, otherwise 400 invalid_request with the expected
+// shape.
+func writeBodyError(w http.ResponseWriter, err error, expected string) {
+	var maxBytesErr *http.MaxBytesError
+	if errors.As(err, &maxBytesErr) {
+		writeAPIError(w, http.StatusRequestEntityTooLarge, "request_too_large", "Request body is too large")
+		return
+	}
+	writeAPIError(w, http.StatusBadRequest, "invalid_request", expected)
 }
 
 // decodeStrictJSON decodes exactly one JSON value from body into dest,
@@ -118,20 +139,34 @@ func albumEditRequest(
 		return nil
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, apiMaxAlbumImagesBodyBytes)
-	if requestMediaType(r) != "application/json" || decodeStrictJSON(r.Body, dest) != nil {
-		writeAPIError(w, http.StatusBadRequest, "invalid_request", "Expected a JSON body like "+shape)
+	expected := "Expected a JSON body (Content-Type: application/json) like " + shape
+	if requestMediaType(r) != "application/json" {
+		writeAPIError(w, http.StatusBadRequest, "invalid_request", expected)
+		return nil
+	}
+	if err := decodeStrictJSON(r.Body, dest); err != nil {
+		writeBodyError(w, err, expected)
 		return nil
 	}
 	return orgUser
 }
 
 // resolveOwnedAlbum returns the album with the given identifier if orgUser
-// owns it, or nil after writing album_not_found: to anyone but the owner, the
-// album does not exist.
+// owns it, or nil after writing an error: invalid_album when no album was
+// given, album_not_found when the caller does not own it.
 func resolveOwnedAlbum(w http.ResponseWriter, identifier string, orgUser *domainmodels.OrganizationUser, imageRepo image.ImageRepo) *domainmodels.Album {
-	album, uploadErr := resolveUploadAlbum([]string{identifier}, orgUser, imageRepo)
-	if uploadErr != nil {
-		writeAPIError(w, uploadErr.Status, uploadErr.Code, uploadErr.Message)
+	if strings.TrimSpace(identifier) == "" {
+		writeAPIError(w, http.StatusBadRequest, "invalid_album", `Give the album's id as "album"`)
+		return nil
+	}
+	album, err := getOwnedAlbum(identifier, orgUser, imageRepo)
+	if err != nil {
+		httpLogger.Error().Err(err).Msg("Unable to get album")
+		writeAPIError(w, http.StatusInternalServerError, "internal_error", "Internal error")
+		return nil
+	}
+	if album == nil {
+		writeAPIError(w, http.StatusNotFound, "album_not_found", "Album not found")
 		return nil
 	}
 	return album

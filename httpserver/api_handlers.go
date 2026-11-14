@@ -152,18 +152,28 @@ func resolveUploadAlbum(values []string, orgUser *domainmodels.OrganizationUser,
 	if len(values) > 1 {
 		return nil, newUploadError(http.StatusBadRequest, "invalid_album", "Give at most one album")
 	}
-	notFound := newUploadError(http.StatusNotFound, "album_not_found", "Album not found")
-	identifier := strings.TrimSpace(values[0])
-	if identifier == "" || orgUser == nil {
-		return nil, notFound
-	}
-	album, err := imageRepo.GetAlbumByIdentifier(identifier)
+	album, err := getOwnedAlbum(values[0], orgUser, imageRepo)
 	if err != nil {
 		httpLogger.Error().Err(err).Msg("Unable to get album")
 		return nil, internalUploadError()
 	}
-	if album == nil || album.CreatedById != orgUser.Id {
-		return nil, notFound
+	if album == nil {
+		return nil, newUploadError(http.StatusNotFound, "album_not_found", "Album not found")
+	}
+	return album, nil
+}
+
+// getOwnedAlbum returns the album with the given identifier if orgUser (nil
+// for guests) owns it, or nil: to anyone but the owner, including the site
+// owner and organization admins, the album does not exist.
+func getOwnedAlbum(identifier string, orgUser *domainmodels.OrganizationUser, imageRepo image.ImageRepo) (*domainmodels.Album, error) {
+	identifier = strings.TrimSpace(identifier)
+	if identifier == "" || orgUser == nil {
+		return nil, nil
+	}
+	album, err := imageRepo.GetAlbumByIdentifier(identifier)
+	if err != nil || album == nil || album.CreatedById != orgUser.Id {
+		return nil, err
 	}
 	return album, nil
 }
@@ -375,40 +385,57 @@ func makeAPICreateImagesHandler(
 	}
 }
 
+// errInvalidCreateAlbumBody means a createAlbum body is not in a shape the
+// call accepts.
+var errInvalidCreateAlbumBody = errors.New("invalid createAlbum body")
+
 // readCreateAlbumTitle reads the title from a JSON ({"title": "..."}) or form
-// encoded createAlbum body. A missing title means an untitled album.
-func readCreateAlbumTitle(r *http.Request) (string, bool) {
+// encoded createAlbum body. A missing title means an untitled album. Unknown
+// fields are rejected in both, so a misspelled field, or JSON sent with a
+// form Content-Type (curl -d's default), is an error rather than an untitled
+// album.
+func readCreateAlbumTitle(r *http.Request) (string, error) {
 	switch requestMediaType(r) {
 	case "application/json":
 		var body struct {
 			Title string `json:"title"`
 		}
-		// Strict, so {"name": ...} is an error rather than an untitled album.
 		// An empty body is an untitled album.
 		if err := decodeStrictJSON(r.Body, &body); err != nil && !errors.Is(err, io.EOF) {
-			return "", false
+			return "", err
 		}
-		return body.Title, true
+		return body.Title, nil
 	case "multipart/form-data":
-		if err := r.ParseMultipartForm(apiMaxCreateAlbumBodyBytes); err != nil {
-			return "", false
+		err := r.ParseMultipartForm(apiMaxCreateAlbumBodyBytes)
+		if r.MultipartForm != nil {
+			defer r.MultipartForm.RemoveAll()
 		}
-		defer r.MultipartForm.RemoveAll()
+		if err != nil {
+			return "", err
+		}
+		if len(r.MultipartForm.File) > 0 {
+			return "", errInvalidCreateAlbumBody
+		}
 	case "application/x-www-form-urlencoded", "":
 		if err := r.ParseForm(); err != nil {
-			return "", false
+			return "", err
 		}
 	default:
-		return "", false
+		return "", errInvalidCreateAlbumBody
+	}
+	for key := range r.PostForm {
+		if key != "title" {
+			return "", errInvalidCreateAlbumBody
+		}
 	}
 	values := r.PostForm["title"]
 	if len(values) > 1 {
-		return "", false
+		return "", errInvalidCreateAlbumBody
 	}
 	if len(values) == 0 {
-		return "", true
+		return "", nil
 	}
-	return values[0], true
+	return values[0], nil
 }
 
 // makeAPICreateAlbumHandler serves POST /api/v1/createAlbum.
@@ -430,9 +457,9 @@ func makeAPICreateAlbumHandler(
 			return
 		}
 		r.Body = http.MaxBytesReader(w, r.Body, apiMaxCreateAlbumBodyBytes)
-		title, ok := readCreateAlbumTitle(r)
-		if !ok {
-			writeAPIError(w, http.StatusBadRequest, "invalid_request", `Expected an optional "title" as JSON or form data`)
+		title, err := readCreateAlbumTitle(r)
+		if err != nil {
+			writeBodyError(w, err, `Expected an optional "title", as JSON (with Content-Type: application/json) or as form data`)
 			return
 		}
 		title = strings.TrimSpace(title)
