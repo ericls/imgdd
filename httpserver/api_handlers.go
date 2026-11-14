@@ -133,7 +133,7 @@ func webUIBaseURL(r *http.Request, webUIHost string) *url.URL {
 
 // imagePageURL is the absolute URL of an image's page in the web UI.
 func imagePageURL(r *http.Request, webUIHost string, imageId string) string {
-	return webUIBaseURL(r, webUIHost).JoinPath("images", imageId).String()
+	return absoluteImageURL(r, getImageDetailURL(webUIHost, imageId, IsSecure(r)))
 }
 
 // albumPageURL is the absolute URL of an album's page in the web UI.
@@ -378,21 +378,14 @@ func makeAPICreateImagesHandler(
 // readCreateAlbumTitle reads the title from a JSON ({"title": "..."}) or form
 // encoded createAlbum body. A missing title means an untitled album.
 func readCreateAlbumTitle(r *http.Request) (string, bool) {
-	mediaType := strings.TrimSpace(strings.ToLower(strings.Split(r.Header.Get("Content-Type"), ";")[0]))
-	switch mediaType {
+	switch requestMediaType(r) {
 	case "application/json":
 		var body struct {
 			Title string `json:"title"`
 		}
-		decoder := json.NewDecoder(r.Body)
-		// Reject misspelled fields, so {"name": ...} is an error rather than
-		// an untitled album.
-		decoder.DisallowUnknownFields()
-		if err := decoder.Decode(&body); err != nil && !errors.Is(err, io.EOF) {
-			return "", false
-		}
-		// Exactly one JSON value: reject trailing data.
-		if _, err := decoder.Token(); !errors.Is(err, io.EOF) {
+		// Strict, so {"name": ...} is an error rather than an untitled album.
+		// An empty body is an untitled album.
+		if err := decodeStrictJSON(r.Body, &body); err != nil && !errors.Is(err, io.EOF) {
 			return "", false
 		}
 		return body.Title, true
@@ -432,19 +425,8 @@ func makeAPICreateAlbumHandler(
 	limiter *ratelimit.RateLimiter,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			w.Header().Set("Allow", http.MethodPost)
-			writeAPIError(w, http.StatusMethodNotAllowed, "method_not_allowed", "Use POST")
-			return
-		}
-		orgUser, err := authenticateAPIRequest(r, identityRepo)
-		if err != nil || orgUser == nil {
-			w.Header().Set("WWW-Authenticate", `Bearer realm="imgdd"`)
-			writeAPIError(w, http.StatusUnauthorized, "invalid_api_key", "An API key is required to create albums")
-			return
-		}
-		if limiter.IsRateLimited(orgUser.Id) {
-			writeAPIError(w, http.StatusTooManyRequests, "rate_limited", "Rate limited")
+		orgUser := apiKeyRequest(w, r, identityRepo, limiter, "to create albums")
+		if orgUser == nil {
 			return
 		}
 		r.Body = http.MaxBytesReader(w, r.Body, apiMaxCreateAlbumBodyBytes)
