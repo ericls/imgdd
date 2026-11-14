@@ -172,6 +172,8 @@ func MakeServer(
 	rootRouter.Handle(apiCreateAlbumPath, makeAPICreateAlbumHandler(conf, identityRepo, imageRepo, createAlbumLimiter))
 	rootRouter.Handle(apiAddImagesToAlbumPath, makeAPIAddImagesToAlbumHandler(conf, identityRepo, imageRepo, albumEditLimiter))
 	rootRouter.Handle(apiRemoveImagesFromAlbumPath, makeAPIRemoveImagesFromAlbumHandler(conf, identityRepo, imageRepo, albumEditLimiter))
+	rootRouter.Handle(apiDocsMarkdownPath, makeAPIDocsMarkdownHandler(conf))
+	rootRouter.Handle(llmsTxtPath, makeLlmsTxtHandler(conf))
 	rootRouter.PathPrefix("/").Handler(appRouter)
 
 	srv := &http.Server{
