@@ -46,7 +46,7 @@ const ERROR_CODES: [string, number | string, string][] = [
   [
     "invalid_album",
     400,
-    "album was sent more than once (createImages), or is missing (addImagesToAlbum, removeImagesFromAlbum).",
+    "album is empty or missing (in createImages, an empty value, usually an unset variable), or was sent more than once (createImages).",
   ],
   [
     "album_not_found",
@@ -448,11 +448,13 @@ const { results } = await res.json();`}</CodeBlock>
       <p>
         <code>images</code> holds 1 to {MAX_ALBUM_IMAGES_PER_REQUEST} distinct
         image ids; <code>caption</code> is optional. The body can be at most{" "}
-        {MAX_ALBUM_BODY_MIB} MiB, a limit on bytes: long captions in other
-        scripts or emoji take more bytes per character, so send fewer images per
-        call if you get <code>request_too_large</code>. The response is the
-        album (as from <code>createAlbum</code>) and <code>added</code>, the
-        number of images that were not in the album yet.
+        {MAX_ALBUM_BODY_MIB} MiB. That fits full-length captions in any script
+        sent as UTF-8, but escaping them as <code>\uXXXX</code> (Python&apos;s{" "}
+        <code>json.dumps</code> default) can go over: send UTF-8 (
+        <code>ensure_ascii=False</code>) or fewer images per call if you get{" "}
+        <code>request_too_large</code>. The response is the album (as from{" "}
+        <code>createAlbum</code>) and <code>added</code>, the number of images
+        that were not in the album yet.
       </p>
 
       <h2 id="remove-images-from-album">removeImagesFromAlbum</h2>

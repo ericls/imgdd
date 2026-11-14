@@ -56,6 +56,8 @@ curl -s -H "Authorization: Bearer $IMGDD_API_KEY" \
 
 Anyone with an album's link can view it, but only the album's creator can add or remove images. Already-uploaded images can be added to more albums with `addImagesToAlbum`.
 
+An album's link is what grants access to it, so imgdd keeps it out of search engines, referrers and its Google Analytics. If you run your own instance with `CUSTOM_JS` that reports page URLs anywhere (analytics, session recording), keeping album links out of it is up to you: skip pages where `window.PRIVATE_LINK` is true, and paths under `/albums/` if your script tracks in-app navigation.
+
 ## Development
 
 ### Prerequisites
