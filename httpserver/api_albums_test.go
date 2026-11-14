@@ -370,6 +370,9 @@ func TestAPIAlbums(t *testing.T) {
 		mine := upload(ownerSecret)
 		theirs := upload(siteOwnerSecret)
 		guest := upload("")
+		expired := upload(ownerSecret)
+		_, err := conn.Exec("UPDATE image_table SET expires_at = now() - interval '1 minute' WHERE id = $1", expired)
+		require.NoError(t, err)
 		for name, tc := range map[string]struct {
 			secret string
 			body   string
@@ -380,6 +383,7 @@ func TestAPIAlbums(t *testing.T) {
 			"not the album owner":  {siteOwnerSecret, `{"album":"` + albumID + `","images":[{"id":"` + theirs + `"}]}`, http.StatusNotFound, "album_not_found"},
 			"someone else's image": {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `"},{"id":"` + theirs + `"}]}`, http.StatusNotFound, "image_not_found"},
 			"guest image":          {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + guest + `"}]}`, http.StatusNotFound, "image_not_found"},
+			"expired image":        {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + expired + `"}]}`, http.StatusNotFound, "image_not_found"},
 			"unknown image":        {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"00000000-0000-0000-0000-000000000009"}]}`, http.StatusNotFound, "image_not_found"},
 			"no images":            {ownerSecret, `{"album":"` + albumID + `","images":[]}`, http.StatusBadRequest, "invalid_images"},
 			"duplicate images":     {ownerSecret, `{"album":"` + albumID + `","images":[{"id":"` + mine + `"},{"id":"` + mine + `"}]}`, http.StatusBadRequest, "invalid_images"},

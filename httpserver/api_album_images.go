@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/ericls/imgdd/domainmodels"
@@ -52,32 +53,36 @@ type apiRemoveImagesFromAlbumResponse struct {
 	Removed int      `json:"removed"`
 }
 
-// decodeStrictJSON decodes exactly one JSON value into dest, rejecting
-// unknown fields so a misspelled field is an error rather than ignored.
-func decodeStrictJSON(r *http.Request, dest any) bool {
-	mediaType := strings.TrimSpace(strings.ToLower(strings.Split(r.Header.Get("Content-Type"), ";")[0]))
-	if mediaType != "application/json" {
-		return false
-	}
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(dest); err != nil {
-		return false
-	}
-	_, err := decoder.Token()
-	return errors.Is(err, io.EOF)
+// requestMediaType is the request's Content-Type without parameters,
+// lowercased.
+func requestMediaType(r *http.Request) string {
+	return strings.TrimSpace(strings.ToLower(strings.Split(r.Header.Get("Content-Type"), ";")[0]))
 }
 
-// albumEditRequest runs the checks shared by the calls that change an
-// album's images: POST, an API key, the per-user rate limit, and a JSON body.
-// It returns the caller, or nil after writing an error response.
-func albumEditRequest(
+// decodeStrictJSON decodes exactly one JSON value from body into dest,
+// rejecting unknown fields so a misspelled field is an error rather than
+// ignored. An empty body gives io.EOF.
+func decodeStrictJSON(body io.Reader, dest any) error {
+	decoder := json.NewDecoder(body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(dest); err != nil {
+		return err
+	}
+	if _, err := decoder.Token(); !errors.Is(err, io.EOF) {
+		return errors.New("unexpected data after the JSON value")
+	}
+	return nil
+}
+
+// apiKeyRequest runs the checks shared by the calls that need an API key:
+// POST, the key itself, and the per-user rate limit. It returns the caller,
+// or nil after writing an error response; unauthorized ends the 401 message.
+func apiKeyRequest(
 	w http.ResponseWriter,
 	r *http.Request,
 	identityRepo identity.IdentityRepo,
 	limiter *ratelimit.RateLimiter,
-	dest any,
-	shape string,
+	unauthorized string,
 ) *domainmodels.OrganizationUser {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Allow", http.MethodPost)
@@ -87,15 +92,33 @@ func albumEditRequest(
 	orgUser, err := authenticateAPIRequest(r, identityRepo)
 	if err != nil || orgUser == nil {
 		w.Header().Set("WWW-Authenticate", `Bearer realm="imgdd"`)
-		writeAPIError(w, http.StatusUnauthorized, "invalid_api_key", "An API key is required to change albums")
+		writeAPIError(w, http.StatusUnauthorized, "invalid_api_key", "An API key is required "+unauthorized)
 		return nil
 	}
 	if limiter.IsRateLimited(orgUser.Id) {
 		writeAPIError(w, http.StatusTooManyRequests, "rate_limited", "Rate limited")
 		return nil
 	}
+	return orgUser
+}
+
+// albumEditRequest runs the checks shared by the calls that change an
+// album's images: those of apiKeyRequest, and a JSON body. It returns the
+// caller, or nil after writing an error response.
+func albumEditRequest(
+	w http.ResponseWriter,
+	r *http.Request,
+	identityRepo identity.IdentityRepo,
+	limiter *ratelimit.RateLimiter,
+	dest any,
+	shape string,
+) *domainmodels.OrganizationUser {
+	orgUser := apiKeyRequest(w, r, identityRepo, limiter, "to change albums")
+	if orgUser == nil {
+		return nil
+	}
 	r.Body = http.MaxBytesReader(w, r.Body, apiMaxAlbumImagesBodyBytes)
-	if !decodeStrictJSON(r, dest) {
+	if requestMediaType(r) != "application/json" || decodeStrictJSON(r.Body, dest) != nil {
 		writeAPIError(w, http.StatusBadRequest, "invalid_request", "Expected a JSON body like "+shape)
 		return nil
 	}
@@ -141,7 +164,8 @@ func writeInvalidAlbumImages(w http.ResponseWriter) {
 // makeAPIAddImagesToAlbumHandler serves POST /api/v1/addImagesToAlbum.
 //
 // Request (JSON): {"album": id, "images": [{"id": imageId, "caption": text}]}.
-// The caller must own the album and every image, so nobody can put someone
+// The caller must own the album and every image, and the images must not
+// have expired. Owning the images means nobody can put someone
 // else's image on their album page. Images already in the album are skipped.
 //
 // Response: {"album": {"id", "url", "title"}, "added": n}.
@@ -188,9 +212,11 @@ func makeAPIAddImagesToAlbumHandler(
 			writeAPIError(w, http.StatusInternalServerError, "internal_error", "Internal error")
 			return
 		}
+		// Live images only: an expired image would never show in the album.
+		now := time.Now()
 		owned := make(map[string]bool, len(images))
 		for _, img := range images {
-			if img != nil && img.CreatedById == orgUser.Id {
+			if img != nil && img.CreatedById == orgUser.Id && !img.IsExpiredAt(now) {
 				owned[img.Id] = true
 			}
 		}
