@@ -172,6 +172,30 @@ func tPublicAlbumKeepsNewestImagesWhenTruncated(t *testing.T, tc *TestContext) {
 	require.Equal(t, 3, got.Images[1].Number)
 }
 
+// Numbers never change, so a removed image leaves a gap.
+func tPublicAlbumNumbersKeepGaps(t *testing.T, tc *TestContext) {
+	sd := createStorageDefinition(t, tc)
+	owner := tc.forceAuthenticate()
+	album, err := tc.imageRepo.CreateAlbum("gaps", owner.Id)
+	require.NoError(t, err)
+	first := createAlbumImage(t, tc, owner.Id, sd.Id, album.Id, "")
+	removed := createAlbumImage(t, tc, owner.Id, sd.Id, album.Id, "")
+	last := createAlbumImage(t, tc, owner.Id, sd.Id, album.Id, "")
+	_, err = tc.imageRepo.RemoveImagesFromAlbum(album.Id, []string{removed.Id})
+	require.NoError(t, err)
+
+	resp, err := queryPublicAlbum(tc, album.Identifier)
+	require.NoError(t, err)
+	got := resp.PublicAlbum
+	require.Equal(t, 2, got.ImageCount)
+	require.False(t, got.Truncated)
+	require.Len(t, got.Images, 2)
+	require.Equal(t, first.Id, got.Images[0].Image.ID)
+	require.Equal(t, 1, got.Images[0].Number)
+	require.Equal(t, last.Id, got.Images[1].Image.ID)
+	require.Equal(t, 3, got.Images[1].Number)
+}
+
 func tPublicAlbumShowsEachAlbumsOwnCaption(t *testing.T, tc *TestContext) {
 	sd := createStorageDefinition(t, tc)
 	owner := tc.forceAuthenticate()
@@ -214,6 +238,7 @@ func TestAlbumResolvers(t *testing.T) {
 		tPublicAlbumDoesNotExposeOwner,
 		tPublicAlbumNotFound,
 		tPublicAlbumKeepsNewestImagesWhenTruncated,
+		tPublicAlbumNumbersKeepGaps,
 		tPublicAlbumShowsEachAlbumsOwnCaption,
 	)
 }

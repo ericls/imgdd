@@ -23,8 +23,9 @@ type PublicAlbumImage {
   "When the image was added to this album."
   addedAt: Time!
   """
-  The image's place in the album, from 1 for the first image added. It stays the same as new images
-  arrive, so it can be used to refer to the image.
+  The image's number in the album, from 1 for the first image added, which sets its place in the
+  album's order. It never changes, so it can be used to refer to the image: removing or expiring an
+  image leaves a gap rather than renumbering the images after it.
   """
   number: Int!
 }

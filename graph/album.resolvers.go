@@ -21,21 +21,18 @@ func (r *queryResolver) PublicAlbum(ctx context.Context, id string) (*model.Publ
 		return nil, nil
 	}
 	// The repo keeps the most recently added images, oldest first, and
-	// numbers them within the whole album: the newest one's number is the
-	// album's size, and the list is truncated when the first is not 1.
-	images, err := r.ImageRepo.ListAlbumImages(album.Id, r.publicAlbumMaxImages())
+	// counts every live image in the album.
+	images, total, err := r.ImageRepo.ListAlbumImages(album.Id, r.publicAlbumMaxImages())
 	if err != nil {
 		return nil, err
 	}
 	result := &model.PublicAlbum{
-		ID:        album.Identifier,
-		Title:     album.Title,
-		CreatedAt: album.CreatedAt,
-		Images:    make([]*model.PublicAlbumImage, len(images)),
-	}
-	if len(images) > 0 {
-		result.ImageCount = images[len(images)-1].Number
-		result.Truncated = images[0].Number > 1
+		ID:         album.Identifier,
+		Title:      album.Title,
+		CreatedAt:  album.CreatedAt,
+		Images:     make([]*model.PublicAlbumImage, len(images)),
+		ImageCount: total,
+		Truncated:  total > len(images),
 	}
 	for i, entry := range images {
 		item := &model.PublicAlbumImage{
