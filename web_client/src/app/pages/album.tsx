@@ -80,10 +80,12 @@ export function AlbumPage() {
   // Follow new images like a log: keep the latest in view while the reader
   // is at the bottom, otherwise offer a button instead of jumping.
   const following = React.useRef(true);
-  // addedAt of the most recently added image already shown; undefined before
-  // the first load. Counting by time rather than list length keeps working
-  // once the album is truncated, when new images push old ones out.
-  const newestSeen = React.useRef<string | null | undefined>(undefined);
+  // Ids of the images already shown; undefined before the first load.
+  // Counting by id rather than list length keeps working once the album is
+  // truncated, when new images push old ones out, and rather than by time
+  // because an image can be added with an earlier time than one already
+  // shown (its upload started first but finished later).
+  const seen = React.useRef<Set<string> | undefined>(undefined);
   const [unseenCount, setUnseenCount] = React.useState(0);
   React.useEffect(() => {
     const onScroll = () => {
@@ -95,20 +97,17 @@ export function AlbumPage() {
   }, []);
   React.useEffect(() => {
     if (images === undefined) return;
-    const previous = newestSeen.current;
-    const newest = images.at(-1)?.addedAt ?? null;
-    newestSeen.current = newest;
+    const previous = seen.current;
+    seen.current = new Set([
+      ...(previous ?? []),
+      ...images.map((item) => item.image.id),
+    ]);
     if (previous === undefined) {
       // First load: start at the latest image.
       if (images.length > 0) scrollToBottom("auto");
       return;
     }
-    const added =
-      previous === null
-        ? images.length
-        : images.filter(
-            (item) => Date.parse(item.addedAt) > Date.parse(previous),
-          ).length;
+    const added = images.filter((item) => !previous.has(item.image.id)).length;
     if (added <= 0) return;
     if (following.current) {
       scrollToBottom("smooth");
@@ -200,9 +199,10 @@ function AlbumImage({
   position: number;
 }) {
   const { t } = useTranslation();
-  const { image, caption } = item;
+  const { image, caption, addedAt } = item;
   const url = absoluteURL(image.url);
-  const uploaded = useHumanizeDateTime({ datetimeStr: image.createdAt });
+  // When the image joined this album, which is what the list is ordered by.
+  const added = useHumanizeDateTime({ datetimeStr: addedAt });
   return (
     <li
       id={`album-image-${image.id}`}
@@ -227,11 +227,11 @@ function AlbumImage({
           {caption}
         </p>
         <time
-          dateTime={image.createdAt}
-          title={new Date(image.createdAt).toLocaleString()}
+          dateTime={addedAt}
+          title={new Date(addedAt).toLocaleString()}
           className={classNames("shrink-0 text-sm", SECONDARY_TEXT_COLOR_DIM)}
         >
-          {uploaded}
+          {added}
         </time>
       </div>
       <a href={url} target="_blank" rel="noopener noreferrer">
