@@ -95,8 +95,9 @@ func (repo *DBImageRepo) GetAlbumByIdentifier(identifier string) (*dm.Album, err
 
 // AddImagesToAlbum adds images to an album with their captions there, as
 // addedById. Images already in the album are left as they are, so adding is
-// idempotent. It returns how many images were newly added. Permission checks
-// are the caller's job; see dm.Album.
+// idempotent. New images go to the end of the album in the order given. It
+// returns how many images were newly added. Permission checks are the
+// caller's job; see dm.Album.
 func (repo *DBImageRepo) AddImagesToAlbum(albumId string, entries []dm.AlbumImageEntry, addedById string) (int, error) {
 	if len(entries) == 0 {
 		return 0, nil
@@ -207,9 +208,9 @@ func (repo *DBImageRepo) ListAlbumImages(albumId string, limit int) ([]*dm.Album
 				AND(ImageTable.ExpiresAt.IS_NULL().OR(ImageTable.ExpiresAt.GT(NOW()))),
 		)
 	if limit > 0 {
-		stmt = stmt.ORDER_BY(AlbumImageTable.AddedAt.DESC(), AlbumImageTable.ImageID.DESC()).LIMIT(int64(limit))
+		stmt = stmt.ORDER_BY(AlbumImageTable.Position.DESC()).LIMIT(int64(limit))
 	} else {
-		stmt = stmt.ORDER_BY(AlbumImageTable.AddedAt.ASC(), AlbumImageTable.ImageID.ASC())
+		stmt = stmt.ORDER_BY(AlbumImageTable.Position.ASC())
 	}
 	dest := []albumImageRow{}
 	if err := stmt.Query(repo.DB, &dest); err != nil {

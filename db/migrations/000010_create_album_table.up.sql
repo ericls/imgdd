@@ -23,13 +23,18 @@ CREATE TABLE album_image_table (
     image_id UUID NOT NULL REFERENCES image_table(id) ON DELETE CASCADE,
     caption CHARACTER VARYING(2000) NULL DEFAULT NULL,
     added_by_id UUID REFERENCES organization_user_table(id) ON DELETE SET NULL,
-    added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    -- clock_timestamp(), not now(): an upload adds its image only after the
+    -- file is stored, and now() would be the earlier start of its transaction.
+    added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT clock_timestamp(),
+    -- Album order. Taken from a sequence when the row is inserted, so images
+    -- added in one call keep the order they were given in.
+    position BIGINT GENERATED ALWAYS AS IDENTITY,
 
     PRIMARY KEY (album_id, image_id)
 );
 
 -- Album pages list images in the order they were added.
-CREATE INDEX album_image_table_album_id_added_at_idx ON album_image_table(album_id, added_at, image_id);
+CREATE INDEX album_image_table_album_id_position_idx ON album_image_table(album_id, position);
 -- Lets image deletes find their memberships.
 CREATE INDEX album_image_table_image_id_idx ON album_image_table(image_id);
 

@@ -52,8 +52,6 @@ func TestAlbumRepo(t *testing.T) {
 		if added != 1 {
 			t.Fatalf("expected 1 image added, got %d", added)
 		}
-		// added_at has microsecond resolution; keep the order unambiguous.
-		time.Sleep(2 * time.Millisecond)
 	}
 	listIds := func(album *dm.Album, limit int) ([]string, []string) {
 		t.Helper()
@@ -173,6 +171,24 @@ func TestAlbumRepo(t *testing.T) {
 		addToAlbum(album, older, "")
 		ids, _ := listIds(album, 0)
 		require.Equal(t, []string{newer.Id, older.Id}, ids)
+	})
+
+	t.Run("images added in one call keep the order they were given in", func(t *testing.T) {
+		album := newAlbum("one call")
+		entries := make([]dm.AlbumImageEntry, 20)
+		want := make([]string, len(entries))
+		for i := range entries {
+			img := createImage()
+			entries[i] = dm.AlbumImageEntry{ImageId: img.Id}
+			want[i] = img.Id
+		}
+		added, err := imageRepo.AddImagesToAlbum(album.Id, entries, owner.Id)
+		require.NoError(t, err)
+		require.Equal(t, len(entries), added)
+		ids, _ := listIds(album, 0)
+		require.Equal(t, want, ids)
+		newest, _ := listIds(album, 5)
+		require.Equal(t, want[15:], newest)
 	})
 
 	t.Run("removing leaves the image and its other albums alone", func(t *testing.T) {

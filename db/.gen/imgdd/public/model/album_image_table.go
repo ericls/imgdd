@@ -18,4 +18,5 @@ type AlbumImageTable struct {
 	Caption   *string
 	AddedByID *uuid.UUID
 	AddedAt   time.Time
+	Position  int64
 }
