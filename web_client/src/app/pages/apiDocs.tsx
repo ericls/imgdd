@@ -60,7 +60,7 @@ const ERROR_CODES: [string, number | string, string][] = [
   [
     "image_not_found",
     404,
-    "addImagesToAlbum: an image does not exist, was deleted, or does not belong to the API key's owner. Nothing was added.",
+    "addImagesToAlbum: an image does not exist, was deleted, has expired, or does not belong to the API key's owner. Nothing was added.",
   ],
   ["no_images", 400, 'No files were sent in the "image" field.'],
   [
@@ -420,9 +420,10 @@ const { results } = await res.json();`}</CodeBlock>
       </p>
       <p>
         Adds images you already uploaded to an album, each with its own caption
-        there. Requires an API key that owns the album and every image. The
-        request is all or nothing, and images already in the album are left as
-        they are, so it is safe to repeat.
+        there. Requires an API key that owns the album and every image, and the
+        images must not have expired. New images go to the end of the album in
+        the order given. The request is all or nothing, and images already in
+        the album are left as they are, so it is safe to repeat.
       </p>
       <CodeBlock>{`curl -H "Authorization: Bearer $IMGDD_API_KEY" \\
   -H "Content-Type: application/json" \\

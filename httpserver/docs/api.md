@@ -228,9 +228,11 @@ A JSON body:
 
 - `images` holds 1 to 100 distinct image `id`s, as returned by `createImages`.
   `caption` is optional, trimmed, and at most {{MAX_CAPTION}} characters.
-- Images already in the album are left as they are, caption included, so the
-  call is safe to repeat.
-- The request is all or nothing: if any image is not yours, nothing is added.
+- New images go to the end of the album, in the order given. Images already
+  in the album are left as they are, caption included, so the call is safe to
+  repeat.
+- The request is all or nothing: if any image is not yours, or has expired,
+  nothing is added.
 
 ```sh
 curl -s -H "Authorization: Bearer $IMGDD_API_KEY" -H "Content-Type: application/json" \
@@ -289,7 +291,7 @@ Match on `code`; `message` may change.
 | `album_not_found` | 404 | createImages, addImagesToAlbum, removeImagesFromAlbum | The album does not exist, or the API key does not belong to its creator. |
 | `invalid_caption` | 400 | createImages, addImagesToAlbum | A caption is too long, the number of captions is neither one nor one per image, or captions were sent without `album`. |
 | `invalid_images` | 400 | addImagesToAlbum, removeImagesFromAlbum | `images` is empty, has more than 100 entries, repeats an id, or has an id that is not an image id. |
-| `image_not_found` | 404 | addImagesToAlbum | An image does not exist, was deleted, or does not belong to the API key's owner. Nothing was added. |
+| `image_not_found` | 404 | addImagesToAlbum | An image does not exist, was deleted, has expired, or does not belong to the API key's owner. Nothing was added. |
 | `file_too_large` | 400, per image | createImages | The image exceeds your size limit. |
 | `mime_type_mismatch` | 400, per image | createImages | The file extension does not match the content, e.g. a PNG named `photo.jpg`. |
 | `empty_file` | 400, per image | createImages | The file is empty. |

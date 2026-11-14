@@ -80,6 +80,7 @@ func TestLlmsTxt(t *testing.T) {
 	require.Equal(t, "text/plain; charset=utf-8", res.Header().Get("Content-Type"))
 	require.True(t, strings.HasPrefix(res.Body.String(), "# imgdd\n\n> "))
 	require.Contains(t, res.Body.String(), "(http://example.com/docs/api.md)")
+	require.Contains(t, res.Body.String(), "addImagesToAlbum, removeImagesFromAlbum")
 }
 
 // Every error code the API can return must be documented, both in the

@@ -69,7 +69,7 @@ func renderLlmsTxt(urls docsURLs) string {
 	return "# imgdd\n\n" +
 		"> Self-hosted image hosting with an HTTP API. AI agents can upload screenshots into a live album page that a person watches while the agent works.\n\n" +
 		"## Docs\n\n" +
-		"- [HTTP API](" + urls.API + apiDocsMarkdownPath + "): authentication, createAlbum, createImages, error codes, and a quick start for agents sharing screenshots\n"
+		"- [HTTP API](" + urls.API + apiDocsMarkdownPath + "): authentication, createAlbum, createImages, addImagesToAlbum, removeImagesFromAlbum, error codes, and a quick start for agents sharing screenshots\n"
 }
 
 func serveText(conf *HttpServerConfigDef, contentType string, render func(docsURLs) string) http.HandlerFunc {
