@@ -47,8 +47,9 @@ type AlbumImage struct {
 	Caption string
 	// AddedAt is when the image was added to this album.
 	AddedAt time.Time
-	// Number is the image's place in the album's live images, from 1 for
-	// the first one added. It does not change as images are added, so the
-	// newest image's Number is how many images the album has.
+	// Number is the image's number in the album, from 1 for the first image
+	// added, and sets its place in the album's order. It never changes:
+	// removing or expiring an image leaves a gap in the numbers rather than
+	// renumbering the images after it.
 	Number int
 }

@@ -17,13 +17,14 @@ type albumTableTable struct {
 	postgres.Table
 
 	// Columns
-	ID          postgres.ColumnString
-	Identifier  postgres.ColumnString
-	Title       postgres.ColumnString
-	CreatedByID postgres.ColumnString
-	CreatedAt   postgres.ColumnTimestampz
-	UpdatedAt   postgres.ColumnTimestampz
-	DeletedAt   postgres.ColumnTimestampz
+	ID              postgres.ColumnString
+	Identifier      postgres.ColumnString
+	Title           postgres.ColumnString
+	CreatedByID     postgres.ColumnString
+	CreatedAt       postgres.ColumnTimestampz
+	UpdatedAt       postgres.ColumnTimestampz
+	DeletedAt       postgres.ColumnTimestampz
+	NextImageNumber postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -65,29 +66,31 @@ func newAlbumTableTable(schemaName, tableName, alias string) *AlbumTableTable {
 
 func newAlbumTableTableImpl(schemaName, tableName, alias string) albumTableTable {
 	var (
-		IDColumn          = postgres.StringColumn("id")
-		IdentifierColumn  = postgres.StringColumn("identifier")
-		TitleColumn       = postgres.StringColumn("title")
-		CreatedByIDColumn = postgres.StringColumn("created_by_id")
-		CreatedAtColumn   = postgres.TimestampzColumn("created_at")
-		UpdatedAtColumn   = postgres.TimestampzColumn("updated_at")
-		DeletedAtColumn   = postgres.TimestampzColumn("deleted_at")
-		allColumns        = postgres.ColumnList{IDColumn, IdentifierColumn, TitleColumn, CreatedByIDColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn}
-		mutableColumns    = postgres.ColumnList{IdentifierColumn, TitleColumn, CreatedByIDColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn}
-		defaultColumns    = postgres.ColumnList{IDColumn, TitleColumn, CreatedAtColumn, UpdatedAtColumn}
+		IDColumn              = postgres.StringColumn("id")
+		IdentifierColumn      = postgres.StringColumn("identifier")
+		TitleColumn           = postgres.StringColumn("title")
+		CreatedByIDColumn     = postgres.StringColumn("created_by_id")
+		CreatedAtColumn       = postgres.TimestampzColumn("created_at")
+		UpdatedAtColumn       = postgres.TimestampzColumn("updated_at")
+		DeletedAtColumn       = postgres.TimestampzColumn("deleted_at")
+		NextImageNumberColumn = postgres.IntegerColumn("next_image_number")
+		allColumns            = postgres.ColumnList{IDColumn, IdentifierColumn, TitleColumn, CreatedByIDColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn, NextImageNumberColumn}
+		mutableColumns        = postgres.ColumnList{IdentifierColumn, TitleColumn, CreatedByIDColumn, CreatedAtColumn, UpdatedAtColumn, DeletedAtColumn, NextImageNumberColumn}
+		defaultColumns        = postgres.ColumnList{IDColumn, TitleColumn, CreatedAtColumn, UpdatedAtColumn, NextImageNumberColumn}
 	)
 
 	return albumTableTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		ID:          IDColumn,
-		Identifier:  IdentifierColumn,
-		Title:       TitleColumn,
-		CreatedByID: CreatedByIDColumn,
-		CreatedAt:   CreatedAtColumn,
-		UpdatedAt:   UpdatedAtColumn,
-		DeletedAt:   DeletedAtColumn,
+		ID:              IDColumn,
+		Identifier:      IdentifierColumn,
+		Title:           TitleColumn,
+		CreatedByID:     CreatedByIDColumn,
+		CreatedAt:       CreatedAtColumn,
+		UpdatedAt:       UpdatedAtColumn,
+		DeletedAt:       DeletedAtColumn,
+		NextImageNumber: NextImageNumberColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

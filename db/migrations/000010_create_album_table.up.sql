@@ -9,6 +9,8 @@ CREATE TABLE album_table (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    -- The number the next image added to the album gets.
+    next_image_number BIGINT NOT NULL DEFAULT 1,
 
     CONSTRAINT album_table_unique_identifier UNIQUE(identifier)
 );
@@ -26,15 +28,17 @@ CREATE TABLE album_image_table (
     -- clock_timestamp(), not now(): an upload adds its image only after the
     -- file is stored, and now() would be the earlier start of its transaction.
     added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT clock_timestamp(),
-    -- Album order. Taken from a sequence when the row is inserted, so images
-    -- added in one call keep the order they were given in.
-    position BIGINT GENERATED ALWAYS AS IDENTITY,
+    -- The image's number in the album, which is also the album's order.
+    -- Taken from album_table.next_image_number while that row is locked, so
+    -- numbers follow the order in which additions commit, and are never
+    -- reused: removing or expiring an image leaves a gap instead of
+    -- renumbering the images after it.
+    number BIGINT NOT NULL,
 
-    PRIMARY KEY (album_id, image_id)
+    PRIMARY KEY (album_id, image_id),
+    CONSTRAINT album_image_table_unique_number UNIQUE (album_id, number)
 );
 
--- Album pages list images in the order they were added.
-CREATE INDEX album_image_table_album_id_position_idx ON album_image_table(album_id, position);
 -- Lets image deletes find their memberships.
 CREATE INDEX album_image_table_image_id_idx ON album_image_table(image_id);
 

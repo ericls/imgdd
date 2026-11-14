@@ -15,6 +15,7 @@ import (
 	"github.com/ericls/imgdd/utils"
 
 	. "github.com/go-jet/jet/v2/postgres"
+	"github.com/go-jet/jet/v2/qrm"
 	"github.com/google/uuid"
 )
 
@@ -93,11 +94,14 @@ func (repo *DBImageRepo) GetAlbumByIdentifier(identifier string) (*dm.Album, err
 	return albumFromRow(&dest[0]), nil
 }
 
+// ErrAlbumNotFound means the album to add images to does not exist.
+var ErrAlbumNotFound = errors.New("album not found")
+
 // AddImagesToAlbum adds images to an album with their captions there, as
-// addedById. Images already in the album are left as they are, so adding is
-// idempotent. New images go to the end of the album in the order given. It
-// returns how many images were newly added. Permission checks are the
-// caller's job; see dm.Album.
+// addedById. Images already in the album, or repeated in entries, are left as
+// they are, so adding is idempotent. New images get the album's next numbers
+// in the order given, which puts them at its end. It returns how many images
+// were newly added. Permission checks are the caller's job; see dm.Album.
 func (repo *DBImageRepo) AddImagesToAlbum(albumId string, entries []dm.AlbumImageEntry, addedById string) (int, error) {
 	if len(entries) == 0 {
 		return 0, nil
@@ -110,8 +114,9 @@ func (repo *DBImageRepo) AddImagesToAlbum(albumId string, entries []dm.AlbumImag
 	if parsed, err := uuid.Parse(addedById); err == nil {
 		addedBy = &parsed
 	}
-	rows := make([]model.AlbumImageTable, len(entries))
-	for i, entry := range entries {
+	rows := make([]model.AlbumImageTable, 0, len(entries))
+	given := make(map[uuid.UUID]bool, len(entries))
+	for _, entry := range entries {
 		if utf8.RuneCountInString(entry.Caption) > dm.ImageMaxCaptionLength {
 			return 0, ErrCaptionTooLong
 		}
@@ -119,24 +124,82 @@ func (repo *DBImageRepo) AddImagesToAlbum(albumId string, entries []dm.AlbumImag
 		if err != nil {
 			return 0, err
 		}
-		rows[i] = model.AlbumImageTable{AlbumID: parsedAlbumId, ImageID: imageId, AddedByID: addedBy}
+		if given[imageId] {
+			continue
+		}
+		given[imageId] = true
+		row := model.AlbumImageTable{AlbumID: parsedAlbumId, ImageID: imageId, AddedByID: addedBy}
 		if entry.Caption != "" {
 			caption := entry.Caption
-			rows[i].Caption = &caption
+			row.Caption = &caption
 		}
+		rows = append(rows, row)
 	}
-	stmt := AlbumImageTable.INSERT(
-		AlbumImageTable.AlbumID,
-		AlbumImageTable.ImageID,
-		AlbumImageTable.Caption,
-		AlbumImageTable.AddedByID,
-	).MODELS(rows).ON_CONFLICT(AlbumImageTable.AlbumID, AlbumImageTable.ImageID).DO_NOTHING()
-	result, err := stmt.Exec(repo.DB)
-	if err != nil {
-		return 0, err
-	}
-	added, err := result.RowsAffected()
-	return int(added), err
+	return db.RunInTransaction(repo, func(txRepo *DBImageRepo) (int, error) {
+		// Lock the album row until commit. Concurrent additions to the album
+		// wait here, so they take numbers in the order they commit, and an
+		// album page never sees a number appear below ones it already shows.
+		var album model.AlbumTable
+		err := SELECT(AlbumTable.NextImageNumber).
+			FROM(AlbumTable).
+			WHERE(AlbumTable.ID.EQ(UUID(parsedAlbumId))).
+			FOR(UPDATE()).
+			Query(txRepo.DB, &album)
+		if errors.Is(err, qrm.ErrNoRows) {
+			return 0, ErrAlbumNotFound
+		}
+		if err != nil {
+			return 0, err
+		}
+		// With the lock held, nobody else can add these images meanwhile.
+		ids := make([]Expression, len(rows))
+		for i, row := range rows {
+			ids[i] = UUID(row.ImageID)
+		}
+		var present []model.AlbumImageTable
+		err = SELECT(AlbumImageTable.ImageID).
+			FROM(AlbumImageTable).
+			WHERE(AlbumImageTable.AlbumID.EQ(UUID(parsedAlbumId)).AND(AlbumImageTable.ImageID.IN(ids...))).
+			Query(txRepo.DB, &present)
+		if err != nil && !errors.Is(err, qrm.ErrNoRows) {
+			return 0, err
+		}
+		inAlbum := make(map[uuid.UUID]bool, len(present))
+		for _, row := range present {
+			inAlbum[row.ImageID] = true
+		}
+		next := album.NextImageNumber
+		newRows := make([]model.AlbumImageTable, 0, len(rows))
+		for _, row := range rows {
+			if inAlbum[row.ImageID] {
+				continue
+			}
+			row.Number = next
+			next++
+			newRows = append(newRows, row)
+		}
+		if len(newRows) == 0 {
+			return 0, nil
+		}
+		_, err = AlbumImageTable.INSERT(
+			AlbumImageTable.AlbumID,
+			AlbumImageTable.ImageID,
+			AlbumImageTable.Caption,
+			AlbumImageTable.AddedByID,
+			AlbumImageTable.Number,
+		).MODELS(newRows).Exec(txRepo.DB)
+		if err != nil {
+			return 0, err
+		}
+		_, err = AlbumTable.UPDATE(AlbumTable.NextImageNumber).
+			SET(Int64(next)).
+			WHERE(AlbumTable.ID.EQ(UUID(parsedAlbumId))).
+			Exec(txRepo.DB)
+		if err != nil {
+			return 0, err
+		}
+		return len(newRows), nil
+	})
 }
 
 // RemoveImagesFromAlbum removes images from an album. The images themselves
@@ -187,24 +250,26 @@ func (repo *DBImageRepo) CreateAndSaveUploadedImageInAlbum(image *dm.Image, mime
 
 type albumImageRow struct {
 	model.AlbumImageTable
-	Image  model.ImageTable
-	Number int64
+	Image model.ImageTable
+	Total int64
 }
 
-// ListAlbumImages returns the album's live images in the order they were
-// added, oldest first. Deleted and expired images are left out, including
-// expired ones the cleanup task has not deleted yet. A positive limit keeps
-// the most recently added limit images (still returned oldest first), so a
-// live view keeps showing new additions; 0 or less means no limit.
-func (repo *DBImageRepo) ListAlbumImages(albumId string, limit int) ([]*dm.AlbumImage, error) {
+// ListAlbumImages returns the album's live images in album order (by
+// number, oldest first) and how many live images the album has. Deleted and
+// expired images are left out, including expired ones the cleanup task has
+// not deleted yet. A positive limit keeps the most recently added limit
+// images (still returned oldest first), so a live view keeps showing new
+// additions; 0 or less means no limit. The total counts every live image
+// either way.
+func (repo *DBImageRepo) ListAlbumImages(albumId string, limit int) ([]*dm.AlbumImage, int, error) {
 	parsed, err := uuid.Parse(albumId)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	// The window runs after WHERE and before LIMIT, so Number counts every
-	// live image in the album even when only the newest are returned.
-	number := ROW_NUMBER().OVER(ORDER_BY(AlbumImageTable.Position.ASC())).AS("albumImageRow.Number")
-	stmt := SELECT(AlbumImageTable.AllColumns, ImageTable.AllColumns, number).
+	// The window runs after WHERE and before LIMIT, so it counts every live
+	// image even when only the newest are returned.
+	total := COUNT(STAR).OVER().AS("albumImageRow.Total")
+	stmt := SELECT(AlbumImageTable.AllColumns, ImageTable.AllColumns, total).
 		FROM(AlbumImageTable.INNER_JOIN(ImageTable, ImageTable.ID.EQ(AlbumImageTable.ImageID))).
 		WHERE(
 			AlbumImageTable.AlbumID.EQ(UUID(parsed)).
@@ -212,13 +277,13 @@ func (repo *DBImageRepo) ListAlbumImages(albumId string, limit int) ([]*dm.Album
 				AND(ImageTable.ExpiresAt.IS_NULL().OR(ImageTable.ExpiresAt.GT(NOW()))),
 		)
 	if limit > 0 {
-		stmt = stmt.ORDER_BY(AlbumImageTable.Position.DESC()).LIMIT(int64(limit))
+		stmt = stmt.ORDER_BY(AlbumImageTable.Number.DESC()).LIMIT(int64(limit))
 	} else {
-		stmt = stmt.ORDER_BY(AlbumImageTable.Position.ASC())
+		stmt = stmt.ORDER_BY(AlbumImageTable.Number.ASC())
 	}
 	dest := []albumImageRow{}
-	if err := stmt.Query(repo.DB, &dest); err != nil {
-		return nil, err
+	if err := stmt.Query(repo.DB, &dest); err != nil && !errors.Is(err, qrm.ErrNoRows) {
+		return nil, 0, err
 	}
 	images := make([]*dm.AlbumImage, len(dest))
 	for i := range dest {
@@ -232,5 +297,9 @@ func (repo *DBImageRepo) ListAlbumImages(albumId string, limit int) ([]*dm.Album
 	if limit > 0 {
 		slices.Reverse(images)
 	}
-	return images, nil
+	count := 0
+	if len(dest) > 0 {
+		count = int(dest[0].Total)
+	}
+	return images, count, nil
 }

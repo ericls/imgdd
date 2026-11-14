@@ -3,6 +3,7 @@ package image_test
 import (
 	"errors"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -55,7 +56,7 @@ func TestAlbumRepo(t *testing.T) {
 	}
 	listIds := func(album *dm.Album, limit int) ([]string, []string) {
 		t.Helper()
-		images, err := imageRepo.ListAlbumImages(album.Id, limit)
+		images, _, err := imageRepo.ListAlbumImages(album.Id, limit)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -273,17 +274,82 @@ func TestAlbumRepo(t *testing.T) {
 		ids, _ = listIds(album, 2)
 		require.Equal(t, []string{expiresLater.Id, last.Id}, ids)
 
-		// Numbers count the live images, the same with or without a limit.
-		numbers := func(limit int) []int {
-			images, err := imageRepo.ListAlbumImages(album.Id, limit)
+		// Numbers never change: deleted and expired images leave gaps. The
+		// total counts the live images, with or without a limit.
+		numbers := func(limit int) ([]int, int) {
+			images, total, err := imageRepo.ListAlbumImages(album.Id, limit)
 			require.NoError(t, err)
 			out := make([]int, len(images))
 			for i, img := range images {
 				out[i] = img.Number
 			}
-			return out
+			return out, total
 		}
-		require.Equal(t, []int{1, 2, 3}, numbers(0))
-		require.Equal(t, []int{2, 3}, numbers(2))
+		got, total := numbers(0)
+		require.Equal(t, []int{1, 4, 5}, got)
+		require.Equal(t, 3, total)
+		got, total = numbers(2)
+		require.Equal(t, []int{4, 5}, got)
+		require.Equal(t, 3, total)
+
+		empty := newAlbum("empty")
+		images, total, err := imageRepo.ListAlbumImages(empty.Id, 10)
+		require.NoError(t, err)
+		require.Empty(t, images)
+		require.Zero(t, total)
+	})
+
+	t.Run("numbers are not reused after a removal", func(t *testing.T) {
+		album := newAlbum("gaps")
+		a, b, c := createImage(), createImage(), createImage()
+		addToAlbum(album, a, "")
+		addToAlbum(album, b, "")
+		_, err := imageRepo.RemoveImagesFromAlbum(album.Id, []string{b.Id})
+		require.NoError(t, err)
+		addToAlbum(album, c, "")
+		// Adding b again gives it a new number at the end.
+		addToAlbum(album, b, "")
+		images, _, err := imageRepo.ListAlbumImages(album.Id, 0)
+		require.NoError(t, err)
+		got := map[string]int{}
+		for _, img := range images {
+			got[img.Image.Id] = img.Number
+		}
+		require.Equal(t, map[string]int{a.Id: 1, c.Id: 3, b.Id: 4}, got)
+	})
+
+	t.Run("concurrent additions get distinct numbers in commit order", func(t *testing.T) {
+		album := newAlbum("concurrent")
+		const n = 20
+		imgs := make([]*dm.Image, n)
+		for i := range imgs {
+			imgs[i] = createImage()
+		}
+		var wg sync.WaitGroup
+		errs := make(chan error, n)
+		for _, img := range imgs {
+			wg.Add(1)
+			go func(img *dm.Image) {
+				defer wg.Done()
+				_, err := imageRepo.AddImagesToAlbum(album.Id, []dm.AlbumImageEntry{{ImageId: img.Id}}, owner.Id)
+				errs <- err
+			}(img)
+		}
+		wg.Wait()
+		close(errs)
+		for err := range errs {
+			require.NoError(t, err)
+		}
+		images, total, err := imageRepo.ListAlbumImages(album.Id, 0)
+		require.NoError(t, err)
+		require.Equal(t, n, total)
+		for i, img := range images {
+			require.Equal(t, i+1, img.Number)
+		}
+	})
+
+	t.Run("adding to a missing album fails", func(t *testing.T) {
+		_, err := imageRepo.AddImagesToAlbum(uuid.New().String(), []dm.AlbumImageEntry{{ImageId: createImage().Id}}, owner.Id)
+		require.ErrorIs(t, err, image.ErrAlbumNotFound)
 	})
 }

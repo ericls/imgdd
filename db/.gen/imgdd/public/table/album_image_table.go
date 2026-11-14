@@ -22,7 +22,7 @@ type albumImageTableTable struct {
 	Caption   postgres.ColumnString
 	AddedByID postgres.ColumnString
 	AddedAt   postgres.ColumnTimestampz
-	Position  postgres.ColumnInteger
+	Number    postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -69,9 +69,9 @@ func newAlbumImageTableTableImpl(schemaName, tableName, alias string) albumImage
 		CaptionColumn   = postgres.StringColumn("caption")
 		AddedByIDColumn = postgres.StringColumn("added_by_id")
 		AddedAtColumn   = postgres.TimestampzColumn("added_at")
-		PositionColumn  = postgres.IntegerColumn("position")
-		allColumns      = postgres.ColumnList{AlbumIDColumn, ImageIDColumn, CaptionColumn, AddedByIDColumn, AddedAtColumn, PositionColumn}
-		mutableColumns  = postgres.ColumnList{CaptionColumn, AddedByIDColumn, AddedAtColumn, PositionColumn}
+		NumberColumn    = postgres.IntegerColumn("number")
+		allColumns      = postgres.ColumnList{AlbumIDColumn, ImageIDColumn, CaptionColumn, AddedByIDColumn, AddedAtColumn, NumberColumn}
+		mutableColumns  = postgres.ColumnList{CaptionColumn, AddedByIDColumn, AddedAtColumn, NumberColumn}
 		defaultColumns  = postgres.ColumnList{CaptionColumn, AddedAtColumn}
 	)
 
@@ -84,7 +84,7 @@ func newAlbumImageTableTableImpl(schemaName, tableName, alias string) albumImage
 		Caption:   CaptionColumn,
 		AddedByID: AddedByIDColumn,
 		AddedAt:   AddedAtColumn,
-		Position:  PositionColumn,
+		Number:    NumberColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,

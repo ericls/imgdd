@@ -13,11 +13,12 @@ import (
 )
 
 type AlbumTable struct {
-	ID          uuid.UUID `sql:"primary_key"`
-	Identifier  string
-	Title       string
-	CreatedByID *uuid.UUID
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   *time.Time
+	ID              uuid.UUID `sql:"primary_key"`
+	Identifier      string
+	Title           string
+	CreatedByID     *uuid.UUID
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	DeletedAt       *time.Time
+	NextImageNumber int64
 }
