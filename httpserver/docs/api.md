@@ -111,9 +111,12 @@ updates live. Requires an API key.
 
 ### Request
 
-An optional `title`, sent as JSON (`{"title": "..."}`), as form data, or
-omitted entirely. Titles are trimmed and can be at most {{MAX_TITLE}}
-characters. An album without a title is shown as "Untitled album".
+An optional `title`, sent as JSON (`{"title": "..."}`, with
+`Content-Type: application/json`), as form data, or omitted entirely. Other
+fields are rejected, so JSON sent without the JSON `Content-Type` (curl `-d`
+alone sends it as a form) is an `invalid_request`, not an untitled album.
+Titles are trimmed and can be at most {{MAX_TITLE}} characters. An album
+without a title is shown as "Untitled album".
 
 ### Response
 
@@ -278,16 +281,16 @@ Match on `code`; `message` may change.
 | --- | --- | --- | --- |
 | `method_not_allowed` | 405 | all | The request did not use `POST`. |
 | `invalid_api_key` | 401 | all | The `Authorization` header is malformed or the key is unknown or revoked. For every call but `createImages`, also when no key was sent. |
-| `invalid_request` | 400 | all | The body could not be parsed: not multipart for `createImages`; not JSON or form data with at most one `title` for `createAlbum`; not JSON in the documented shape, or with unknown fields, for `addImagesToAlbum` and `removeImagesFromAlbum`. |
+| `invalid_request` | 400 | all | The body could not be parsed: not multipart for `createImages`; not JSON or form data with at most one `title` and no other fields for `createAlbum`; not JSON (with `Content-Type: application/json`) in the documented shape, or with unknown fields, for `addImagesToAlbum` and `removeImagesFromAlbum`. |
 | `rate_limited` | 429 | all | Too many requests: anonymous uploads per IP (reported per image), or album calls per user. Slow down. |
 | `internal_error` | 500 | all | Something went wrong on the server. |
 | `invalid_title` | 400 | createAlbum | The title is longer than {{MAX_TITLE}} characters. |
 | `upload_disabled` | 403 | createImages | This instance is not accepting new images. |
-| `request_too_large` | 413 | createImages | The request body is larger than the instance allows. |
+| `request_too_large` | 413 | all | The request body is larger than the instance allows. For `addImagesToAlbum` and `removeImagesFromAlbum` the limit is {{MAX_ALBUM_BODY_MIB}} MiB. |
 | `no_images` | 400 | createImages | No files were sent in the `image` field. |
 | `too_many_images` | 400 | createImages | More than {{MAX_IMAGES}} files were sent. |
 | `invalid_expires_in` | 400 | createImages | `expires_in` is not a whole number between {{MIN_EXPIRES_IN}} and {{MAX_EXPIRES_IN}}, or was sent more than once. |
-| `invalid_album` | 400 | createImages | `album` was sent more than once. |
+| `invalid_album` | 400 | createImages, addImagesToAlbum, removeImagesFromAlbum | `album` was sent more than once (createImages), or is missing (the album calls). |
 | `album_not_found` | 404 | createImages, addImagesToAlbum, removeImagesFromAlbum | The album does not exist, or the API key does not belong to its creator. |
 | `invalid_caption` | 400 | createImages, addImagesToAlbum | A caption is too long, the number of captions is neither one nor one per image, or captions were sent without `album`. |
 | `invalid_images` | 400 | addImagesToAlbum, removeImagesFromAlbum | `images` is empty, has more than 100 entries, repeats an id, or has an id that is not an image id. |

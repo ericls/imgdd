@@ -24,7 +24,7 @@ const ERROR_CODES: [string, number | string, string][] = [
   [
     "invalid_request",
     400,
-    "The body could not be parsed: not multipart/form-data for createImages; not JSON or form data with at most one title for createAlbum; not JSON in the documented shape, or with unknown fields, for addImagesToAlbum and removeImagesFromAlbum.",
+    "The body could not be parsed: not multipart/form-data for createImages; not JSON or form data with at most one title and no other fields for createAlbum; not JSON (with Content-Type: application/json) in the documented shape, or with unknown fields, for addImagesToAlbum and removeImagesFromAlbum.",
   ],
   [
     "invalid_title",
@@ -34,14 +34,18 @@ const ERROR_CODES: [string, number | string, string][] = [
   [
     "request_too_large",
     413,
-    "The request body is larger than the instance allows.",
+    "The request body is larger than the instance allows. For addImagesToAlbum and removeImagesFromAlbum the limit is 1 MiB.",
   ],
   [
     "invalid_expires_in",
     400,
     `expires_in is not a whole number of seconds between ${MIN_EXPIRES_IN_SECONDS} and ${MAX_EXPIRES_IN_SECONDS}, or was sent more than once.`,
   ],
-  ["invalid_album", 400, "album was sent more than once."],
+  [
+    "invalid_album",
+    400,
+    "album was sent more than once (createImages), or is missing (addImagesToAlbum, removeImagesFromAlbum).",
+  ],
   [
     "album_not_found",
     404,
@@ -91,7 +95,11 @@ const ERROR_CODES: [string, number | string, string][] = [
     429,
     "Too many requests: anonymous uploads from your IP address (reported per image), or album calls by your account. Slow down.",
   ],
-  ["internal_error", "500 (per image)", "Something went wrong on the server."],
+  [
+    "internal_error",
+    500,
+    "Something went wrong on the server. createImages reports it per image.",
+  ],
 ];
 
 function CodeBlock({ children }: { children: string }) {
@@ -208,8 +216,11 @@ export function APIDocsPage() {
       <h3>Request</h3>
       <p>
         An optional <code>title</code>, sent as JSON (
-        <code>{`{"title": "..."}`}</code>), as form data, or omitted. Titles are
-        trimmed and can be at most {MAX_TITLE_LENGTH} characters.
+        <code>{`{"title": "..."}`}</code>, with{" "}
+        <code>Content-Type: application/json</code>), as form data, or omitted.
+        Other fields are rejected, so JSON sent as a form (curl <code>-d</code>{" "}
+        alone) is an error rather than an untitled album. Titles are trimmed and
+        can be at most {MAX_TITLE_LENGTH} characters.
       </p>
       <CodeBlock>{`curl -H "Authorization: Bearer $IMGDD_API_KEY" \\
   --data-urlencode "title=Fix login page layout" \\
