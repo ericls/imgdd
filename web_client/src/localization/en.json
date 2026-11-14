@@ -169,7 +169,6 @@
       "live": "Updates live",
       "empty": "No images yet. New uploads appear here automatically.",
       "truncated": "Only the latest {{count}} images are shown.",
-      "jumpToLatest": "Jump to latest",
       "newImages_one": "{{count}} new image",
       "newImages_other": "{{count}} new images",
       "openFullSize": "Open full size",

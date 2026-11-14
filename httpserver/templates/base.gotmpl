@@ -50,6 +50,9 @@
       window.VERSION = "{{.Version}}";
       window.SITE_NAME = "{{.SiteName}}";
       window.GAID = "{{if not .PrivateLink}}{{.GoogleAnalyticsID}}{{end}}";
+      // True on album pages, whose URL is a private link. Custom JS that sends
+      // page URLs anywhere must check it (see CUSTOM_JS).
+      window.PRIVATE_LINK = {{if .PrivateLink}}true{{else}}false{{end}};
       window.SUPPORT_EMAIL = "support@imgdd.com"
       window.SESSION_HEADER_NAME = "{{.SessionHeaderName}}";
 </script>

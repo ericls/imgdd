@@ -101,7 +101,10 @@ const albumPathPrefix = "/albums/"
 
 // isPrivateLinkPage reports whether path is a page whose URL itself grants
 // access (an album link). Such pages must not be indexed, and their URLs must
-// not be sent to third parties such as analytics.
+// not be sent to third parties such as analytics. imgdd keeps its own
+// analytics off them; the operator's custom JS still runs, and is the
+// operator's responsibility (see CUSTOM_JS). window.PRIVATE_LINK tells it
+// which pages these are.
 func isPrivateLinkPage(path string) bool {
 	return strings.HasPrefix(path, albumPathPrefix)
 }
