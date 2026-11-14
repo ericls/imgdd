@@ -131,6 +131,10 @@ func makeAppHandler(
 		privateLink := isPrivateLinkPage(r.URL.Path)
 		if privateLink {
 			w.Header().Set("X-Robots-Tag", "noindex, nofollow")
+			// Pages opened from here (an image's page in a new tab, say) must
+			// not learn the album URL from the Referer, nor pass it on to
+			// analytics.
+			w.Header().Set("Referrer-Policy", "no-referrer")
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		err = parsedTemplate.Execute(w, struct {

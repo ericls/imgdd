@@ -27,12 +27,15 @@ func TestAppHandlerKeepsAlbumLinksPrivate(t *testing.T) {
 	album := serve("/albums/Q2xhdWRlQ29kZUFsYnVt")
 	require.Equal(t, "noindex, nofollow", album.Header().Get("X-Robots-Tag"))
 	require.Contains(t, album.Body.String(), `<meta name="robots" content="noindex, nofollow" />`)
+	require.Equal(t, "no-referrer", album.Header().Get("Referrer-Policy"))
+	require.Contains(t, album.Body.String(), `<meta name="referrer" content="no-referrer" />`)
 	// The album URL grants access, so it must not reach analytics.
 	require.NotContains(t, album.Body.String(), "G-TEST")
 
 	for _, path := range []string{"/", "/images/abc", "/albums"} {
 		page := serve(path)
 		require.Empty(t, page.Header().Get("X-Robots-Tag"), path)
+		require.Empty(t, page.Header().Get("Referrer-Policy"), path)
 		require.NotContains(t, page.Body.String(), `name="robots"`, path)
 		require.True(t, strings.Contains(page.Body.String(), "G-TEST"), path)
 	}
