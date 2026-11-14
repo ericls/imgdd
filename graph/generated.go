@@ -164,17 +164,19 @@ type ComplexityRoot struct {
 	}
 
 	PublicAlbum struct {
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Images    func(childComplexity int) int
-		Title     func(childComplexity int) int
-		Truncated func(childComplexity int) int
+		CreatedAt  func(childComplexity int) int
+		ID         func(childComplexity int) int
+		ImageCount func(childComplexity int) int
+		Images     func(childComplexity int) int
+		Title      func(childComplexity int) int
+		Truncated  func(childComplexity int) int
 	}
 
 	PublicAlbumImage struct {
 		AddedAt func(childComplexity int) int
 		Caption func(childComplexity int) int
 		Image   func(childComplexity int) int
+		Number  func(childComplexity int) int
 	}
 
 	PublicImage struct {
@@ -837,6 +839,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.PublicAlbum.ID(childComplexity), true
+	case "PublicAlbum.imageCount":
+		if e.ComplexityRoot.PublicAlbum.ImageCount == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicAlbum.ImageCount(childComplexity), true
 	case "PublicAlbum.images":
 		if e.ComplexityRoot.PublicAlbum.Images == nil {
 			break
@@ -874,6 +882,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.PublicAlbumImage.Image(childComplexity), true
+	case "PublicAlbumImage.number":
+		if e.ComplexityRoot.PublicAlbumImage.Number == nil {
+			break
+		}
+
+		return e.ComplexityRoot.PublicAlbumImage.Number(childComplexity), true
 
 	case "PublicImage.createdAt":
 		if e.ComplexityRoot.PublicImage.CreatedAt == nil {
@@ -1585,6 +1599,8 @@ func (ec *executionContext) childFields_PublicAlbum(ctx context.Context, field g
 		return ec.fieldContext_PublicAlbum_createdAt(ctx, field)
 	case "images":
 		return ec.fieldContext_PublicAlbum_images(ctx, field)
+	case "imageCount":
+		return ec.fieldContext_PublicAlbum_imageCount(ctx, field)
 	case "truncated":
 		return ec.fieldContext_PublicAlbum_truncated(ctx, field)
 	}
@@ -1599,6 +1615,8 @@ func (ec *executionContext) childFields_PublicAlbumImage(ctx context.Context, fi
 		return ec.fieldContext_PublicAlbumImage_caption(ctx, field)
 	case "addedAt":
 		return ec.fieldContext_PublicAlbumImage_addedAt(ctx, field)
+	case "number":
+		return ec.fieldContext_PublicAlbumImage_number(ctx, field)
 	}
 	return nil, fmt.Errorf("no field named %q was found under type PublicAlbumImage", field.Name)
 }
@@ -4512,6 +4530,29 @@ func (ec *executionContext) fieldContext_PublicAlbum_images(_ context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _PublicAlbum_imageCount(ctx context.Context, field graphql.CollectedField, obj *model.PublicAlbum) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicAlbum_imageCount(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.ImageCount, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicAlbum_imageCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicAlbum", field, false, false, errors.New("field of type Int does not have child fields"))
+}
+
 func (ec *executionContext) _PublicAlbum_truncated(ctx context.Context, field graphql.CollectedField, obj *model.PublicAlbum) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -4611,6 +4652,29 @@ func (ec *executionContext) _PublicAlbumImage_addedAt(ctx context.Context, field
 }
 func (ec *executionContext) fieldContext_PublicAlbumImage_addedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("PublicAlbumImage", field, false, false, errors.New("field of type Time does not have child fields"))
+}
+
+func (ec *executionContext) _PublicAlbumImage_number(ctx context.Context, field graphql.CollectedField, obj *model.PublicAlbumImage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_PublicAlbumImage_number(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.Number, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v int) graphql.Marshaler {
+			return ec.marshalNInt2int(ctx, selections, v)
+		},
+		true,
+		true,
+	)
+}
+func (ec *executionContext) fieldContext_PublicAlbumImage_number(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("PublicAlbumImage", field, false, false, errors.New("field of type Int does not have child fields"))
 }
 
 func (ec *executionContext) _PublicImage_id(ctx context.Context, field graphql.CollectedField, obj *model.PublicImage) (ret graphql.Marshaler) {
@@ -9240,6 +9304,11 @@ func (ec *executionContext) _PublicAlbum(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "imageCount":
+			out.Values[i] = ec._PublicAlbum_imageCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "truncated":
 			out.Values[i] = ec._PublicAlbum_truncated(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -9288,6 +9357,11 @@ func (ec *executionContext) _PublicAlbumImage(ctx context.Context, sel ast.Selec
 			out.Values[i] = ec._PublicAlbumImage_caption(ctx, field, obj)
 		case "addedAt":
 			out.Values[i] = ec._PublicAlbumImage_addedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "number":
+			out.Values[i] = ec._PublicAlbumImage_number(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}

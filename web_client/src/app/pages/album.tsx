@@ -26,13 +26,13 @@ const _PublicAlbumImageFields = gql(`
   fragment PublicAlbumImageFields on PublicAlbumImage {
     caption
     addedAt
+    number
     image {
       id
       url
       name
       nominalWidth
       nominalHeight
-      createdAt
     }
   }
 `);
@@ -43,6 +43,7 @@ const PublicAlbumDoc = gql(`
       id
       title
       createdAt
+      imageCount
       truncated
       images {
         ...PublicAlbumImageFields
@@ -75,16 +76,17 @@ export function AlbumPage() {
   });
   const album = data?.publicAlbum;
   const images = album?.images;
-  const imageCount = images?.length ?? 0;
+  const shownCount = images?.length ?? 0;
 
   // Follow new images like a log: keep the latest in view while the reader
   // is at the bottom, otherwise offer a button instead of jumping.
   const following = React.useRef(true);
-  // Ids of the images already shown; undefined before the first load.
-  // Counting by id rather than list length keeps working once the album is
-  // truncated, when new images push old ones out, and rather than by time
+  // Ids of the images in the previous poll; undefined before the first
+  // load. Comparing ids rather than list length keeps working once the album
+  // is truncated, when new images push old ones out, and rather than times
   // because an image can be added with an earlier time than one already
-  // shown (its upload started first but finished later).
+  // shown. Only the previous poll counts, so an image removed and added
+  // again is new again.
   const seen = React.useRef<Set<string> | undefined>(undefined);
   const [unseenCount, setUnseenCount] = React.useState(0);
   React.useEffect(() => {
@@ -98,10 +100,7 @@ export function AlbumPage() {
   React.useEffect(() => {
     if (images === undefined) return;
     const previous = seen.current;
-    seen.current = new Set([
-      ...(previous ?? []),
-      ...images.map((item) => item.image.id),
-    ]);
+    seen.current = new Set(images.map((item) => item.image.id));
     if (previous === undefined) {
       // First load: start at the latest image.
       if (images.length > 0) scrollToBottom("auto");
@@ -140,7 +139,7 @@ export function AlbumPage() {
             SECONDARY_TEXT_COLOR_DIM,
           )}
         >
-          <span>{t("album.imageCount", { count: imageCount })}</span>
+          <span>{t("album.imageCount", { count: album.imageCount })}</span>
           <span aria-hidden>&middot;</span>
           <span className="inline-flex items-center gap-1.5">
             <span className="relative flex h-2 w-2" aria-hidden>
@@ -152,12 +151,12 @@ export function AlbumPage() {
         </div>
         {album.truncated && (
           <p className={classNames("mt-2 text-sm", SECONDARY_TEXT_COLOR_DIM)}>
-            {t("album.truncated", { count: imageCount })}
+            {t("album.truncated", { count: shownCount })}
           </p>
         )}
       </header>
 
-      {imageCount === 0 ? (
+      {shownCount === 0 ? (
         <p
           className={classNames(
             "rounded-md p-8 text-center",
@@ -169,8 +168,8 @@ export function AlbumPage() {
         </p>
       ) : (
         <ol className="space-y-6">
-          {images?.map((item, index) => (
-            <AlbumImage key={item.image.id} item={item} position={index + 1} />
+          {images?.map((item) => (
+            <AlbumImage key={item.image.id} item={item} />
           ))}
         </ol>
       )}
@@ -191,13 +190,7 @@ export function AlbumPage() {
   );
 }
 
-function AlbumImage({
-  item,
-  position,
-}: {
-  item: PublicAlbumImageFieldsFragment;
-  position: number;
-}) {
+function AlbumImage({ item }: { item: PublicAlbumImageFieldsFragment }) {
   const { t } = useTranslation();
   const { image, caption, addedAt } = item;
   const url = absoluteURL(image.url);
@@ -215,7 +208,7 @@ function AlbumImage({
             SECONDARY_TEXT_COLOR_DIM,
           )}
         >
-          #{position}
+          #{item.number}
         </span>
         {/* Captions are plain text: never rendered as HTML or links. */}
         <p

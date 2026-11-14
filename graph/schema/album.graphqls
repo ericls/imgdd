@@ -9,6 +9,8 @@ type PublicAlbum {
   title: String!
   createdAt: Time!
   images: [PublicAlbumImage!]!
+  "How many images the album has, which can be more than are listed."
+  imageCount: Int!
   "Whether the album has more images than are listed. Only the most recently added are listed then."
   truncated: Boolean!
 }
@@ -18,8 +20,13 @@ type PublicAlbumImage {
   image: PublicImage!
   "Describes the image in this album."
   caption: String
-  "When the image was added to this album, which sets its place in the album's order."
+  "When the image was added to this album."
   addedAt: Time!
+  """
+  The image's place in the album, from 1 for the first image added. It stays the same as new images
+  arrive, so it can be used to refer to the image.
+  """
+  number: Int!
 }
 
 extend type Query {

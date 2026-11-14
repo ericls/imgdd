@@ -20,27 +20,28 @@ func (r *queryResolver) PublicAlbum(ctx context.Context, id string) (*model.Publ
 	if album == nil {
 		return nil, nil
 	}
-	// Fetch one extra image to tell whether the list is truncated. The repo
-	// keeps the most recently added images, oldest first, so the extra one is the first.
-	images, err := r.ImageRepo.ListAlbumImages(album.Id, PublicAlbumMaxImages+1)
+	// The repo keeps the most recently added images, oldest first, and
+	// numbers them within the whole album: the newest one's number is the
+	// album's size, and the list is truncated when the first is not 1.
+	images, err := r.ImageRepo.ListAlbumImages(album.Id, r.publicAlbumMaxImages())
 	if err != nil {
 		return nil, err
-	}
-	truncated := len(images) > PublicAlbumMaxImages
-	if truncated {
-		images = images[len(images)-PublicAlbumMaxImages:]
 	}
 	result := &model.PublicAlbum{
 		ID:        album.Identifier,
 		Title:     album.Title,
 		CreatedAt: album.CreatedAt,
 		Images:    make([]*model.PublicAlbumImage, len(images)),
-		Truncated: truncated,
+	}
+	if len(images) > 0 {
+		result.ImageCount = images[len(images)-1].Number
+		result.Truncated = images[0].Number > 1
 	}
 	for i, entry := range images {
 		item := &model.PublicAlbumImage{
 			Image:   model.FromPublicImage(entry.Image.ToPublic()),
 			AddedAt: entry.AddedAt,
+			Number:  entry.Number,
 		}
 		if entry.Caption != "" {
 			caption := entry.Caption

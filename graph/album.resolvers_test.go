@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/ericls/imgdd/domainmodels"
-	"github.com/ericls/imgdd/graph"
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/google/uuid"
@@ -14,12 +13,14 @@ import (
 
 type publicAlbumResp struct {
 	PublicAlbum *struct {
-		ID        string
-		Title     string
-		Truncated bool
-		Images    []struct {
+		ID         string
+		Title      string
+		Truncated  bool
+		ImageCount int
+		Images     []struct {
 			Caption *string
 			AddedAt string
+			Number  int
 			Image   struct {
 				ID            string
 				URL           string
@@ -37,9 +38,11 @@ func queryPublicAlbum(tc *TestContext, id string) (*publicAlbumResp, error) {
 			id
 			title
 			truncated
+			imageCount
 			images {
 				caption
 				addedAt
+				number
 				image { id url viewerIsOwner }
 			}
 		}
@@ -97,6 +100,7 @@ func tPublicAlbumIsReadableByLinkHolders(t *testing.T, tc *TestContext) {
 	require.Equal(t, album.Identifier, got.ID)
 	require.Equal(t, "Fix login layout", got.Title)
 	require.False(t, got.Truncated)
+	require.Equal(t, 2, got.ImageCount)
 	require.Len(t, got.Images, 2)
 	require.Equal(t, first.Id, got.Images[0].Image.ID)
 	require.Equal(t, "before fix", *got.Images[0].Caption)
@@ -143,9 +147,8 @@ func tPublicAlbumNotFound(t *testing.T, tc *TestContext) {
 }
 
 func tPublicAlbumKeepsNewestImagesWhenTruncated(t *testing.T, tc *TestContext) {
-	previous := graph.PublicAlbumMaxImages
-	graph.PublicAlbumMaxImages = 2
-	defer func() { graph.PublicAlbumMaxImages = previous }()
+	tc.resolver.PublicAlbumMaxImages = 2
+	defer func() { tc.resolver.PublicAlbumMaxImages = 0 }()
 
 	sd := createStorageDefinition(t, tc)
 	owner := tc.forceAuthenticate()
@@ -160,9 +163,13 @@ func tPublicAlbumKeepsNewestImagesWhenTruncated(t *testing.T, tc *TestContext) {
 	got := resp.PublicAlbum
 	require.NotNil(t, got)
 	require.True(t, got.Truncated)
+	require.Equal(t, 3, got.ImageCount)
 	require.Len(t, got.Images, 2)
 	require.Equal(t, middle.Id, got.Images[0].Image.ID)
 	require.Equal(t, newest.Id, got.Images[1].Image.ID)
+	// Numbers are places in the whole album, not in the list.
+	require.Equal(t, 2, got.Images[0].Number)
+	require.Equal(t, 3, got.Images[1].Number)
 }
 
 func tPublicAlbumShowsEachAlbumsOwnCaption(t *testing.T, tc *TestContext) {
