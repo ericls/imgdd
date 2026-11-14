@@ -40,6 +40,7 @@ func TestAPIDocsMarkdown(t *testing.T) {
 	require.Contains(t, body, "at most "+strconv.Itoa(domainmodels.AlbumMaxTitleLength)+" characters. An album")
 	require.Contains(t, body, "from 60 to 31536000")
 	require.Contains(t, body, "the limit is 1 MiB")
+	require.Contains(t, body, "holds 1 to 100 distinct image")
 	require.Contains(t, body, `"url": "http://example.com/image/8f1c2d7e-0b4a-4c9e-a1f2-3d4e5f6a7b8c.png"`)
 	require.Contains(t, body, `"pageUrl": "http://example.com/images/`)
 	// Built from the request's Host, so shared caches must not store it.

@@ -7,6 +7,8 @@ import { routes } from "~src/routes";
 // Keep in sync with httpserver/api_handlers.go and api_album_images.go.
 const MAX_IMAGES_PER_REQUEST = 5;
 const MAX_ALBUM_IMAGES_PER_REQUEST = 100;
+// apiMaxAlbumImagesBodyBytes in httpserver/api_album_images.go, in MiB.
+const MAX_ALBUM_BODY_MIB = 1;
 const MIN_EXPIRES_IN_SECONDS = 60;
 const MAX_EXPIRES_IN_SECONDS = 31536000;
 // Keep in sync with domainmodels/album.go.
@@ -34,7 +36,7 @@ const ERROR_CODES: [string, number | string, string][] = [
   [
     "request_too_large",
     413,
-    "The request body is larger than the instance allows. For addImagesToAlbum and removeImagesFromAlbum the limit is 1 MiB.",
+    `The request body is larger than the instance allows. For addImagesToAlbum and removeImagesFromAlbum the limit is ${MAX_ALBUM_BODY_MIB} MiB.`,
   ],
   [
     "invalid_expires_in",
@@ -219,8 +221,9 @@ export function APIDocsPage() {
         <code>{`{"title": "..."}`}</code>, with{" "}
         <code>Content-Type: application/json</code>), as form data, or omitted.
         Other fields are rejected, so JSON sent as a form (curl <code>-d</code>{" "}
-        alone) is an error rather than an untitled album. Titles are trimmed and
-        can be at most {MAX_TITLE_LENGTH} characters.
+        alone), a body with no Content-Type, or a title in the query string is
+        an error rather than an untitled album. Titles are trimmed and can be at
+        most {MAX_TITLE_LENGTH} characters.
       </p>
       <CodeBlock>{`curl -H "Authorization: Bearer $IMGDD_API_KEY" \\
   --data-urlencode "title=Fix login page layout" \\
@@ -444,9 +447,12 @@ const { results } = await res.json();`}</CodeBlock>
   ${addEndpoint}`}</CodeBlock>
       <p>
         <code>images</code> holds 1 to {MAX_ALBUM_IMAGES_PER_REQUEST} distinct
-        image ids; <code>caption</code> is optional. The response is the album
-        (as from <code>createAlbum</code>) and <code>added</code>, the number of
-        images that were not in the album yet.
+        image ids; <code>caption</code> is optional. The body can be at most{" "}
+        {MAX_ALBUM_BODY_MIB} MiB, a limit on bytes: long captions in other
+        scripts or emoji take more bytes per character, so send fewer images per
+        call if you get <code>request_too_large</code>. The response is the
+        album (as from <code>createAlbum</code>) and <code>added</code>, the
+        number of images that were not in the album yet.
       </p>
 
       <h2 id="remove-images-from-album">removeImagesFromAlbum</h2>

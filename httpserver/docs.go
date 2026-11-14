@@ -61,6 +61,7 @@ func renderAPIDocsMarkdown(urls docsURLs) string {
 		"{{MAX_CAPTION}}", strconv.Itoa(domainmodels.ImageMaxCaptionLength),
 		"{{MAX_TITLE}}", strconv.Itoa(domainmodels.AlbumMaxTitleLength),
 		"{{MAX_ALBUM_BODY_MIB}}", strconv.Itoa(apiMaxAlbumImagesBodyBytes>>20),
+		"{{MAX_ALBUM_IMAGES}}", strconv.Itoa(apiMaxAlbumImagesPerRequest),
 	).Replace(apiDocsMarkdown)
 }
 

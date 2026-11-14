@@ -114,7 +114,8 @@ updates live. Requires an API key.
 An optional `title`, sent as JSON (`{"title": "..."}`, with
 `Content-Type: application/json`), as form data, or omitted entirely. Other
 fields are rejected, so JSON sent without the JSON `Content-Type` (curl `-d`
-alone sends it as a form) is an `invalid_request`, not an untitled album.
+alone sends it as a form) is an `invalid_request`, not an untitled album. So
+is a body with no `Content-Type` at all, and a `title` in the query string.
 Titles are trimmed and can be at most {{MAX_TITLE}} characters. An album
 without a title is shown as "Untitled album".
 
@@ -229,8 +230,12 @@ A JSON body:
 }
 ```
 
-- `images` holds 1 to 100 distinct image `id`s, as returned by `createImages`.
+- `images` holds 1 to {{MAX_ALBUM_IMAGES}} distinct image `id`s, as returned by `createImages`.
   `caption` is optional, trimmed, and at most {{MAX_CAPTION}} characters.
+- The whole body can be at most {{MAX_ALBUM_BODY_MIB}} MiB. That fits
+  {{MAX_ALBUM_IMAGES}} images with full-length captions in plain ASCII, but
+  long captions in other scripts or emoji take more bytes per character: send
+  fewer images per call if you get `request_too_large`.
 - New images go to the end of the album, in the order given. Images already
   in the album are left as they are, caption included, so the call is safe to
   repeat.
@@ -264,7 +269,7 @@ albums. Requires the API key of the album's creator.
 {"album": "O96EBCnmxZoNOUE4rJDw0A", "images": ["4a0b6f0e-1c5d-4f3a-9a53-2d1f6b8e0c11"]}
 ```
 
-`images` holds 1 to 100 distinct image `id`s. Ids that are not in the album are
+`images` holds 1 to {{MAX_ALBUM_IMAGES}} distinct image `id`s. Ids that are not in the album are
 ignored.
 
 ### Response
@@ -281,7 +286,7 @@ Match on `code`; `message` may change.
 | --- | --- | --- | --- |
 | `method_not_allowed` | 405 | all | The request did not use `POST`. |
 | `invalid_api_key` | 401 | all | The `Authorization` header is malformed or the key is unknown or revoked. For every call but `createImages`, also when no key was sent. |
-| `invalid_request` | 400 | all | The body could not be parsed: not multipart for `createImages`; not JSON or form data with at most one `title` and no other fields for `createAlbum`; not JSON (with `Content-Type: application/json`) in the documented shape, or with unknown fields, for `addImagesToAlbum` and `removeImagesFromAlbum`. |
+| `invalid_request` | 400 | all | The body could not be parsed: not multipart for `createImages`; not JSON or form data with at most one `title` and no other fields, or a query string, for `createAlbum`; not JSON (with `Content-Type: application/json`) in the documented shape, or with unknown fields, for `addImagesToAlbum` and `removeImagesFromAlbum`. |
 | `rate_limited` | 429 | all | Too many requests: anonymous uploads per IP (reported per image), or album calls per user. Slow down. |
 | `internal_error` | 500 | all | Something went wrong on the server. |
 | `invalid_title` | 400 | createAlbum | The title is longer than {{MAX_TITLE}} characters. |
@@ -293,7 +298,7 @@ Match on `code`; `message` may change.
 | `invalid_album` | 400 | createImages, addImagesToAlbum, removeImagesFromAlbum | `album` was sent more than once (createImages), or is missing (the album calls). |
 | `album_not_found` | 404 | createImages, addImagesToAlbum, removeImagesFromAlbum | The album does not exist, or the API key does not belong to its creator. |
 | `invalid_caption` | 400 | createImages, addImagesToAlbum | A caption is too long, the number of captions is neither one nor one per image, or captions were sent without `album`. |
-| `invalid_images` | 400 | addImagesToAlbum, removeImagesFromAlbum | `images` is empty, has more than 100 entries, repeats an id, or has an id that is not an image id. |
+| `invalid_images` | 400 | addImagesToAlbum, removeImagesFromAlbum | `images` is empty, has more than {{MAX_ALBUM_IMAGES}} entries, repeats an id, or has an id that is not an image id. |
 | `image_not_found` | 404 | addImagesToAlbum | An image does not exist, was deleted, has expired, or does not belong to the API key's owner. Nothing was added. |
 | `file_too_large` | 400, per image | createImages | The image exceeds your size limit. |
 | `mime_type_mismatch` | 400, per image | createImages | The file extension does not match the content, e.g. a PNG named `photo.jpg`. |
