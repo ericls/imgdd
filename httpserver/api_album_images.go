@@ -25,8 +25,10 @@ const apiRemoveImagesFromAlbumPath = "/api/v1/removeImagesFromAlbum"
 // accepts.
 const apiMaxAlbumImagesPerRequest = 100
 
-// apiMaxAlbumImagesBodyBytes caps the add/remove request body: 100 captions
-// at their maximum length, plus room for ids and JSON.
+// apiMaxAlbumImagesBodyBytes caps the add/remove request body. It is a
+// limit on bytes, while captions are limited in characters: a full call of
+// maximum-length ASCII captions fits, but long non-ASCII or \u-escaped
+// captions can need fewer images per call. The docs say so.
 const apiMaxAlbumImagesBodyBytes = 1 << 20
 
 type apiAddImagesToAlbumRequest struct {
@@ -172,20 +174,36 @@ func resolveOwnedAlbum(w http.ResponseWriter, identifier string, orgUser *domain
 	return album
 }
 
-// parseAlbumImageIds validates the image ids of an add or remove call.
+// albumImageIdParser validates the image ids of one add or remove call, one
+// at a time: each must be an image id, and none may repeat.
+type albumImageIdParser map[string]bool
+
+func (seen albumImageIdParser) parse(id string) (string, bool) {
+	u, err := uuid.Parse(strings.TrimSpace(id))
+	if err != nil || seen[u.String()] {
+		return "", false
+	}
+	seen[u.String()] = true
+	return u.String(), true
+}
+
+// validAlbumImageCount reports whether n images are allowed in one call.
+func validAlbumImageCount(n int) bool {
+	return n > 0 && n <= apiMaxAlbumImagesPerRequest
+}
+
+// parseAlbumImageIds validates the image ids of a remove call.
 func parseAlbumImageIds(ids []string) ([]string, bool) {
-	if len(ids) == 0 || len(ids) > apiMaxAlbumImagesPerRequest {
+	if !validAlbumImageCount(len(ids)) {
 		return nil, false
 	}
-	seen := make(map[string]bool, len(ids))
+	parser := albumImageIdParser{}
 	parsed := make([]string, len(ids))
 	for i, id := range ids {
-		u, err := uuid.Parse(strings.TrimSpace(id))
-		if err != nil || seen[u.String()] {
+		var ok bool
+		if parsed[i], ok = parser.parse(id); !ok {
 			return nil, false
 		}
-		seen[u.String()] = true
-		parsed[i] = u.String()
 	}
 	return parsed, true
 }
@@ -220,25 +238,34 @@ func makeAPIAddImagesToAlbumHandler(
 		if album == nil {
 			return
 		}
-		ids := make([]string, len(req.Images))
-		for i, img := range req.Images {
-			ids[i] = img.ID
-		}
-		ids, ok := parseAlbumImageIds(ids)
-		if !ok {
+		if !validAlbumImageCount(len(req.Images)) {
 			writeInvalidAlbumImages(w)
 			return
 		}
-		entries := make([]domainmodels.AlbumImageEntry, len(ids))
+		// Each image's id and caption are read together, so a caption can
+		// only ever describe the image it was sent with.
+		parser := albumImageIdParser{}
+		ids := make([]string, len(req.Images))
+		entries := make([]domainmodels.AlbumImageEntry, len(req.Images))
+		captionTooLong := false
 		for i, img := range req.Images {
-			caption := strings.TrimSpace(img.Caption)
-			if utf8.RuneCountInString(caption) > domainmodels.ImageMaxCaptionLength {
-				writeAPIError(w, http.StatusBadRequest, "invalid_caption", fmt.Sprintf(
-					"Each caption must be at most %d characters", domainmodels.ImageMaxCaptionLength,
-				))
+			id, ok := parser.parse(img.ID)
+			if !ok {
+				writeInvalidAlbumImages(w)
 				return
 			}
-			entries[i] = domainmodels.AlbumImageEntry{ImageId: ids[i], Caption: caption}
+			caption := strings.TrimSpace(img.Caption)
+			if utf8.RuneCountInString(caption) > domainmodels.ImageMaxCaptionLength {
+				captionTooLong = true
+			}
+			ids[i] = id
+			entries[i] = domainmodels.AlbumImageEntry{ImageId: id, Caption: caption}
+		}
+		if captionTooLong {
+			writeAPIError(w, http.StatusBadRequest, "invalid_caption", fmt.Sprintf(
+				"Each caption must be at most %d characters", domainmodels.ImageMaxCaptionLength,
+			))
+			return
 		}
 
 		images, err := imageRepo.GetImagesByIds(ids)

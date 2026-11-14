@@ -177,6 +177,9 @@ func TestAPIAlbums(t *testing.T) {
 			{"application/x-www-form-urlencoded", `{"title":"Fix login"}`},
 			{"application/x-www-form-urlencoded", "name=misspelled"},
 			{"application/json; charset", `{"title":"bad header"}`},
+			// A body without a Content-Type, as Python's requests sends a string.
+			{"", `{"title":"Fix login"}`},
+			{"", "title=Fix+login"},
 		} {
 			res := createAlbum(nil, ownerSecret, tc[0], tc[1])
 			require.Equal(t, http.StatusBadRequest, res.Code, tc)
@@ -189,7 +192,15 @@ func TestAPIAlbums(t *testing.T) {
 			require.Equal(t, "request_too_large", decodeCreateAlbum(t, res).Error.Code, contentType)
 		}
 
-		req := httptest.NewRequest(http.MethodGet, "/api/v1/createAlbum", nil)
+		// A title in the query string is rejected rather than ignored.
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/createAlbum?title=Fix+login", nil)
+		req.Header.Set("Authorization", "Bearer "+ownerSecret)
+		res = httptest.NewRecorder()
+		httpserver.MakeAPICreateAlbumHandler(conf, identityRepo, imageRepo, ratelimit.NewRateLimiter(100, 100)).ServeHTTP(res, req)
+		require.Equal(t, http.StatusBadRequest, res.Code)
+		require.Equal(t, "invalid_request", decodeCreateAlbum(t, res).Error.Code)
+
+		req = httptest.NewRequest(http.MethodGet, "/api/v1/createAlbum", nil)
 		res = httptest.NewRecorder()
 		httpserver.MakeAPICreateAlbumHandler(conf, identityRepo, imageRepo, ratelimit.NewRateLimiter(100, 100)).ServeHTTP(res, req)
 		require.Equal(t, http.StatusMethodNotAllowed, res.Code)
@@ -224,7 +235,7 @@ func TestAPIAlbums(t *testing.T) {
 			require.Equal(t, "http://example.com/albums/"+albumID, *got.AlbumURL)
 			require.Equal(t, "http://example.com/images/"+got.ID, got.PageURL)
 		}
-		images, err := imageRepo.ListAlbumImages(album.Id, 0)
+		images, _, err := imageRepo.ListAlbumImages(album.Id, 0)
 		require.NoError(t, err)
 		require.Len(t, images, 2)
 		for i, caption := range []string{"before fix", "after fix"} {
@@ -292,7 +303,7 @@ func TestAPIAlbums(t *testing.T) {
 			require.Equal(t, "album_not_found", out.Error.Code, name)
 			require.Empty(t, out.Results, name)
 		}
-		images, err := imageRepo.ListAlbumImages(mustAlbum(t, imageRepo, albumID).Id, 0)
+		images, _, err := imageRepo.ListAlbumImages(mustAlbum(t, imageRepo, albumID).Id, 0)
 		require.NoError(t, err)
 		require.Empty(t, images)
 	})
@@ -344,7 +355,7 @@ func TestAPIAlbums(t *testing.T) {
 	}
 	albumContents := func(albumID string) map[string]string {
 		t.Helper()
-		images, err := imageRepo.ListAlbumImages(mustAlbum(t, imageRepo, albumID).Id, 0)
+		images, _, err := imageRepo.ListAlbumImages(mustAlbum(t, imageRepo, albumID).Id, 0)
 		require.NoError(t, err)
 		out := map[string]string{}
 		for _, img := range images {
@@ -367,6 +378,14 @@ func TestAPIAlbums(t *testing.T) {
 		require.Equal(t, 1, out.Added)
 		require.Equal(t, map[string]string{shot: "step 3"}, albumContents(run))
 		require.Equal(t, map[string]string{shot: ""}, albumContents(showcase))
+
+		// Each caption goes with the image it was sent with.
+		pair := newAlbum("pairs")
+		other := upload(ownerSecret)
+		code, out = addImages(ownerSecret, `{"album":"`+pair+`","images":[{"id":"`+other+`","caption":"first"},{"id":"`+shot+`","caption":"second"}]}`)
+		require.Equal(t, http.StatusOK, code)
+		require.Equal(t, 2, out.Added)
+		require.Equal(t, map[string]string{other: "first", shot: "second"}, albumContents(pair))
 
 		// Adding again is a no-op that keeps the first caption.
 		code, out = addImages(ownerSecret, `{"album":"`+run+`","images":[{"id":"`+shot+`","caption":"changed"}]}`)

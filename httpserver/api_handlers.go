@@ -293,12 +293,7 @@ func makeAPICreateImagesHandler(
 			defer r.MultipartForm.RemoveAll()
 		}
 		if err != nil {
-			var maxBytesErr *http.MaxBytesError
-			if errors.As(err, &maxBytesErr) {
-				writeAPIError(w, http.StatusRequestEntityTooLarge, "request_too_large", "Request body is too large")
-				return
-			}
-			writeAPIError(w, http.StatusBadRequest, "invalid_request", "Expected a multipart/form-data body")
+			writeBodyError(w, err, "Expected a multipart/form-data body")
 			return
 		}
 
@@ -395,6 +390,11 @@ var errInvalidCreateAlbumBody = errors.New("invalid createAlbum body")
 // form Content-Type (curl -d's default), is an error rather than an untitled
 // album.
 func readCreateAlbumTitle(r *http.Request) (string, error) {
+	// The title belongs in the body; one in the query string would otherwise
+	// be dropped without a word.
+	if r.URL.RawQuery != "" {
+		return "", errInvalidCreateAlbumBody
+	}
 	switch requestMediaType(r) {
 	case "application/json":
 		var body struct {
@@ -416,7 +416,19 @@ func readCreateAlbumTitle(r *http.Request) (string, error) {
 		if len(r.MultipartForm.File) > 0 {
 			return "", errInvalidCreateAlbumBody
 		}
-	case "application/x-www-form-urlencoded", "":
+	case "":
+		// No Content-Type is only accepted for an empty body: any content is
+		// ambiguous (Python's requests sends a JSON string like this) and
+		// would otherwise be ignored.
+		n, err := r.Body.Read(make([]byte, 1))
+		if n > 0 {
+			return "", errInvalidCreateAlbumBody
+		}
+		if err != nil && !errors.Is(err, io.EOF) {
+			return "", err
+		}
+		return "", nil
+	case "application/x-www-form-urlencoded":
 		if err := r.ParseForm(); err != nil {
 			return "", err
 		}
