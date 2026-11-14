@@ -1,0 +1,35 @@
+"""
+An album as shown to anyone holding its link, including anonymous visitors. Like PublicImage, it
+must not expose the owner, or which other albums its images are in. Images are listed in the order they
+were added, oldest first; deleted and expired images are left out.
+"""
+type PublicAlbum {
+  "The album's public identifier, as used in its link and the HTTP API."
+  id: ID!
+  title: String!
+  createdAt: Time!
+  images: [PublicAlbumImage!]!
+  "How many images the album has, which can be more than are listed."
+  imageCount: Int!
+  "Whether the album has more images than are listed. Only the most recently added are listed then."
+  truncated: Boolean!
+}
+
+"An image's place in an album. The same image can be in several albums, with a different caption in each."
+type PublicAlbumImage {
+  image: PublicImage!
+  "Describes the image in this album."
+  caption: String
+  "When the image was added to this album."
+  addedAt: Time!
+  """
+  The image's number in the album, from 1 for the first image added, which sets its place in the
+  album's order. It never changes, so it can be used to refer to the image: removing or expiring an
+  image leaves a gap rather than renumbering the images after it.
+  """
+  number: Int!
+}
+
+extend type Query {
+  publicAlbum(id: ID!): PublicAlbum
+}

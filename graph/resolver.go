@@ -38,4 +38,7 @@ type Resolver struct {
 	AllowNewUser             bool
 	ImageMaxUploadBytes      int64
 	GuestImageMaxUploadBytes int64
+	// PublicAlbumMaxImages caps the images publicAlbum returns; 0 means
+	// DefaultPublicAlbumMaxImages.
+	PublicAlbumMaxImages int
 }

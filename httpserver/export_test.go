@@ -5,3 +5,6 @@ var MakeAPICreateImagesHandler = makeAPICreateImagesHandler
 var MakeAPICreateAlbumHandler = makeAPICreateAlbumHandler
 var MakeAPIAddImagesToAlbumHandler = makeAPIAddImagesToAlbumHandler
 var MakeAPIRemoveImagesFromAlbumHandler = makeAPIRemoveImagesFromAlbumHandler
+var MakeAppHandler = makeAppHandler
+var WithTemplateFS = withTemplateFS
+var WithGoogleAnalyticsID = withGoogleAnalyticsID

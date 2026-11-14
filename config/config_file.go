@@ -55,7 +55,7 @@ type HTTPServerConfigFileDef struct {
 	RECAPTCHA_SERVER_KEY         string `toml:"RECAPTCHA_SERVER_KEY" comment:"Recaptcha server key. Used if CAPTCHA_PROVIDER is 'recaptcha'"`
 	TURNSTILE_SECRET_KEY         string `toml:"TURNSTILE_SECRET_KEY" comment:"Turnstile secret key. Used if CAPTCHA_PROVIDER is 'turnstile'"`
 	CUSTOM_CSS                   string `toml:"CUSTOM_CSS" comment:"Custom CSS"`
-	CUSTOM_JS                    string `toml:"CUSTOM_JS" comment:"Custom JS"`
+	CUSTOM_JS                    string `toml:"CUSTOM_JS" comment:"Custom JS, added to every page, including album pages, whose URL is the private link to the album. imgdd turns Google Analytics off on album pages, but not this script: if it sends page URLs to a third party (analytics, session recording), skip album pages yourself: window.PRIVATE_LINK is true when an album page is loaded, and a script that also tracks in-app navigation must skip paths under /albums/."`
 	GOOGLE_ANALYTICS_ID          string `toml:"GOOGLE_ANALYTICS_ID" comment:"Google Analytics measurement ID (e.g. G-XXXXXXX). When set, injects gtag.js and exposes window.GAID."`
 	ALLOW_UPLOAD                 string `toml:"ALLOW_UPLOAD" comment:"Allow uploading new images. 'true', '1' or 'yes' to enable"`
 	ALLOW_NEW_USER               string `toml:"ALLOW_NEW_USER" comment:"Allow new user creation. 'true', '1' or 'yes' to enable"`

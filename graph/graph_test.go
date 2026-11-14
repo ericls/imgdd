@@ -50,6 +50,7 @@ type TestContext struct {
 	client             *client.Client
 	authenticationInfo *identity.AuthenticationInfo
 	contextUserManager *TestContextUserManager
+	resolver           *graph.Resolver
 }
 
 // TestContextUserManager ultilizes TestContext to provide forced authentication
@@ -135,6 +136,7 @@ func newTestContext(tObj *testing.T) *TestContext {
 		server:             server,
 		client:             client,
 		authenticationInfo: &identity.AuthenticationInfo{},
+		resolver:           resolver,
 	}
 
 	// override context user manager

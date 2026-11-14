@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
+	"strings"
 
 	"github.com/ericls/imgdd/buildflag"
 	"github.com/ericls/imgdd/captcha"
@@ -94,6 +95,20 @@ func withGoogleAnalyticsID(id string) func(*appHandlerOptions) {
 	}
 }
 
+// albumPathPrefix is where the web client serves album pages, at
+// albumPathPrefix + <album identifier>.
+const albumPathPrefix = "/albums/"
+
+// isPrivateLinkPage reports whether path is a page whose URL itself grants
+// access (an album link). Such pages must not be indexed, and their URLs must
+// not be sent to third parties such as analytics. imgdd keeps its own
+// analytics off them; the operator's custom JS still runs, and is the
+// operator's responsibility (see CUSTOM_JS). window.PRIVATE_LINK tells it
+// which pages these are.
+func isPrivateLinkPage(path string) bool {
+	return strings.HasPrefix(path, albumPathPrefix)
+}
+
 func makeAppHandler(
 	options ...appHandlerOption,
 ) http.HandlerFunc {
@@ -116,6 +131,14 @@ func makeAppHandler(
 		} else {
 			sessionHeaderName = opts.sessionHeaderName
 		}
+		privateLink := isPrivateLinkPage(r.URL.Path)
+		if privateLink {
+			w.Header().Set("X-Robots-Tag", "noindex, nofollow")
+			// Pages opened from here (an image's page in a new tab, say) must
+			// not learn the album URL from the Referer, nor pass it on to
+			// analytics.
+			w.Header().Set("Referrer-Policy", "no-referrer")
+		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		err = parsedTemplate.Execute(w, struct {
 			Version            string
@@ -130,6 +153,7 @@ func makeAppHandler(
 			CustomCSS          template.CSS
 			CustomJS           template.JS
 			GoogleAnalyticsID  string
+			PrivateLink        bool
 		}{
 			Version:            buildflag.Version,
 			Debug:              buildflag.IsDebug,
@@ -143,6 +167,7 @@ func makeAppHandler(
 			CustomCSS:          template.CSS(opts.customCSS),
 			CustomJS:           template.JS(opts.customJS),
 			GoogleAnalyticsID:  opts.googleAnalyticsID,
+			PrivateLink:        privateLink,
 		})
 		if err != nil {
 			httpLogger.Err(err).Msg("Error rendering template")

@@ -138,7 +138,7 @@ func imagePageURL(r *http.Request, webUIHost string, imageId string) string {
 
 // albumPageURL is the absolute URL of an album's page in the web UI.
 func albumPageURL(r *http.Request, webUIHost string, albumIdentifier string) string {
-	return webUIBaseURL(r, webUIHost).JoinPath("albums", albumIdentifier).String()
+	return webUIBaseURL(r, webUIHost).JoinPath(albumPathPrefix, albumIdentifier).String()
 }
 
 // resolveUploadAlbum reads the optional album form field. It returns the
